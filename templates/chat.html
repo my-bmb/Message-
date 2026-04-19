@@ -151,7 +151,7 @@
         margin-top: 4px;
     }
 
-    /* Call Buttons - Clearly Visible */
+    /* Call Buttons */
     .call-buttons {
         display: flex;
         gap: 8px;
@@ -438,7 +438,7 @@
         z-index: 99;
     }
 
-    /* Fixed Footer - Left: File Picker, Right: Send Button */
+    /* Fixed Footer */
     .chat-footer {
         position: fixed;
         bottom: 0;
@@ -771,7 +771,7 @@
         <i class="fas fa-ellipsis-h"></i> Typing...
     </div>
 
-    <!-- Fixed Footer - Left: File Picker, Right: Send Button -->
+    <!-- Fixed Footer -->
     <div class="chat-footer">
         <button class="footer-btn" id="attachBtn" title="Attach file">
             <i class="fas fa-paperclip"></i>
@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageModal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
 
-    // User IDs
+    // User IDs from template
     const currentUserId = "{{ current_user.id }}";
     const otherUserId = "{{ other_user.id }}";
 
@@ -1350,7 +1350,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Call buttons
+    // Call buttons - Redirect to call pages
     audioCallBtn.onclick = function() { 
         window.location.href = `/audio-call/${otherUserId}`; 
     };
