@@ -1,446 +1,1221 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chat with {{ other_user.username }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #e5ddd5; font-family: 'Segoe UI', system-ui, sans-serif; height: 100vh; overflow: hidden; }
-        .chat-container { display: flex; flex-direction: column; height: 100%; background: white; }
-        .chat-header {
-            background: #075e54;
-            color: white;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+{% extends "base.html" %}
+
+{% block title %}Chat with {{ other_user.username }}{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #0D0D0D;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        overflow: hidden;
+        height: 100vh;
+    }
+
+    :root {
+        --service-card-base: #0D0D0D;
+        --service-title: #A0A0A0;
+        --service-icon: #8e7d4d;
+        --golden-vivid: #D4AF37;
+        --golden-metallic: #C0B283;
+        --service-border-detail: #333333;
+        --service-status-available: #2E7D32;
+        --creamy-white: #F4F1E1;
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        --my-message-bg: rgba(212, 175, 55, 0.15);
+        --other-message-bg: rgba(20, 20, 20, 0.8);
+    }
+
+    /* Main Container */
+    .chat-dashboard {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background: var(--service-card-base);
+    }
+
+    /* Fixed Header */
+    .dashboard-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: var(--service-card-base);
+        border-bottom: 2px solid var(--service-border-detail);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .back-btn {
+        color: var(--service-icon);
+        font-size: 1.3rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+        color: var(--golden-vivid);
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-name {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--creamy-white);
+    }
+
+    .user-status {
+        font-size: 0.7rem;
+        color: var(--service-title);
+    }
+
+    .user-status.online {
+        color: var(--service-status-available);
+    }
+
+    .chat-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-container {
+        position: relative;
+    }
+
+    .search-input {
+        background: rgba(20, 20, 20, 0.8);
+        border: 1px solid var(--service-border-detail);
+        border-radius: 20px;
+        padding: 6px 12px;
+        color: var(--creamy-white);
+        font-size: 0.75rem;
+        width: 140px;
+        transition: all 0.3s;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--service-icon);
+        width: 180px;
+    }
+
+    .search-results {
+        position: absolute;
+        top: 40px;
+        right: 0;
+        background: var(--service-card-base);
+        border: 1px solid var(--service-border-detail);
+        border-radius: 8px;
+        min-width: 250px;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-shadow: var(--card-shadow);
+    }
+
+    .search-result-item {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--service-border-detail);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .search-result-item:hover {
+        background: rgba(142, 125, 77, 0.1);
+    }
+
+    .search-result-content {
+        font-size: 0.8rem;
+        color: var(--creamy-white);
+    }
+
+    .search-result-time {
+        font-size: 0.65rem;
+        color: var(--service-title);
+        margin-top: 4px;
+    }
+
+    /* Call Buttons - Clearly Visible */
+    .call-buttons {
+        display: flex;
+        gap: 8px;
+        background: rgba(142, 125, 77, 0.15);
+        padding: 4px 10px;
+        border-radius: 30px;
+        border: 1px solid var(--service-icon);
+    }
+
+    .call-btn {
+        background: none;
+        border: none;
+        color: var(--service-icon);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        transition: all 0.2s;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .call-btn:hover {
+        color: var(--golden-vivid);
+        background: rgba(212, 175, 55, 0.2);
+        transform: scale(1.05);
+    }
+
+    /* Chat Area */
+    .chat-main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-top: 70px;
+        margin-bottom: 75px;
+        overflow: hidden;
+    }
+
+    /* Messages Container */
+    .chat-box {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        background: var(--service-card-base);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Load More Button */
+    .load-more-container {
+        display: flex;
+        justify-content: center;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+
+    .load-more-btn {
+        background: rgba(142, 125, 77, 0.15);
+        border: 1px solid var(--service-icon);
+        color: var(--service-icon);
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .load-more-btn:hover {
+        background: rgba(142, 125, 77, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .load-more-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Messages */
+    .message {
+        margin-bottom: 16px;
+        display: flex;
+        position: relative;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
         }
-        .chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            background-image: url('https://www.transparenttextures.com/patterns/brilliant.png');
-            background-color: #e5ddd5;
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
-        .typing-indicator { padding: 8px 16px; font-size: 0.8rem; color: #666; font-style: italic; background: white; flex-shrink: 0; border-top: 1px solid #eee; }
-        .chat-footer {
-            position: sticky;
-            bottom: 0;
-            background: white;
+    }
+
+    .my-message {
+        justify-content: flex-end;
+    }
+
+    .other-message {
+        justify-content: flex-start;
+    }
+
+    .message-bubble {
+        max-width: 75%;
+        padding: 10px 14px;
+        border-radius: 18px;
+        word-wrap: break-word;
+        border: 1px solid var(--service-border-detail);
+        position: relative;
+    }
+
+    .my-message .message-bubble {
+        background: var(--my-message-bg);
+        border-bottom-right-radius: 4px;
+        border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .other-message .message-bubble {
+        background: var(--other-message-bg);
+        border-bottom-left-radius: 4px;
+    }
+
+    .reply-preview {
+        background: rgba(20, 20, 20, 0.6);
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        margin-bottom: 6px;
+        border-left: 3px solid var(--service-icon);
+        color: var(--service-title);
+    }
+
+    .message-text {
+        font-size: 0.85rem;
+        color: var(--creamy-white);
+        line-height: 1.4;
+    }
+
+    .edited-badge {
+        font-size: 0.6rem;
+        opacity: 0.6;
+        margin-left: 6px;
+    }
+
+    /* Full Size Media */
+    .media-image {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 12px;
+        margin-top: 4px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .media-image:hover {
+        transform: scale(1.02);
+    }
+
+    .media-video {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 12px;
+        margin-top: 4px;
+    }
+
+    .media-audio {
+        width: 250px;
+        margin-top: 4px;
+    }
+
+    .media-file {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(142, 125, 77, 0.1);
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--service-icon);
+        margin-top: 4px;
+    }
+
+    .media-file:hover {
+        background: rgba(142, 125, 77, 0.2);
+    }
+
+    .message-time {
+        font-size: 0.6rem;
+        opacity: 0.7;
+        text-align: right;
+        margin-top: 4px;
+        color: var(--service-title);
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+    }
+
+    .fa-check-double {
+        color: var(--service-icon);
+    }
+
+    /* Message Actions */
+    .message-actions {
+        position: absolute;
+        right: 0;
+        top: -35px;
+        background: var(--service-card-base);
+        border: 1px solid var(--service-border-detail);
+        border-radius: 20px;
+        display: none;
+        gap: 10px;
+        padding: 5px 12px;
+        z-index: 10;
+        box-shadow: var(--card-shadow);
+    }
+
+    .message:hover .message-actions {
+        display: flex;
+    }
+
+    .message-actions button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.75rem;
+        color: var(--service-title);
+        padding: 4px;
+        transition: all 0.2s;
+    }
+
+    .message-actions button:hover {
+        color: var(--service-icon);
+        transform: scale(1.1);
+    }
+
+    /* Reactions */
+    .reactions {
+        display: flex;
+        gap: 6px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+    }
+
+    .reaction {
+        background: rgba(20, 20, 20, 0.6);
+        border-radius: 20px;
+        padding: 2px 8px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid var(--service-border-detail);
+        transition: all 0.2s;
+    }
+
+    .reaction:hover {
+        background: rgba(142, 125, 77, 0.2);
+        transform: scale(1.05);
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+        padding: 8px 16px;
+        font-size: 0.7rem;
+        color: var(--service-icon);
+        font-style: italic;
+        background: var(--service-card-base);
+        border-top: 1px solid var(--service-border-detail);
+        display: none;
+        position: fixed;
+        bottom: 75px;
+        left: 0;
+        right: 0;
+        z-index: 99;
+    }
+
+    /* Fixed Footer - Left: File Picker, Right: Send Button */
+    .chat-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--service-card-base);
+        padding: 10px 16px;
+        border-top: 2px solid var(--service-border-detail);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        z-index: 100;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .footer-btn {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        color: var(--service-icon);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        width: 48px;
+        height: 48px;
+    }
+
+    .footer-btn:hover {
+        color: var(--golden-vivid);
+        background: rgba(142, 125, 77, 0.15);
+        transform: scale(1.05);
+    }
+
+    #messageInput {
+        flex: 1;
+        background: rgba(20, 20, 20, 0.8);
+        border: 1px solid var(--service-border-detail);
+        border-radius: 25px;
+        padding: 12px 16px;
+        color: var(--creamy-white);
+        font-size: 0.9rem;
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    #messageInput:focus {
+        border-color: var(--service-icon);
+        background: rgba(20, 20, 20, 0.95);
+    }
+
+    #messageInput::placeholder {
+        color: var(--service-title);
+    }
+
+    /* Emoji Picker */
+    .emoji-picker-container {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        display: none;
+        z-index: 1000;
+        background: var(--service-card-base);
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--service-border-detail);
+    }
+
+    #fileInput {
+        display: none;
+    }
+
+    /* Reaction Picker */
+    .reaction-picker {
+        position: fixed;
+        background: var(--service-card-base);
+        border: 1px solid var(--service-border-detail);
+        border-radius: 40px;
+        padding: 8px 16px;
+        display: flex;
+        gap: 12px;
+        z-index: 1000;
+        box-shadow: var(--card-shadow);
+    }
+
+    .reaction-picker button {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        cursor: pointer;
+        padding: 5px;
+        transition: transform 0.2s;
+    }
+
+    .reaction-picker button:hover {
+        transform: scale(1.2);
+    }
+
+    /* Modal for Image Preview */
+    .image-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .image-modal img {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+    }
+
+    .image-modal .close-modal {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 40px;
+        cursor: pointer;
+    }
+
+    /* Toast */
+    .toast-notification {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(239, 68, 68, 0.95);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        z-index: 9999;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    /* Scrollbar */
+    .chat-box::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+        background: var(--service-card-base);
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+        background: var(--service-icon);
+        border-radius: 5px;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .dashboard-header {
             padding: 10px 12px;
-            border-top: 1px solid #ddd;
-            display: flex;
-            gap: 8px;
-            align-items: center;
         }
-        #messageInput {
-            flex-grow: 1;
-            border-radius: 24px;
-            border: 1px solid #ddd;
-            padding: 10px 16px;
-            outline: none;
-            font-size: 16px;
+
+        .back-btn {
+            font-size: 1.1rem;
         }
-        .attach-btn, .send-btn, .emoji-btn, .mic-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: #075e54;
-            cursor: pointer;
+
+        .user-name {
+            font-size: 0.9rem;
         }
-        .message { margin-bottom: 12px; display: flex; position: relative; }
-        .my-message { justify-content: flex-end; }
-        .other-message { justify-content: flex-start; }
-        .message-bubble {
-            max-width: 75%;
-            padding: 8px 12px;
-            border-radius: 18px;
-            word-wrap: break-word;
-            position: relative;
-        }
-        .my-message .message-bubble { background: #dcf8c5; border-bottom-right-radius: 4px; }
-        .other-message .message-bubble { background: white; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .media-preview { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 4px; }
-        .message-time { font-size: 0.65rem; opacity: 0.7; text-align: right; margin-top: 4px; }
-        .fa-check-double { color: #34b7f1; }
-        .reply-preview { background: #f0f0f0; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-bottom: 4px; border-left: 3px solid #075e54; }
-        .message-actions {
-            position: absolute;
-            right: 0;
-            top: -25px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            display: none;
-            gap: 8px;
-            padding: 4px 8px;
-            z-index: 10;
-        }
-        .message:hover .message-actions { display: flex; }
-        .message-actions button { background: none; border: none; cursor: pointer; font-size: 0.8rem; }
-        .reactions { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
-        .reaction {
-            background: rgba(0,0,0,0.05);
-            border-radius: 20px;
-            padding: 2px 6px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
+
+        .call-buttons {
             gap: 4px;
+            padding: 2px 8px;
         }
-        .emoji-picker { position: absolute; bottom: 70px; right: 20px; display: none; z-index: 1000; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .back-btn { color: white; text-decoration: none; font-size: 1.3rem; }
-        .call-buttons button { background: none; border: none; color: white; margin-left: 10px; font-size: 1.2rem; cursor: pointer; }
-        .search-container { margin-left: auto; margin-right: 10px; }
-        .search-container input { border-radius: 20px; border: none; padding: 4px 12px; font-size: 0.8rem; width: 150px; }
-        .search-results {
-            position: absolute;
-            top: 60px;
-            right: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            max-width: 300px;
-            z-index: 1000;
-            display: none;
+
+        .call-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+            padding: 5px;
         }
-        .search-result-item { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; }
-        .edited-badge { font-size: 0.6rem; opacity: 0.6; margin-left: 6px; }
-        @media (max-width: 768px) { .chat-footer { position: sticky; } body { overflow: auto; } .chat-container { height: auto; min-height: 100dvh; } .search-container input { width: 100px; } }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.2.0/index.js" defer></script>
-</head>
-<body>
-<div class="chat-container">
-    <div class="chat-header">
-        <a href="{{ url_for('users') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <div class="user-info flex-grow-1">
-            <div class="user-name fw-bold">{{ other_user.username }}</div>
-            <div class="user-status small" id="onlineStatus">
-                {% if other_user.is_online %}Online{% else %}Last seen: {{ other_user.last_seen|default("never") }}{% endif %}
-            </div>
-        </div>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search...">
-            <div id="searchResults" class="search-results"></div>
-        </div>
-        <div class="call-buttons">
-            <button id="audioCallBtn" title="Audio Call"><i class="fas fa-phone"></i></button>
-            <button id="videoCallBtn" title="Video Call"><i class="fas fa-video"></i></button>
-        </div>
-    </div>
-    <div class="chat-box" id="chatBox">
-        {% for msg in messages %}
-        <div class="message {% if msg.sender_id == current_user.id %}my-message{% else %}other-message{% endif %}" data-message-id="{{ msg.id }}" data-sender-id="{{ msg.sender_id }}">
-            <div class="message-bubble">
-                {% if msg.reply_to_id %}
-                <div class="reply-preview">↩️ Replying to: {{ msg.reply_to_content|default("message") }}</div>
+
+        .search-input {
+            width: 100px;
+        }
+
+        .search-input:focus {
+            width: 130px;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+        }
+
+        .footer-btn {
+            width: 42px;
+            height: 42px;
+            font-size: 1.2rem;
+        }
+
+        #messageInput {
+            font-size: 0.85rem;
+            padding: 10px 14px;
+        }
+
+        .media-image, .media-video {
+            max-height: 300px;
+        }
+
+        .media-audio {
+            width: 200px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-header {
+            padding: 8px 10px;
+        }
+
+        .back-btn {
+            font-size: 1rem;
+        }
+
+        .user-name {
+            font-size: 0.8rem;
+        }
+
+        .call-buttons {
+            gap: 2px;
+            padding: 2px 6px;
+        }
+
+        .call-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 0.9rem;
+            padding: 4px;
+        }
+
+        .search-input {
+            width: 80px;
+            font-size: 0.65rem;
+        }
+
+        .message-bubble {
+            max-width: 90%;
+            padding: 8px 12px;
+        }
+
+        .message-text {
+            font-size: 0.75rem;
+        }
+
+        .footer-btn {
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+            padding: 6px;
+        }
+
+        #messageInput {
+            font-size: 0.8rem;
+            padding: 8px 12px;
+        }
+
+        .media-image, .media-video {
+            max-height: 250px;
+        }
+
+        .media-audio {
+            width: 180px;
+        }
+
+        .toast-notification {
+            font-size: 0.7rem;
+            padding: 8px 16px;
+            white-space: nowrap;
+        }
+    }
+</style>
+
+<div class="chat-dashboard">
+    <!-- Fixed Header with Call Buttons -->
+    <header class="dashboard-header">
+        <a href="{{ url_for('users') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="user-info">
+            <div class="user-name">{{ other_user.username }}</div>
+            <div class="user-status" id="onlineStatus">
+                {% if other_user.is_online %}
+                    <span class="online">● Online</span>
+                {% else %}
+                    Last seen: {{ other_user.last_seen|default("never") }}
                 {% endif %}
-                <div class="message-text">
-                    {% if msg.message_type == 'text' %}{{ msg.content }}{% if msg.edited %}<span class="edited-badge">(edited)</span>{% endif %}
-                    {% elif msg.message_type == 'image' %}<img src="{{ msg.content }}" class="media-preview" alt="Image">
-                    {% elif msg.message_type == 'video' %}<video controls class="media-preview" src="{{ msg.content }}"></video>
-                    {% elif msg.message_type == 'audio' %}<audio controls src="{{ msg.content }}" style="width:200px"></audio>
-                    {% else %}<a href="{{ msg.content }}" target="_blank">📎 Download file</a>{% endif %}
-                </div>
-                <div class="message-time">
-                    {{ msg.formatted_time }}
-                    {% if msg.sender_id == current_user.id %}
-                        {% if msg.is_read %}<i class="fas fa-check-double" title="Seen"></i>{% else %}<i class="fas fa-check" style="opacity:0.6;" title="Sent"></i>{% endif %}
-                    {% endif %}
-                </div>
-                <div class="reactions" id="reactions-{{ msg.id }}">
-                    {% for r in msg.reactions %}
-                    <span class="reaction" data-reaction="{{ r.reaction }}" onclick="toggleReaction('{{ msg.id }}','{{ r.reaction }}')">{{ r.reaction }} <span class="count">1</span></span>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="message-actions">
-                <button class="reply-btn" title="Reply"><i class="fas fa-reply"></i></button>
-                {% if msg.sender_id == current_user.id %}
-                <button class="edit-btn" title="Edit"><i class="fas fa-pen"></i></button>
-                <button class="delete-btn" title="Delete for me"><i class="fas fa-trash"></i></button>
-                <button class="delete-everyone-btn" title="Delete for everyone"><i class="fas fa-trash-alt"></i></button>
-                {% endif %}
-                <button class="reaction-btn" title="Add reaction">😀</button>
             </div>
         </div>
-        {% endfor %}
+        <div class="chat-actions">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search...">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+            <div class="call-buttons">
+                <button id="audioCallBtn" class="call-btn" title="Audio Call">
+                    <i class="fas fa-phone-alt"></i>
+                </button>
+                <button id="videoCallBtn" class="call-btn" title="Video Call">
+                    <i class="fas fa-video"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Chat Area -->
+    <main class="chat-main-content">
+        <div class="chat-box" id="chatBox">
+            <!-- Messages will appear here -->
+        </div>
+    </main>
+
+    <!-- Typing Indicator -->
+    <div id="typingIndicator" class="typing-indicator">
+        <i class="fas fa-ellipsis-h"></i> Typing...
     </div>
-    <div id="typingIndicator" class="typing-indicator" style="display: none;">Typing...</div>
+
+    <!-- Fixed Footer - Left: File Picker, Right: Send Button -->
     <div class="chat-footer">
-        <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
-        <button class="mic-btn" id="micBtn"><i class="fas fa-microphone"></i></button>
-        <button class="emoji-btn" id="emojiBtn"><i class="fas fa-smile"></i></button>
+        <button class="footer-btn" id="attachBtn" title="Attach file">
+            <i class="fas fa-paperclip"></i>
+        </button>
         <input type="text" id="messageInput" placeholder="Type a message...">
-        <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
-        <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
+        <button class="footer-btn" id="sendBtn" title="Send">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+        <button class="footer-btn" id="emojiBtn" title="Emoji">
+            <i class="fas fa-smile-wink"></i>
+        </button>
+        <input type="file" id="fileInput" accept="image/*,video/*,audio/*,.pdf,.doc,.txt">
     </div>
-    <div id="emojiPicker" class="emoji-picker"></div>
+    
+    <!-- Emoji Picker -->
+    <div id="emojiPicker" class="emoji-picker-container"></div>
 </div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+    <span class="close-modal">&times;</span>
+    <img id="modalImage" src="" alt="">
+</div>
+
+<!-- Toast Notification -->
+<div id="toastNotification" class="toast-notification">
+    <i class="fas fa-exclamation-circle"></i>
+    <span id="toastMessage"></span>
+</div>
+
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.2.0/index.js"></script>
+<script src="https://kit.fontawesome.com/a1e1b8b2b3.js" crossorigin="anonymous"></script>
+
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
     const chatBox = document.getElementById('chatBox');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
     const attachBtn = document.getElementById('attachBtn');
     const fileInput = document.getElementById('fileInput');
-    const micBtn = document.getElementById('micBtn');
-    const typingIndicator = document.getElementById('typingIndicator');
-    const audioCallBtn = document.getElementById('audioCallBtn');
-    const videoCallBtn = document.getElementById('videoCallBtn');
     const emojiBtn = document.getElementById('emojiBtn');
     const emojiPicker = document.getElementById('emojiPicker');
     const searchInput = document.getElementById('searchInput');
     const searchResultsDiv = document.getElementById('searchResults');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const audioCallBtn = document.getElementById('audioCallBtn');
+    const videoCallBtn = document.getElementById('videoCallBtn');
+    const toastNotification = document.getElementById('toastNotification');
+    const toastMessage = document.getElementById('toastMessage');
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+
+    // User IDs
     const currentUserId = "{{ current_user.id }}";
     const otherUserId = "{{ other_user.id }}";
+
+    // Socket connection
     const socket = io();
 
+    // State variables
     let replyToId = null;
     let isLoadingMore = false;
-    let offset = {{ messages|length }};
-    let mediaRecorder;
-    let audioChunks = [];
+    let currentOffset = {{ messages|length }};
+    let hasMoreMessages = true;
 
-    function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
-    scrollToBottom();
-
-    chatBox.addEventListener('scroll', async () => {
-        if (chatBox.scrollTop === 0 && !isLoadingMore) {
-            isLoadingMore = true;
-            const res = await fetch(`/load_more_messages?other_user_id=${otherUserId}&offset=${offset}`);
-            const older = await res.json();
-            if (older.length) {
-                older.forEach(msg => prependMessage(msg));
-                offset += older.length;
-            }
-            isLoadingMore = false;
-        }
-    });
-
-    function prependMessage(msg) {
-        const isMe = msg.sender_id === currentUserId;
-        const div = createMessageElement(msg, isMe);
-        chatBox.insertBefore(div, chatBox.firstChild);
+    // Helper Functions
+    function showToast(msg, isError = true) {
+        toastMessage.textContent = msg;
+        toastNotification.style.backgroundColor = isError ? 'rgba(239, 68, 68, 0.95)' : 'rgba(46, 125, 50, 0.95)';
+        toastNotification.style.display = 'flex';
+        setTimeout(() => {
+            toastNotification.style.display = 'none';
+        }, 2000);
     }
 
-    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    function scrollToBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function formatTime(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Create message element
     function createMessageElement(msg, isMe) {
         const div = document.createElement('div');
         div.className = `message ${isMe ? 'my-message' : 'other-message'}`;
         div.setAttribute('data-message-id', msg.id);
         div.setAttribute('data-sender-id', msg.sender_id);
+        
         let contentHtml = '';
+        
         if (msg.message_type === 'text') {
             contentHtml = `<div class="message-text">${escapeHtml(msg.content)}${msg.edited ? '<span class="edited-badge">(edited)</span>' : ''}</div>`;
-        } else if (msg.message_type === 'image') {
-            contentHtml = `<img src="${msg.content}" class="media-preview" alt="Image">`;
-        } else if (msg.message_type === 'video') {
-            contentHtml = `<video controls class="media-preview" src="${msg.content}"></video>`;
-        } else if (msg.message_type === 'audio') {
-            contentHtml = `<audio controls src="${msg.content}" style="width:200px"></audio>`;
-        } else {
-            contentHtml = `<div class="message-text">📎 <a href="${msg.content}" target="_blank">Download file</a></div>`;
+        } 
+        else if (msg.message_type === 'image') {
+            contentHtml = `<img src="${msg.content}" class="media-image" alt="Image" onclick="openImageModal('${msg.content}')" style="max-width: 100%; max-height: 400px; border-radius: 12px; cursor: pointer;">`;
+        } 
+        else if (msg.message_type === 'video') {
+            contentHtml = `<video controls class="media-video" src="${msg.content}" style="max-width: 100%; max-height: 400px; border-radius: 12px;"></video>`;
+        } 
+        else if (msg.message_type === 'audio') {
+            contentHtml = `<audio controls class="media-audio" src="${msg.content}"></audio>`;
+        } 
+        else {
+            const fileName = msg.content.split('/').pop();
+            contentHtml = `<a href="${msg.content}" target="_blank" class="media-file" download>
+                <i class="fas fa-download"></i> ${escapeHtml(fileName)}
+            </a>`;
         }
-        const time = msg.formatted_time || new Date(msg.created_at).toLocaleTimeString();
+        
+        const time = msg.formatted_time || formatTime(msg.created_at);
+        
         let reactionsHtml = '';
-        if (msg.reactions) {
-            const grouped = msg.reactions.reduce((acc, r) => {
-                acc[r.reaction] = (acc[r.reaction] || 0) + 1;
-                return acc;
-            }, {});
-            reactionsHtml = `<div class="reactions" id="reactions-${msg.id}">` +
-                Object.entries(grouped).map(([reaction, count]) =>
-                    `<span class="reaction" data-reaction="${reaction}" onclick="toggleReaction('${msg.id}','${reaction}')">${reaction} <span class="count">${count}</span></span>`
-                ).join('') + `</div>`;
+        if (msg.reactions && msg.reactions.length > 0) {
+            const grouped = {};
+            msg.reactions.forEach(function(r) {
+                grouped[r.reaction] = (grouped[r.reaction] || 0) + 1;
+            });
+            reactionsHtml = '<div class="reactions" id="reactions-' + msg.id + '">';
+            for (const [reaction, count] of Object.entries(grouped)) {
+                reactionsHtml += `<span class="reaction" data-reaction="${reaction}" onclick="toggleReaction('${msg.id}','${reaction}')">${reaction} <span class="count">${count}</span></span>`;
+            }
+            reactionsHtml += '</div>';
         }
+        
         div.innerHTML = `
             <div class="message-bubble">
-                ${msg.reply_to_id ? `<div class="reply-preview">↩️ Replying to: ${escapeHtml(msg.reply_to_content || "message")}</div>` : ''}
+                ${msg.reply_to_id ? `<div class="reply-preview"><i class="fas fa-reply"></i> Replying to: ${escapeHtml(msg.reply_to_content || "message")}</div>` : ''}
                 ${contentHtml}
-                <div class="message-time">${time}${isMe ? (msg.is_read ? '<i class="fas fa-check-double" title="Seen"></i>' : '<i class="fas fa-check" style="opacity:0.6;" title="Sent"></i>') : ''}</div>
+                <div class="message-time">
+                    ${time}
+                    ${isMe ? (msg.is_read ? '<i class="fas fa-check-double" title="Seen"></i>' : '<i class="fas fa-check" style="opacity:0.6;" title="Sent"></i>') : ''}
+                </div>
                 ${reactionsHtml}
             </div>
             <div class="message-actions">
                 <button class="reply-btn" title="Reply"><i class="fas fa-reply"></i></button>
-                ${isMe ? `<button class="edit-btn" title="Edit"><i class="fas fa-pen"></i></button>
-                <button class="delete-btn" title="Delete for me"><i class="fas fa-trash"></i></button>
-                <button class="delete-everyone-btn" title="Delete for everyone"><i class="fas fa-trash-alt"></i></button>` : ''}
+                ${isMe ? `
+                    <button class="edit-btn" title="Edit"><i class="fas fa-pen"></i></button>
+                    <button class="delete-btn" title="Delete for me"><i class="fas fa-trash"></i></button>
+                    <button class="delete-everyone-btn" title="Delete for everyone"><i class="fas fa-trash-alt"></i></button>
+                ` : ''}
                 <button class="reaction-btn" title="Add reaction">😀</button>
             </div>
         `;
-        attachMessageActions(div, msg);
+        
+        // Attach event listeners
+        const replyBtn = div.querySelector('.reply-btn');
+        const editBtn = div.querySelector('.edit-btn');
+        const deleteBtn = div.querySelector('.delete-btn');
+        const deleteEveryoneBtn = div.querySelector('.delete-everyone-btn');
+        const reactionBtn = div.querySelector('.reaction-btn');
+        
+        if (replyBtn) {
+            replyBtn.addEventListener('click', function() {
+                replyToId = msg.id;
+                messageInput.placeholder = `Reply to: ${(msg.content || '').substring(0, 30)}...`;
+                messageInput.focus();
+            });
+        }
+        
+        if (editBtn) {
+            editBtn.addEventListener('click', function() { editMessage(msg.id, msg.content); });
+        }
+        
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() { deleteMessage(msg.id, 'me'); });
+        }
+        
+        if (deleteEveryoneBtn) {
+            deleteEveryoneBtn.addEventListener('click', function() { deleteMessage(msg.id, 'everyone'); });
+        }
+        
+        if (reactionBtn) {
+            reactionBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showReactionPicker(msg.id, e);
+            });
+        }
+        
         return div;
     }
 
-    function attachMessageActions(messageDiv, msg) {
-        messageDiv.querySelector('.reply-btn')?.addEventListener('click', () => {
-            replyToId = msg.id;
-            messageInput.placeholder = `Reply to: ${msg.content.substring(0, 30)}...`;
-        });
-        messageDiv.querySelector('.edit-btn')?.addEventListener('click', () => editMessage(msg.id, msg.content));
-        messageDiv.querySelector('.delete-btn')?.addEventListener('click', () => deleteMessage(msg.id, 'me'));
-        messageDiv.querySelector('.delete-everyone-btn')?.addEventListener('click', () => deleteMessage(msg.id, 'everyone'));
-        messageDiv.querySelector('.reaction-btn')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showReactionPicker(msg.id);
-        });
+    // Add load more button
+    function addLoadMoreButton() {
+        const existingBtn = document.querySelector('.load-more-container');
+        if (existingBtn) existingBtn.remove();
+        
+        if (hasMoreMessages && currentOffset > 0) {
+            const container = document.createElement('div');
+            container.className = 'load-more-container';
+            container.innerHTML = `
+                <button class="load-more-btn" id="loadMoreBtn">
+                    <i class="fas fa-arrow-up"></i> Load Previous Messages
+                </button>
+            `;
+            if (chatBox.firstChild) {
+                chatBox.insertBefore(container, chatBox.firstChild);
+            } else {
+                chatBox.appendChild(container);
+            }
+            
+            document.getElementById('loadMoreBtn')?.addEventListener('click', loadMoreMessages);
+        }
     }
 
-    function appendMessage(msg, isMe = null) {
-        const isMy = (isMe !== null) ? isMe : (msg.sender_id === currentUserId);
+    // Load more messages
+    async function loadMoreMessages() {
+        if (isLoadingMore || !hasMoreMessages) return;
+        
+        isLoadingMore = true;
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        }
+        
+        try {
+            const res = await fetch(`/load_more_messages?other_user_id=${otherUserId}&offset=${currentOffset}`);
+            const olderMessages = await res.json();
+            
+            if (olderMessages && olderMessages.length > 0) {
+                const loadMoreContainer = document.querySelector('.load-more-container');
+                if (loadMoreContainer) loadMoreContainer.remove();
+                
+                olderMessages.reverse().forEach(function(msg) {
+                    const isMe = msg.sender_id === currentUserId;
+                    const msgElement = createMessageElement(msg, isMe);
+                    if (chatBox.firstChild) {
+                        chatBox.insertBefore(msgElement, chatBox.firstChild);
+                    } else {
+                        chatBox.appendChild(msgElement);
+                    }
+                });
+                
+                currentOffset += olderMessages.length;
+                hasMoreMessages = olderMessages.length === 20;
+                
+                if (hasMoreMessages) {
+                    addLoadMoreButton();
+                }
+            } else {
+                hasMoreMessages = false;
+            }
+        } catch (error) {
+            console.error('Error loading messages:', error);
+            showToast('Failed to load messages');
+        }
+        
+        isLoadingMore = false;
+        if (loadMoreBtn) loadMoreBtn.remove();
+        if (hasMoreMessages) addLoadMoreButton();
+    }
+
+    // Append new message
+    function appendMessage(msg, isMe) {
+        const isMy = (isMe !== undefined) ? isMe : (msg.sender_id === currentUserId);
         const div = createMessageElement(msg, isMy);
         chatBox.appendChild(div);
         scrollToBottom();
     }
 
+    // Load initial messages
+    function loadInitialMessages() {
+        const initialMessages = {{ messages | tojson | safe }};
+        if (initialMessages && initialMessages.length > 0) {
+            initialMessages.forEach(function(msg) {
+                const isMe = msg.sender_id === currentUserId;
+                const div = createMessageElement(msg, isMe);
+                chatBox.appendChild(div);
+            });
+            scrollToBottom();
+        }
+        addLoadMoreButton();
+    }
+
+    // Edit message
     async function editMessage(messageId, oldContent) {
         const newContent = prompt("Edit your message:", oldContent);
         if (newContent && newContent !== oldContent) {
-            const res = await fetch('/edit_message', {
+            try {
+                const res = await fetch('/edit_message', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message_id: messageId, content: newContent, receiver_id: otherUserId})
+                });
+                if (res.ok) {
+                    const msgDiv = document.querySelector(`.message[data-message-id="${messageId}"] .message-text`);
+                    if (msgDiv) msgDiv.innerHTML = escapeHtml(newContent) + '<span class="edited-badge">(edited)</span>';
+                }
+            } catch (error) {
+                showToast('Failed to edit message');
+            }
+        }
+    }
+
+    // Delete message
+    async function deleteMessage(messageId, deleteFor) {
+        try {
+            const res = await fetch(`/delete_message/${messageId}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message_id: messageId, content: newContent, receiver_id: otherUserId})
+                body: JSON.stringify({delete_for: deleteFor})
             });
             if (res.ok) {
-                const msgDiv = document.querySelector(`.message[data-message-id="${messageId}"] .message-text`);
-                if (msgDiv) msgDiv.innerHTML = escapeHtml(newContent) + '<span class="edited-badge">(edited)</span>';
+                if (deleteFor === 'everyone') {
+                    const msgDiv = document.querySelector(`.message[data-message-id="${messageId}"] .message-bubble`);
+                    if (msgDiv) msgDiv.innerHTML = '<div class="message-text"><i class="fas fa-trash-alt"></i> This message was deleted</div><div class="message-time"></div>';
+                } else {
+                    document.querySelector(`.message[data-message-id="${messageId}"]`)?.remove();
+                }
             }
+        } catch (error) {
+            showToast('Failed to delete message');
         }
     }
 
-    async function deleteMessage(messageId, deleteFor) {
-        const res = await fetch(`/delete_message/${messageId}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({delete_for: deleteFor})
-        });
-        if (res.ok) {
-            if (deleteFor === 'everyone') {
-                const msgDiv = document.querySelector(`.message[data-message-id="${messageId}"] .message-bubble`);
-                if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ This message was deleted</div><div class="message-time"></div>';
-            } else {
-                document.querySelector(`.message[data-message-id="${messageId}"]`)?.remove();
-            }
+    // Toggle reaction
+    window.toggleReaction = async function(messageId, reaction) {
+        try {
+            const res = await fetch('/react_to_message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message_id: messageId, reaction: reaction, receiver_id: otherUserId})
+            });
+            const data = await res.json();
+            if (data.success) updateReactionsUI(messageId, data.reactions);
+        } catch (error) {
+            console.error('Reaction error:', error);
         }
-    }
-
-    async function toggleReaction(messageId, reaction) {
-        const res = await fetch('/react_to_message', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({message_id: messageId, reaction, receiver_id: otherUserId})
-        });
-        const data = await res.json();
-        if (data.success) updateReactionsUI(messageId, data.reactions);
-    }
+    };
 
     function updateReactionsUI(messageId, reactions) {
         const container = document.getElementById(`reactions-${messageId}`);
         if (!container) return;
-        const grouped = reactions.reduce((acc, r) => {
-            acc[r.reaction] = (acc[r.reaction] || 0) + 1;
-            return acc;
-        }, {});
-        container.innerHTML = Object.entries(grouped).map(([reaction, count]) =>
-            `<span class="reaction" data-reaction="${reaction}" onclick="toggleReaction('${messageId}','${reaction}')">${reaction} <span class="count">${count}</span></span>`
-        ).join('');
+        const grouped = {};
+        reactions.forEach(function(r) {
+            grouped[r.reaction] = (grouped[r.reaction] || 0) + 1;
+        });
+        container.innerHTML = '';
+        for (const [reaction, count] of Object.entries(grouped)) {
+            const span = document.createElement('span');
+            span.className = 'reaction';
+            span.setAttribute('data-reaction', reaction);
+            span.setAttribute('onclick', `toggleReaction('${messageId}','${reaction}')`);
+            span.innerHTML = `${reaction} <span class="count">${count}</span>`;
+            container.appendChild(span);
+        }
     }
 
-    function showReactionPicker(messageId) {
+    function showReactionPicker(messageId, event) {
         const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
         const picker = document.createElement('div');
         picker.className = 'reaction-picker';
-        picker.style.position = 'absolute';
-        picker.style.background = 'white';
-        picker.style.border = '1px solid #ccc';
-        picker.style.borderRadius = '20px';
-        picker.style.padding = '4px';
-        picker.style.zIndex = 1000;
-        reactions.forEach(r => {
+        reactions.forEach(function(r) {
             const btn = document.createElement('button');
             btn.textContent = r;
-            btn.style.fontSize = '1.2rem';
-            btn.style.margin = '0 4px';
-            btn.onclick = () => { toggleReaction(messageId, r); picker.remove(); };
+            btn.onclick = function() {
+                toggleReaction(messageId, r);
+                picker.remove();
+            };
             picker.appendChild(btn);
         });
         document.body.appendChild(picker);
-        picker.style.top = event.clientY + 'px';
-        picker.style.left = event.clientX + 'px';
-        setTimeout(() => picker.remove(), 5000);
+        const rect = event.target.getBoundingClientRect();
+        picker.style.top = (rect.top - 50) + 'px';
+        picker.style.left = rect.left + 'px';
+        setTimeout(function() {
+            if (picker.parentNode) picker.remove();
+        }, 5000);
     }
 
+    // Send message
     function sendTextMessage() {
         const content = messageInput.value.trim();
         if (!content) return;
-        socket.emit('send_message', { receiver_id: otherUserId, content, message_type: 'text', reply_to_id: replyToId });
+        socket.emit('send_message', { 
+            receiver_id: otherUserId, 
+            content: content, 
+            message_type: 'text', 
+            reply_to_id: replyToId 
+        });
         messageInput.value = '';
         replyToId = null;
         messageInput.placeholder = 'Type a message...';
     }
-    sendBtn.onclick = sendTextMessage;
-    messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendTextMessage(); });
 
-    let typingTimeout;
-    messageInput.addEventListener('input', () => {
-        socket.emit('typing', { receiver_id: otherUserId, is_typing: true });
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => socket.emit('typing', { receiver_id: otherUserId, is_typing: false }), 1000);
-    });
-    socket.on('user_typing', data => { typingIndicator.style.display = (data.user_id === otherUserId && data.is_typing) ? 'block' : 'none'; });
-
-    attachBtn.onclick = () => fileInput.click();
-    fileInput.addEventListener('change', async (e) => {
+    // File upload
+    attachBtn.onclick = function() { fileInput.click(); };
+    fileInput.addEventListener('change', async function(e) {
         const file = e.target.files[0];
         if (!file) return;
+        
         const formData = new FormData();
         formData.append('file', file);
         formData.append('receiver_id', otherUserId);
-        const res = await fetch('/upload', { method: 'POST', body: formData });
-        const result = await res.json();
-        if (!result.success) alert('Upload failed');
+        
+        showToast('Uploading...', false);
+        
+        try {
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const result = await res.json();
+            if (!result.success) {
+                showToast('Upload failed');
+            }
+        } catch (error) {
+            showToast('Upload failed');
+        }
         fileInput.value = '';
     });
 
-    micBtn.onclick = async () => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-        } else {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'voice.wav');
-                formData.append('receiver_id', otherUserId);
-                await fetch('/upload_audio', { method: 'POST', body: formData });
-                stream.getTracks().forEach(track => track.stop());
-            };
-            mediaRecorder.start();
-            micBtn.innerHTML = '<i class="fas fa-stop"></i>';
-            setTimeout(() => { if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 60000);
-        }
-    };
+    // Typing indicator
+    let typingTimeout;
+    messageInput.addEventListener('input', function() {
+        socket.emit('typing', { receiver_id: otherUserId, is_typing: true });
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(function() {
+            socket.emit('typing', { receiver_id: otherUserId, is_typing: false });
+        }, 1000);
+    });
 
+    // Emoji picker
     if (typeof EmojiPicker !== 'undefined') {
         const picker = new EmojiPicker();
-        emojiBtn.onclick = () => {
+        emojiBtn.onclick = function() {
             if (emojiPicker.style.display === 'none' || !emojiPicker.style.display) {
                 emojiPicker.style.display = 'block';
                 picker.render(emojiPicker);
-                picker.addEventListener('emoji-click', event => {
+                picker.addEventListener('emoji-click', function(event) {
                     messageInput.value += event.detail.unicode;
                     messageInput.focus();
                 });
@@ -450,74 +1225,147 @@
         };
     }
 
-    searchInput.addEventListener('input', async () => {
+    // Search messages
+    searchInput.addEventListener('input', async function() {
         const q = searchInput.value.trim();
-        if (q.length < 2) { searchResultsDiv.style.display = 'none'; return; }
-        const res = await fetch(`/search_messages?q=${encodeURIComponent(q)}&other_user_id=${otherUserId}`);
-        const results = await res.json();
-        if (results.length) {
-            searchResultsDiv.innerHTML = results.map(r => `<div class="search-result-item" data-mid="${r.id}">${escapeHtml(r.content)}<br><small>${r.formatted_time}</small></div>`).join('');
-            searchResultsDiv.style.display = 'block';
-            document.querySelectorAll('.search-result-item').forEach(el => {
-                el.addEventListener('click', () => {
-                    const msgDiv = document.querySelector(`.message[data-message-id="${el.dataset.mid}"]`);
-                    if (msgDiv) msgDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    searchResultsDiv.style.display = 'none';
+        if (q.length < 2) {
+            searchResultsDiv.style.display = 'none';
+            return;
+        }
+        try {
+            const res = await fetch(`/search_messages?q=${encodeURIComponent(q)}&other_user_id=${otherUserId}`);
+            const results = await res.json();
+            if (results && results.length) {
+                searchResultsDiv.innerHTML = results.map(function(r) {
+                    return `<div class="search-result-item" data-mid="${r.id}">
+                        <div class="search-result-content">${escapeHtml(r.content)}</div>
+                        <div class="search-result-time">${r.formatted_time || ''}</div>
+                    </div>`;
+                }).join('');
+                searchResultsDiv.style.display = 'block';
+                document.querySelectorAll('.search-result-item').forEach(function(el) {
+                    el.addEventListener('click', function() {
+                        const msgDiv = document.querySelector(`.message[data-message-id="${el.dataset.mid}"]`);
+                        if (msgDiv) msgDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        searchResultsDiv.style.display = 'none';
+                    });
                 });
-            });
-        } else {
+            } else {
+                searchResultsDiv.style.display = 'none';
+            }
+        } catch (error) {
             searchResultsDiv.style.display = 'none';
         }
     });
-    document.addEventListener('click', (e) => { if (!searchInput.contains(e.target)) searchResultsDiv.style.display = 'none'; });
 
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target)) searchResultsDiv.style.display = 'none';
+        if (!emojiBtn.contains(e.target) && !emojiPicker.contains(e.target)) {
+            emojiPicker.style.display = 'none';
+        }
+    });
+
+    // Image modal
+    window.openImageModal = function(src) {
+        modalImage.src = src;
+        imageModal.style.display = 'flex';
+    };
+    
+    document.querySelector('.close-modal').onclick = function() {
+        imageModal.style.display = 'none';
+    };
+    
+    imageModal.onclick = function() {
+        imageModal.style.display = 'none';
+    };
+
+    // Socket events
     if (Notification.permission === 'default') Notification.requestPermission();
-    socket.on('new_message', (msg) => {
+
+    socket.on('new_message', function(msg) {
         if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
             appendMessage(msg);
             if (msg.sender_id === otherUserId) {
                 socket.emit('mark_read', { sender_id: otherUserId });
                 if (Notification.permission === 'granted' && document.hidden) {
-                    new Notification(`New message from ${otherUserId}`, { body: msg.message_type === 'text' ? msg.content : 'Media' });
+                    new Notification(`New message from ${otherUserId}`, { 
+                        body: msg.message_type === 'text' ? msg.content : 'Media' 
+                    });
                 }
             }
         }
     });
-    socket.on('message_edited', (data) => {
+
+    socket.on('message_edited', function(data) {
         const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-text`);
         if (msgDiv) msgDiv.innerHTML = escapeHtml(data.new_content) + '<span class="edited-badge">(edited)</span>';
     });
-    socket.on('reaction_updated', (data) => { updateReactionsUI(data.message_id, data.reactions); });
-    socket.on('user_status', data => {
+
+    socket.on('reaction_updated', function(data) {
+        updateReactionsUI(data.message_id, data.reactions);
+    });
+
+    socket.on('user_typing', function(data) {
+        typingIndicator.style.display = (data.user_id === otherUserId && data.is_typing) ? 'flex' : 'none';
+    });
+
+    socket.on('user_status', function(data) {
         if (data.user_id === otherUserId) {
-            document.getElementById('onlineStatus').innerHTML = data.is_online ? 'Online' : `Last seen: ${data.last_seen ? new Date(data.last_seen).toLocaleString('en-IN', { hour12: true }) : 'recently'}`;
+            const statusDiv = document.getElementById('onlineStatus');
+            if (data.is_online) {
+                statusDiv.innerHTML = '<span class="online">● Online</span>';
+            } else {
+                statusDiv.innerHTML = `Last seen: ${data.last_seen ? new Date(data.last_seen).toLocaleString() : 'recently'}`;
+            }
         }
     });
-    socket.on('messages_read', data => {
+
+    socket.on('messages_read', function(data) {
         if (data.sender_id === otherUserId) {
-            document.querySelectorAll('.message.my-message .fa-check').forEach(icon => {
+            document.querySelectorAll('.message.my-message .fa-check').forEach(function(icon) {
                 icon.classList.remove('fa-check');
                 icon.classList.add('fa-check-double');
                 icon.style.opacity = '1';
             });
         }
     });
-    socket.on('message_deleted', (data) => {
+
+    socket.on('message_deleted', function(data) {
         if (data.for_everyone) {
             const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-bubble`);
-            if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ This message was deleted</div><div class="message-time"></div>';
+            if (msgDiv) msgDiv.innerHTML = '<div class="message-text"><i class="fas fa-trash-alt"></i> This message was deleted</div><div class="message-time"></div>';
         } else {
             document.querySelector(`.message[data-message-id="${data.message_id}"]`)?.remove();
         }
     });
 
-    function sendReadReceipt() { socket.emit('mark_read', { sender_id: otherUserId }); }
+    // Read receipts
+    function sendReadReceipt() {
+        socket.emit('mark_read', { sender_id: otherUserId });
+    }
     sendReadReceipt();
-    chatBox.addEventListener('scroll', () => { if (chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 50) sendReadReceipt(); });
+    chatBox.addEventListener('scroll', function() {
+        if (chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 100) {
+            sendReadReceipt();
+        }
+    });
 
-    audioCallBtn.onclick = () => window.location.href = `/audio-call/${otherUserId}`;
-    videoCallBtn.onclick = () => window.location.href = `/video-call/${otherUserId}`;
+    // Call buttons
+    audioCallBtn.onclick = function() { 
+        window.location.href = `/audio-call/${otherUserId}`; 
+    };
+    videoCallBtn.onclick = function() { 
+        window.location.href = `/video-call/${otherUserId}`; 
+    };
+
+    // Event listeners
+    sendBtn.onclick = sendTextMessage;
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendTextMessage();
+    });
+
+    // Load initial messages
+    loadInitialMessages();
+});
 </script>
-<script src="{{ url_for('static', filename='js/call-notification.js') }}"></script>
-</body>
-</html>
+{% endblock %}
