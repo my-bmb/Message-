@@ -7,15 +7,24 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            background: #e5ddd5;
-            height: 100vh;
+        /* CRITICAL FIX: Ensure full height and no overflow issues */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
             overflow: hidden;
         }
+        body {
+            background: #e5ddd5;
+        }
         .chat-container {
-            height: 100vh;
             display: flex;
             flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
             background: white;
         }
         .chat-header {
@@ -25,7 +34,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            flex-shrink: 0;  /* Prevent header from shrinking */
         }
         .back-btn {
             color: white;
@@ -50,8 +59,9 @@
             margin-left: 10px;
             font-size: 1.2rem;
         }
+        /* Chat messages area - will scroll */
         .chat-box {
-            flex-grow: 1;
+            flex: 1;
             overflow-y: auto;
             padding: 16px;
             background-image: url('https://www.transparenttextures.com/patterns/brilliant.png');
@@ -101,7 +111,10 @@
             font-size: 0.8rem;
             color: #666;
             font-style: italic;
+            background: white;
+            flex-shrink: 0;
         }
+        /* Footer - always visible at bottom */
         .chat-footer {
             background: white;
             padding: 12px;
@@ -109,12 +122,14 @@
             display: flex;
             gap: 8px;
             align-items: center;
+            flex-shrink: 0;
         }
         #messageInput {
             flex-grow: 1;
             border-radius: 24px;
             border: 1px solid #ddd;
             padding: 8px 16px;
+            outline: none;
         }
         .attach-btn, .send-btn {
             background: none;
@@ -151,7 +166,7 @@
 </head>
 <body>
 <div class="chat-container">
-    <!-- Header -->
+    <!-- Header (fixed top) -->
     <div class="chat-header">
         <a href="{{ url_for('users') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <div class="user-info">
@@ -166,7 +181,7 @@
         </div>
     </div>
 
-    <!-- Chat messages -->
+    <!-- Chat messages (scrollable area) -->
     <div class="chat-box" id="chatBox">
         {% for msg in messages %}
             <div class="message {% if msg.sender_id == current_user.id %}my-message{% else %}other-message{% endif %}" data-msg-id="{{ msg.id }}">
@@ -189,7 +204,7 @@
     <!-- Typing indicator -->
     <div id="typingIndicator" class="typing-indicator" style="display: none;">Typing...</div>
 
-    <!-- Input area -->
+    <!-- Input area (fixed bottom) -->
     <div class="chat-footer">
         <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
         <input type="text" id="messageInput" placeholder="Type a message...">
@@ -365,10 +380,7 @@
     });
 
     // ---------- WebRTC Audio/Video Call ----------
-    // Initialize PeerJS
-    peer = new Peer(currentUserId, {
-        // Optionally specify a custom PeerServer if needed, otherwise uses cloud PeerServer
-    });
+    peer = new Peer(currentUserId);
     peer.on('open', (id) => {
         console.log('My peer ID:', id);
     });
@@ -376,7 +388,6 @@
         console.error('Peer error:', err);
     });
 
-    // Function to start a call (audioOnly = true/false)
     function startCall(audioOnly) {
         navigator.mediaDevices.getUserMedia({ video: !audioOnly, audio: true })
             .then(stream => {
@@ -393,9 +404,7 @@
             });
     }
 
-    // Handle incoming call
     peer.on('call', (incomingCall) => {
-        // Automatically answer for simplicity, but you can ask user first
         if (confirm(`${otherUserName} is calling you. Accept?`)) {
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then(stream => {
@@ -438,7 +447,6 @@
             currentCall = null;
         }
         callModal.hide();
-        // Notify the other user (optional)
         socket.emit('end_call', { target_id: otherUserId });
     }
 
@@ -447,16 +455,9 @@
     endCallBtn.addEventListener('click', endCall);
     closeCallBtn.addEventListener('click', endCall);
 
-    // Optional: listen for call end from remote
     socket.on('call_ended', () => {
         endCall();
     });
-
-    // For signaling we don't need extra socket handlers because PeerJS handles the negotiation automatically.
-    // But if you need custom signaling (like offer/answer) you can implement via socket.
-    // However, PeerJS uses its own signaling server by default; above code uses PeerJS cloud.
-    // If you want to use your own socket signaling, you can remove PeerJS and implement manual WebRTC.
-    // But for simplicity, PeerJS works out of the box.
 </script>
 </body>
 </html>
