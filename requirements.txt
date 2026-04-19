@@ -1,7 +1,8 @@
-flask>=2.3.0
-flask-socketio>=5.3.4
-flask-login>=0.6.2
-supabase>=1.2.0
-python-dotenv>=1.0.0
-eventlet>=0.33.3
+flask
+flask-socketio
+flask-login
+werkzeug
+supabase
+python-dotenv
 pytz
+eventlet
