@@ -39,16 +39,24 @@
         </div>
         <button class="end-call-btn" id="endCallBtn"><i class="fas fa-phone-slash"></i></button>
     </div>
+
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script>
         const currentUserId = "{{ current_user.id }}";
         const otherUserId = "{{ other_user.id }}";
         const socket = io();
-        let peer = null, currentCall = null, localStream = null, remoteStream = null;
-        let callStartTime = null, timerInterval = null;
-        let isMuted = false, isOnHold = false;
+
+        let peer = null;
+        let currentCall = null;
+        let localStream = null;
+        let remoteStream = null;
+        let callStartTime = null;
+        let timerInterval = null;
+        let isMuted = false;
+        let isOnHold = false;
         let remoteAudio = null;
+        let keepAliveInterval = null;
 
         const callStatusDiv = document.getElementById('callStatus');
         const timerDiv = document.getElementById('timer');
@@ -57,6 +65,7 @@
         const holdBtn = document.getElementById('holdBtn');
         const endCallBtn = document.getElementById('endCallBtn');
 
+        // Timer functions
         function updateTimer() {
             if (!callStartTime) return;
             const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
@@ -64,9 +73,32 @@
             const secs = elapsed % 60;
             timerDiv.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
         }
-        function startTimer() { callStartTime = Date.now(); if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(updateTimer, 1000); }
-        function stopTimer() { if (timerInterval) clearInterval(timerInterval); timerInterval = null; callStartTime = null; }
+        function startTimer() {
+            callStartTime = Date.now();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            callStartTime = null;
+        }
 
+        // Keep call alive (send ping every 10 sec)
+        function startKeepAlive() {
+            if (keepAliveInterval) clearInterval(keepAliveInterval);
+            keepAliveInterval = setInterval(() => {
+                if (currentCall && currentCall.open) {
+                    socket.emit('call_keepalive', { target_id: otherUserId });
+                }
+            }, 10000);
+        }
+        function stopKeepAlive() {
+            if (keepAliveInterval) clearInterval(keepAliveInterval);
+            keepAliveInterval = null;
+        }
+
+        // Call controls
         function toggleMute() {
             if (!localStream) return;
             isMuted = !isMuted;
@@ -74,10 +106,12 @@
             muteBtn.classList.toggle('active', isMuted);
             muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
         }
+
         function toggleSpeaker() {
             if (!remoteAudio) {
                 remoteAudio = document.createElement('audio');
                 remoteAudio.autoplay = true;
+                remoteAudio.controls = false;
                 document.body.appendChild(remoteAudio);
             }
             if (remoteAudio.muted) {
@@ -90,26 +124,58 @@
                 speakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
             }
         }
+
         function toggleHold() {
             isOnHold = !isOnHold;
-            if (localStream) localStream.getAudioTracks().forEach(track => track.enabled = !isOnHold);
-            if (remoteStream) remoteStream.getAudioTracks().forEach(track => track.enabled = !isOnHold);
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => track.enabled = !isOnHold);
+            }
+            if (remoteStream) {
+                remoteStream.getAudioTracks().forEach(track => track.enabled = !isOnHold);
+            }
             holdBtn.classList.toggle('active', isOnHold);
             holdBtn.innerHTML = isOnHold ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
             callStatusDiv.innerText = isOnHold ? 'Call on hold' : 'Connected';
         }
+
         function endCall() {
+            stopTimer();
+            stopKeepAlive();
             if (localStream) localStream.getTracks().forEach(t => t.stop());
             if (currentCall) currentCall.close();
             if (remoteAudio) remoteAudio.pause();
-            stopTimer();
             socket.emit('end_call', { target_id: otherUserId });
             setTimeout(() => window.location.href = "{{ url_for('chat', user_id=other_user.id) }}", 300);
         }
 
-        const peerConfig = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }] } };
+        // PeerJS configuration with STUN + TURN (free)
+        const peerConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' },
+                    {
+                        urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
+                        username: 'webrtc',
+                        credential: 'webrtc'
+                    },
+                    {
+                        urls: 'turn:turn.anyfirewall.com:443?transport=udp',
+                        username: 'webrtc',
+                        credential: 'webrtc'
+                    }
+                ],
+                iceCandidatePoolSize: 10
+            }
+        };
+
         peer = new Peer(currentUserId, peerConfig);
-        peer.on('open', () => {
+        peer.on('open', (id) => {
+            console.log('PeerJS open, id:', id);
+            // Request microphone and call the other user
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
                 .then(stream => {
                     localStream = stream;
@@ -118,38 +184,75 @@
                     setupCall(call);
                     currentCall = call;
                 })
-                .catch(() => { callStatusDiv.innerText = 'Microphone access denied'; setTimeout(endCall, 2000); });
+                .catch(err => {
+                    console.error('Microphone error:', err);
+                    callStatusDiv.innerText = 'Microphone access denied';
+                    setTimeout(endCall, 2000);
+                });
         });
-        peer.on('error', () => { callStatusDiv.innerText = 'Connection error'; setTimeout(endCall, 2000); });
-        peer.on('call', call => {
+
+        peer.on('error', (err) => {
+            console.error('Peer error:', err);
+            callStatusDiv.innerText = 'Connection error';
+            setTimeout(endCall, 2000);
+        });
+
+        // Handle incoming call (if the other user calls us)
+        peer.on('call', (incomingCall) => {
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
                 .then(stream => {
                     localStream = stream;
-                    call.answer(stream);
-                    setupCall(call);
-                    currentCall = call;
+                    incomingCall.answer(stream);
+                    setupCall(incomingCall);
+                    currentCall = incomingCall;
                     callStatusDiv.innerText = 'Connected';
                     startTimer();
+                    startKeepAlive();
                 })
-                .catch(() => { call.close(); endCall(); });
+                .catch(err => {
+                    console.error('Failed to answer call:', err);
+                    incomingCall.close();
+                    endCall();
+                });
         });
+
         function setupCall(call) {
-            call.on('stream', stream => {
-                remoteStream = stream;
-                if (!remoteAudio) { remoteAudio = document.createElement('audio'); remoteAudio.autoplay = true; document.body.appendChild(remoteAudio); }
-                remoteAudio.srcObject = stream;
-                remoteAudio.play().catch(e => console.log(e));
+            call.on('stream', (remoteStreamData) => {
+                remoteStream = remoteStreamData;
+                // Create or reuse audio element
+                if (!remoteAudio) {
+                    remoteAudio = document.createElement('audio');
+                    remoteAudio.autoplay = true;
+                    remoteAudio.controls = false;
+                    document.body.appendChild(remoteAudio);
+                }
+                remoteAudio.srcObject = remoteStream;
+                remoteAudio.play().catch(e => console.warn('Audio play error:', e));
                 callStatusDiv.innerText = 'Connected';
                 startTimer();
+                startKeepAlive();
             });
-            call.on('close', () => endCall());
-            call.on('error', () => endCall());
+            call.on('close', () => {
+                console.log('Call closed by remote');
+                endCall();
+            });
+            call.on('error', (err) => {
+                console.error('Call error:', err);
+                endCall();
+            });
         }
+
+        // Button listeners
         muteBtn.onclick = toggleMute;
         speakerBtn.onclick = toggleSpeaker;
         holdBtn.onclick = toggleHold;
         endCallBtn.onclick = endCall;
+
+        // Socket events for keep-alive and remote end
         socket.on('call_ended', () => endCall());
+        socket.on('call_keepalive_ack', () => {
+            // just keep connection alive
+        });
     </script>
 </body>
 </html>

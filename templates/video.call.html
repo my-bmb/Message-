@@ -36,14 +36,21 @@
         <button class="control-btn" id="holdBtn" title="Hold"><i class="fas fa-pause"></i></button>
         <button class="end-call-btn" id="endCallBtn"><i class="fas fa-phone-slash"></i></button>
     </div>
+
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script>
         const currentUserId = "{{ current_user.id }}";
         const otherUserId = "{{ other_user.id }}";
         const socket = io();
-        let peer = null, currentCall = null, localStream = null;
-        let isMuted = false, isVideoOff = false, isOnHold = false;
+
+        let peer = null;
+        let currentCall = null;
+        let localStream = null;
+        let isMuted = false;
+        let isVideoOff = false;
+        let isOnHold = false;
+        let keepAliveInterval = null;
 
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
@@ -52,6 +59,19 @@
         const holdBtn = document.getElementById('holdBtn');
         const endCallBtn = document.getElementById('endCallBtn');
 
+        function startKeepAlive() {
+            if (keepAliveInterval) clearInterval(keepAliveInterval);
+            keepAliveInterval = setInterval(() => {
+                if (currentCall && currentCall.open) {
+                    socket.emit('call_keepalive', { target_id: otherUserId });
+                }
+            }, 10000);
+        }
+        function stopKeepAlive() {
+            if (keepAliveInterval) clearInterval(keepAliveInterval);
+            keepAliveInterval = null;
+        }
+
         function toggleMute() {
             if (!localStream) return;
             isMuted = !isMuted;
@@ -59,6 +79,7 @@
             muteBtn.classList.toggle('active', isMuted);
             muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
         }
+
         function toggleVideo() {
             if (!localStream) return;
             isVideoOff = !isVideoOff;
@@ -66,6 +87,7 @@
             videoToggleBtn.classList.toggle('active', isVideoOff);
             videoToggleBtn.innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
         }
+
         function toggleHold() {
             isOnHold = !isOnHold;
             if (localStream) {
@@ -75,14 +97,31 @@
             holdBtn.classList.toggle('active', isOnHold);
             holdBtn.innerHTML = isOnHold ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
         }
+
         function endCall() {
+            stopKeepAlive();
             if (localStream) localStream.getTracks().forEach(t => t.stop());
             if (currentCall) currentCall.close();
             socket.emit('end_call', { target_id: otherUserId });
             setTimeout(() => window.location.href = "{{ url_for('chat', user_id=other_user.id) }}", 300);
         }
 
-        const peerConfig = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }] } };
+        const peerConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    {
+                        urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
+                        username: 'webrtc',
+                        credential: 'webrtc'
+                    }
+                ],
+                iceCandidatePoolSize: 10
+            }
+        };
+
         peer = new Peer(currentUserId, peerConfig);
         peer.on('open', () => {
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -95,7 +134,7 @@
                 })
                 .catch(() => { alert('Cannot access camera/microphone'); endCall(); });
         });
-        peer.on('error', () => endCall());
+        peer.on('error', (err) => console.error('Peer error:', err));
         peer.on('call', call => {
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then(stream => {
@@ -107,16 +146,23 @@
                 })
                 .catch(() => { call.close(); endCall(); });
         });
+
         function setupCall(call) {
-            call.on('stream', stream => { remoteVideo.srcObject = stream; remoteVideo.play().catch(e => console.log(e)); });
+            call.on('stream', stream => {
+                remoteVideo.srcObject = stream;
+                remoteVideo.play().catch(e => console.log(e));
+                startKeepAlive();
+            });
             call.on('close', () => endCall());
             call.on('error', () => endCall());
         }
+
         muteBtn.onclick = toggleMute;
         videoToggleBtn.onclick = toggleVideo;
         holdBtn.onclick = toggleHold;
         endCallBtn.onclick = endCall;
         socket.on('call_ended', () => endCall());
+        socket.on('call_keepalive_ack', () => {});
     </script>
 </body>
 </html>
