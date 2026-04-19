@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Chat with {{ other_user.username }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -12,19 +12,20 @@
             padding: 0;
             box-sizing: border-box;
         }
+        /* ✅ FIX: No overflow hidden, use dvh for mobile */
         html, body {
             height: 100%;
-            overflow: hidden;
-        }
-        body {
+            height: 100dvh;      /* mobile dynamic viewport */
             background: #e5ddd5;
         }
-        /* Main container uses full viewport */
+        body {
+            overflow: hidden;     /* body scroll off, container handles it */
+        }
         .chat-container {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            width: 100%;
+            height: 100%;
+            max-height: 100%;
             background: white;
         }
         /* Fixed header */
@@ -37,7 +38,7 @@
             gap: 12px;
             flex-shrink: 0;
         }
-        /* Scrollable messages area */
+        /* Scrollable messages with margin for footer */
         .chat-box {
             flex: 1;
             overflow-y: auto;
@@ -55,27 +56,36 @@
             flex-shrink: 0;
             border-top: 1px solid #eee;
         }
-        /* Footer - always visible at bottom */
+        /* ✅ FIX: Fixed footer at bottom */
         .chat-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             background: white;
-            padding: 12px;
+            padding: 10px 12px;
             border-top: 1px solid #ddd;
             display: flex;
             gap: 8px;
             align-items: center;
-            flex-shrink: 0;
+            z-index: 1000;
+        }
+        /* ✅ Add bottom padding to chat-box so last message isn't behind footer */
+        .chat-box {
+            padding-bottom: 80px;
         }
         #messageInput {
             flex-grow: 1;
             border-radius: 24px;
             border: 1px solid #ddd;
-            padding: 8px 16px;
+            padding: 10px 16px;
             outline: none;
+            font-size: 16px;  /* prevents zoom on iOS */
         }
         .attach-btn, .send-btn {
             background: none;
             border: none;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: #075e54;
         }
         #fileInput {
@@ -93,7 +103,7 @@
             justify-content: flex-start;
         }
         .message-bubble {
-            max-width: 70%;
+            max-width: 75%;
             padding: 8px 12px;
             border-radius: 18px;
             word-wrap: break-word;
@@ -137,7 +147,6 @@
                 width: 50%;
             }
         }
-        /* Back button */
         .back-btn {
             color: white;
             text-decoration: none;
@@ -150,11 +159,25 @@
             margin-left: 10px;
             font-size: 1.2rem;
         }
+        /* ✅ iOS keyboard fix: when input focused, scroll into view */
+        @media (max-width: 768px) {
+            .chat-footer {
+                position: sticky;
+                bottom: 0;
+            }
+            body {
+                overflow: auto;
+            }
+            .chat-container {
+                height: auto;
+                min-height: 100dvh;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="chat-container">
-    <!-- Header -->
+    <!-- Header (same as before) -->
     <div class="chat-header">
         <a href="{{ url_for('users') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <div class="user-info flex-grow-1">
@@ -169,13 +192,13 @@
         </div>
     </div>
 
-    <!-- Chat messages (scrollable) -->
+    <!-- Chat messages -->
     <div class="chat-box" id="chatBox">
         {% for msg in messages %}
-            <div class="message {% if msg.sender_id == current_user.id %}my-message{% else %}other-message{% endif %}" data-msg-id="{{ msg.id }}">
+            <div class="message {% if msg.sender_id == current_user.id %}my-message{% else %}other-message{% endif %}">
                 <div class="message-bubble">
                     {% if msg.message_type == 'text' %}
-                        <div class="message-text">{{ msg.content }}</div>
+                        {{ msg.content }}
                     {% elif msg.message_type == 'image' %}
                         <img src="{{ msg.content }}" class="media-preview" alt="Image">
                     {% elif msg.message_type == 'video' %}
@@ -194,7 +217,7 @@
     <!-- Typing indicator -->
     <div id="typingIndicator" class="typing-indicator" style="display: none;">Typing...</div>
 
-    <!-- Footer (always visible) -->
+    <!-- Footer - fixed bottom -->
     <div class="chat-footer">
         <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
         <input type="text" id="messageInput" placeholder="Type a message...">
@@ -203,7 +226,7 @@
     </div>
 </div>
 
-<!-- Call Modal -->
+<!-- Call Modal (same as earlier) -->
 <div class="modal fade" id="callModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg">
         <div class="modal-content bg-dark text-white">
@@ -224,7 +247,6 @@
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -244,26 +266,20 @@
     const callModal = new bootstrap.Modal(callModalEl);
     const closeCallBtn = callModalEl.querySelector('.btn-close');
 
-    // User IDs (injected via Jinja2)
     const currentUserId = "{{ current_user.id }}";
     const otherUserId = "{{ other_user.id }}";
     const otherUserName = "{{ other_user.username }}";
 
-    // Socket.IO
     const socket = io();
-
-    // PeerJS for WebRTC
     let peer = null;
     let currentCall = null;
     let localStream = null;
 
-    // Helper: scroll chat to bottom
     function scrollToBottom() {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
     scrollToBottom();
 
-    // Helper: escape HTML to prevent XSS
     function escapeHtml(str) {
         return str.replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
@@ -273,7 +289,6 @@
         });
     }
 
-    // Append a message to the chat
     function appendMessage(msg, isMyMessage = null) {
         const isMe = (isMyMessage !== null) ? isMyMessage : (msg.sender_id === currentUserId);
         const div = document.createElement('div');
@@ -301,24 +316,15 @@
         scrollToBottom();
     }
 
-    // Send text message
     function sendTextMessage() {
         const content = messageInput.value.trim();
         if (content === '') return;
-        socket.emit('send_message', {
-            receiver_id: otherUserId,
-            content: content,
-            message_type: 'text'
-        });
+        socket.emit('send_message', { receiver_id: otherUserId, content, message_type: 'text' });
         messageInput.value = '';
     }
+    sendBtn.onclick = sendTextMessage;
+    messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendTextMessage(); });
 
-    sendBtn.addEventListener('click', sendTextMessage);
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendTextMessage();
-    });
-
-    // Typing indicator
     let typingTimeout;
     messageInput.addEventListener('input', () => {
         socket.emit('typing', { receiver_id: otherUserId, is_typing: true });
@@ -328,15 +334,11 @@
         }, 1000);
     });
     socket.on('user_typing', (data) => {
-        if (data.user_id === otherUserId && data.is_typing) {
-            typingIndicator.style.display = 'block';
-        } else {
-            typingIndicator.style.display = 'none';
-        }
+        if (data.user_id === otherUserId && data.is_typing) typingIndicator.style.display = 'block';
+        else typingIndicator.style.display = 'none';
     });
 
-    // File upload
-    attachBtn.addEventListener('click', () => fileInput.click());
+    attachBtn.onclick = () => fileInput.click();
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -344,36 +346,26 @@
         formData.append('file', file);
         formData.append('receiver_id', otherUserId);
         try {
-            const response = await fetch('/upload', { method: 'POST', body: formData });
-            const result = await response.json();
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const result = await res.json();
             if (!result.success) alert('Upload failed');
-        } catch (err) {
-            console.error(err);
-            alert('Upload error');
-        }
+        } catch (err) { console.error(err); }
         fileInput.value = '';
     });
 
-    // Receive new message
     socket.on('new_message', (msg) => {
-        if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
-            appendMessage(msg);
-        }
+        if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) appendMessage(msg);
     });
-
-    // Online status updates
     socket.on('user_status', (data) => {
         if (data.user_id === otherUserId) {
-            const statusSpan = document.getElementById('onlineStatus');
-            statusSpan.innerText = data.is_online ? 'Online' : 'Offline';
+            document.getElementById('onlineStatus').innerText = data.is_online ? 'Online' : 'Offline';
         }
     });
 
-    // ---------- WebRTC Audio/Video Call ----------
+    // WebRTC calls
     peer = new Peer(currentUserId);
-    peer.on('open', (id) => console.log('My peer ID:', id));
-    peer.on('error', (err) => console.error('Peer error:', err));
-
+    peer.on('open', (id) => console.log('Peer ID:', id));
+    peer.on('error', (err) => console.error(err));
     function startCall(audioOnly) {
         navigator.mediaDevices.getUserMedia({ video: !audioOnly, audio: true })
             .then(stream => {
@@ -384,12 +376,8 @@
                 currentCall = call;
                 callModal.show();
             })
-            .catch(err => {
-                console.error('getUserMedia error:', err);
-                alert('Cannot access camera/microphone. Please check permissions.');
-            });
+            .catch(err => alert('Cannot access camera/microphone'));
     }
-
     peer.on('call', (incomingCall) => {
         if (confirm(`${otherUserName} is calling you. Accept?`)) {
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -400,48 +388,32 @@
                     setupCallEventHandlers(incomingCall);
                     currentCall = incomingCall;
                     callModal.show();
-                })
-                .catch(err => {
-                    console.error('Failed to get media for answering call', err);
-                    incomingCall.close();
-                });
-        } else {
-            incomingCall.close();
-        }
+                }).catch(err => incomingCall.close());
+        } else incomingCall.close();
     });
-
     function setupCallEventHandlers(call) {
-        call.on('stream', (remoteStream) => {
-            document.getElementById('remoteVideo').srcObject = remoteStream;
-        });
-        call.on('close', () => {
-            endCall();
-        });
-        call.on('error', (err) => {
-            console.error('Call error:', err);
-            endCall();
-        });
+        call.on('stream', (remoteStream) => { document.getElementById('remoteVideo').srcObject = remoteStream; });
+        call.on('close', () => endCall());
+        call.on('error', () => endCall());
     }
-
     function endCall() {
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-            localStream = null;
-        }
-        if (currentCall) {
-            currentCall.close();
-            currentCall = null;
-        }
+        if (localStream) localStream.getTracks().forEach(t => t.stop());
+        if (currentCall) currentCall.close();
+        currentCall = null;
         callModal.hide();
         socket.emit('end_call', { target_id: otherUserId });
     }
+    audioCallBtn.onclick = () => startCall(true);
+    videoCallBtn.onclick = () => startCall(false);
+    endCallBtn.onclick = endCall;
+    if (closeCallBtn) closeCallBtn.onclick = endCall;
+    socket.on('call_ended', () => endCall());
 
-    audioCallBtn.addEventListener('click', () => startCall(true));
-    videoCallBtn.addEventListener('click', () => startCall(false));
-    endCallBtn.addEventListener('click', endCall);
-    if (closeCallBtn) closeCallBtn.addEventListener('click', endCall);
-    socket.on('call_ended', () => {
-        endCall();
+    // ✅ Auto-scroll when keyboard opens (mobile)
+    window.addEventListener('resize', () => {
+        if (document.activeElement === messageInput) {
+            setTimeout(() => messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        }
     });
 </script>
 </body>
