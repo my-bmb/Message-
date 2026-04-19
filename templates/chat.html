@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* CRITICAL FIX: Ensure full height and no overflow issues */
         * {
             margin: 0;
             padding: 0;
@@ -20,13 +19,15 @@
         body {
             background: #e5ddd5;
         }
+        /* Main container uses full viewport */
         .chat-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            max-height: 100vh;
+            width: 100%;
             background: white;
         }
+        /* Fixed header */
         .chat-header {
             background: #075e54;
             color: white;
@@ -34,32 +35,9 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            flex-shrink: 0;  /* Prevent header from shrinking */
+            flex-shrink: 0;
         }
-        .back-btn {
-            color: white;
-            text-decoration: none;
-            font-size: 1.3rem;
-        }
-        .user-info {
-            flex-grow: 1;
-        }
-        .user-name {
-            font-weight: bold;
-            margin-bottom: 0;
-        }
-        .user-status {
-            font-size: 0.75rem;
-            opacity: 0.9;
-        }
-        .call-buttons button {
-            background: none;
-            border: none;
-            color: white;
-            margin-left: 10px;
-            font-size: 1.2rem;
-        }
-        /* Chat messages area - will scroll */
+        /* Scrollable messages area */
         .chat-box {
             flex: 1;
             overflow-y: auto;
@@ -67,45 +45,7 @@
             background-image: url('https://www.transparenttextures.com/patterns/brilliant.png');
             background-color: #e5ddd5;
         }
-        .message {
-            margin-bottom: 12px;
-            display: flex;
-        }
-        .my-message {
-            justify-content: flex-end;
-        }
-        .other-message {
-            justify-content: flex-start;
-        }
-        .message-bubble {
-            max-width: 70%;
-            padding: 8px 12px;
-            border-radius: 18px;
-            position: relative;
-            word-wrap: break-word;
-        }
-        .my-message .message-bubble {
-            background: #dcf8c5;
-            border-bottom-right-radius: 4px;
-        }
-        .other-message .message-bubble {
-            background: white;
-            border-bottom-left-radius: 4px;
-        }
-        .message-text {
-            margin-bottom: 4px;
-        }
-        .message-time {
-            font-size: 0.65rem;
-            opacity: 0.7;
-            text-align: right;
-        }
-        .media-preview {
-            max-width: 200px;
-            max-height: 150px;
-            border-radius: 8px;
-            margin-top: 4px;
-        }
+        /* Typing indicator */
         .typing-indicator {
             padding: 8px 16px;
             font-size: 0.8rem;
@@ -113,6 +53,7 @@
             font-style: italic;
             background: white;
             flex-shrink: 0;
+            border-top: 1px solid #eee;
         }
         /* Footer - always visible at bottom */
         .chat-footer {
@@ -140,10 +81,44 @@
         #fileInput {
             display: none;
         }
-        /* Call modal */
-        .modal-video {
-            background: #000;
+        /* Message bubbles */
+        .message {
+            margin-bottom: 12px;
+            display: flex;
         }
+        .my-message {
+            justify-content: flex-end;
+        }
+        .other-message {
+            justify-content: flex-start;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        .my-message .message-bubble {
+            background: #dcf8c5;
+            border-bottom-right-radius: 4px;
+        }
+        .other-message .message-bubble {
+            background: white;
+            border-bottom-left-radius: 4px;
+        }
+        .media-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-top: 4px;
+        }
+        .message-time {
+            font-size: 0.65rem;
+            opacity: 0.7;
+            text-align: right;
+            margin-top: 4px;
+        }
+        /* Call modal */
         #localVideo, #remoteVideo {
             width: 100%;
             background: #000;
@@ -162,16 +137,29 @@
                 width: 50%;
             }
         }
+        /* Back button */
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            font-size: 1.3rem;
+        }
+        .call-buttons button {
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 10px;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
 <div class="chat-container">
-    <!-- Header (fixed top) -->
+    <!-- Header -->
     <div class="chat-header">
         <a href="{{ url_for('users') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <div class="user-info">
-            <div class="user-name">{{ other_user.username }}</div>
-            <div class="user-status" id="onlineStatus">
+        <div class="user-info flex-grow-1">
+            <div class="user-name fw-bold">{{ other_user.username }}</div>
+            <div class="user-status small" id="onlineStatus">
                 {% if other_user.is_online %}Online{% else %}Offline{% endif %}
             </div>
         </div>
@@ -181,7 +169,7 @@
         </div>
     </div>
 
-    <!-- Chat messages (scrollable area) -->
+    <!-- Chat messages (scrollable) -->
     <div class="chat-box" id="chatBox">
         {% for msg in messages %}
             <div class="message {% if msg.sender_id == current_user.id %}my-message{% else %}other-message{% endif %}" data-msg-id="{{ msg.id }}">
@@ -193,7 +181,9 @@
                     {% elif msg.message_type == 'video' %}
                         <video controls class="media-preview" src="{{ msg.content }}"></video>
                     {% elif msg.message_type == 'audio' %}
-                        <audio controls src="{{ msg.content }}" style="width: 200px;"></audio>
+                        <audio controls src="{{ msg.content }}" style="width:200px"></audio>
+                    {% else %}
+                        <a href="{{ msg.content }}" target="_blank">Download file</a>
                     {% endif %}
                     <div class="message-time">{{ msg.created_at[:16]|replace('T', ' ') }}</div>
                 </div>
@@ -204,7 +194,7 @@
     <!-- Typing indicator -->
     <div id="typingIndicator" class="typing-indicator" style="display: none;">Typing...</div>
 
-    <!-- Input area (fixed bottom) -->
+    <!-- Footer (always visible) -->
     <div class="chat-footer">
         <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
         <input type="text" id="messageInput" placeholder="Type a message...">
@@ -219,7 +209,7 @@
         <div class="modal-content bg-dark text-white">
             <div class="modal-header">
                 <h5 class="modal-title">Call in progress...</h5>
-                <button type="button" class="btn-close btn-close-white" id="closeCallBtn" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="video-container">
@@ -234,11 +224,11 @@
     </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     // DOM elements
     const chatBox = document.getElementById('chatBox');
@@ -250,10 +240,11 @@
     const audioCallBtn = document.getElementById('audioCallBtn');
     const videoCallBtn = document.getElementById('videoCallBtn');
     const endCallBtn = document.getElementById('endCallBtn');
-    const closeCallBtn = document.getElementById('closeCallBtn');
-    const callModal = new bootstrap.Modal(document.getElementById('callModal'));
+    const callModalEl = document.getElementById('callModal');
+    const callModal = new bootstrap.Modal(callModalEl);
+    const closeCallBtn = callModalEl.querySelector('.btn-close');
 
-    // User IDs
+    // User IDs (injected via Jinja2)
     const currentUserId = "{{ current_user.id }}";
     const otherUserId = "{{ other_user.id }}";
     const otherUserName = "{{ other_user.username }}";
@@ -272,7 +263,17 @@
     }
     scrollToBottom();
 
-    // Helper: append a message to chat box
+    // Helper: escape HTML to prevent XSS
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Append a message to the chat
     function appendMessage(msg, isMyMessage = null) {
         const isMe = (isMyMessage !== null) ? isMyMessage : (msg.sender_id === currentUserId);
         const div = document.createElement('div');
@@ -298,16 +299,6 @@
         `;
         chatBox.appendChild(div);
         scrollToBottom();
-    }
-
-    // Simple escape to prevent XSS
-    function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
     }
 
     // Send text message
@@ -336,7 +327,6 @@
             socket.emit('typing', { receiver_id: otherUserId, is_typing: false });
         }, 1000);
     });
-
     socket.on('user_typing', (data) => {
         if (data.user_id === otherUserId && data.is_typing) {
             typingIndicator.style.display = 'block';
@@ -359,6 +349,7 @@
             if (!result.success) alert('Upload failed');
         } catch (err) {
             console.error(err);
+            alert('Upload error');
         }
         fileInput.value = '';
     });
@@ -374,19 +365,14 @@
     socket.on('user_status', (data) => {
         if (data.user_id === otherUserId) {
             const statusSpan = document.getElementById('onlineStatus');
-            if (data.is_online) statusSpan.innerText = 'Online';
-            else statusSpan.innerText = 'Offline';
+            statusSpan.innerText = data.is_online ? 'Online' : 'Offline';
         }
     });
 
     // ---------- WebRTC Audio/Video Call ----------
     peer = new Peer(currentUserId);
-    peer.on('open', (id) => {
-        console.log('My peer ID:', id);
-    });
-    peer.on('error', (err) => {
-        console.error('Peer error:', err);
-    });
+    peer.on('open', (id) => console.log('My peer ID:', id));
+    peer.on('error', (err) => console.error('Peer error:', err));
 
     function startCall(audioOnly) {
         navigator.mediaDevices.getUserMedia({ video: !audioOnly, audio: true })
@@ -453,8 +439,7 @@
     audioCallBtn.addEventListener('click', () => startCall(true));
     videoCallBtn.addEventListener('click', () => startCall(false));
     endCallBtn.addEventListener('click', endCall);
-    closeCallBtn.addEventListener('click', endCall);
-
+    if (closeCallBtn) closeCallBtn.addEventListener('click', endCall);
     socket.on('call_ended', () => {
         endCall();
     });
