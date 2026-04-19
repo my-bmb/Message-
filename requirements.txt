@@ -6,3 +6,4 @@ supabase
 python-dotenv
 pytz
 eventlet
+gunicorn
