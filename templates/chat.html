@@ -8,40 +8,111 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; background: #e5ddd5; }
-        body { overflow: hidden; }
+        body { background: #e5ddd5; font-family: 'Segoe UI', system-ui, sans-serif; height: 100vh; overflow: hidden; }
         .chat-container { display: flex; flex-direction: column; height: 100%; background: white; }
-        .chat-header { background: #075e54; color: white; padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 16px; background-color: #e5ddd5; background-image: url('https://www.transparenttextures.com/patterns/brilliant.png'); }
+        .chat-header {
+            background: #075e54;
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background-image: url('https://www.transparenttextures.com/patterns/brilliant.png');
+            background-color: #e5ddd5;
+        }
         .typing-indicator { padding: 8px 16px; font-size: 0.8rem; color: #666; font-style: italic; background: white; flex-shrink: 0; border-top: 1px solid #eee; }
-        .chat-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px 12px; border-top: 1px solid #ddd; display: flex; gap: 8px; align-items: center; z-index: 1000; }
-        #messageInput { flex-grow: 1; border-radius: 24px; border: 1px solid #ddd; padding: 10px 16px; outline: none; font-size: 16px; }
-        .attach-btn, .send-btn, .emoji-btn, .mic-btn { background: none; border: none; font-size: 1.5rem; color: #075e54; cursor: pointer; }
-        #fileInput, #audioInput { display: none; }
+        .chat-footer {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 10px 12px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        #messageInput {
+            flex-grow: 1;
+            border-radius: 24px;
+            border: 1px solid #ddd;
+            padding: 10px 16px;
+            outline: none;
+            font-size: 16px;
+        }
+        .attach-btn, .send-btn, .emoji-btn, .mic-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #075e54;
+            cursor: pointer;
+        }
         .message { margin-bottom: 12px; display: flex; position: relative; }
         .my-message { justify-content: flex-end; }
         .other-message { justify-content: flex-start; }
-        .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 18px; word-wrap: break-word; position: relative; }
+        .message-bubble {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            position: relative;
+        }
         .my-message .message-bubble { background: #dcf8c5; border-bottom-right-radius: 4px; }
-        .other-message .message-bubble { background: white; border-bottom-left-radius: 4px; }
+        .other-message .message-bubble { background: white; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .media-preview { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 4px; }
         .message-time { font-size: 0.65rem; opacity: 0.7; text-align: right; margin-top: 4px; }
         .fa-check-double { color: #34b7f1; }
         .reply-preview { background: #f0f0f0; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-bottom: 4px; border-left: 3px solid #075e54; }
-        .message-actions { position: absolute; right: 0; top: -20px; background: white; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: none; gap: 8px; padding: 4px 8px; z-index: 10; }
+        .message-actions {
+            position: absolute;
+            right: 0;
+            top: -25px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: none;
+            gap: 8px;
+            padding: 4px 8px;
+            z-index: 10;
+        }
         .message:hover .message-actions { display: flex; }
         .message-actions button { background: none; border: none; cursor: pointer; font-size: 0.8rem; }
         .reactions { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
-        .reaction { background: rgba(0,0,0,0.05); border-radius: 20px; padding: 2px 6px; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+        .reaction {
+            background: rgba(0,0,0,0.05);
+            border-radius: 20px;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
         .emoji-picker { position: absolute; bottom: 70px; right: 20px; display: none; z-index: 1000; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .back-btn { color: white; text-decoration: none; font-size: 1.3rem; }
         .call-buttons button { background: none; border: none; color: white; margin-left: 10px; font-size: 1.2rem; cursor: pointer; }
         .search-container { margin-left: auto; margin-right: 10px; }
-        .search-container input { border-radius: 20px; border: none; padding: 4px 12px; font-size: 0.8rem; }
-        .search-results { position: absolute; top: 60px; right: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); max-width: 300px; z-index: 1000; display: none; }
+        .search-container input { border-radius: 20px; border: none; padding: 4px 12px; font-size: 0.8rem; width: 150px; }
+        .search-results {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            max-width: 300px;
+            z-index: 1000;
+            display: none;
+        }
         .search-result-item { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; }
         .edited-badge { font-size: 0.6rem; opacity: 0.6; margin-left: 6px; }
-        @media (max-width: 768px) { .chat-footer { position: sticky; bottom: 0; } body { overflow: auto; } .chat-container { height: auto; min-height: 100dvh; } }
+        @media (max-width: 768px) { .chat-footer { position: sticky; } body { overflow: auto; } .chat-container { height: auto; min-height: 100dvh; } .search-container input { width: 100px; } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.2.0/index.js" defer></script>
 </head>
@@ -69,14 +140,14 @@
         <div class="message {% if msg.sender_id == current_user.id %}my-message{% else %}other-message{% endif %}" data-message-id="{{ msg.id }}" data-sender-id="{{ msg.sender_id }}">
             <div class="message-bubble">
                 {% if msg.reply_to_id %}
-                <div class="reply-preview">Replying to: {{ msg.reply_to_content|default("message") }}</div>
+                <div class="reply-preview">↩️ Replying to: {{ msg.reply_to_content|default("message") }}</div>
                 {% endif %}
                 <div class="message-text">
                     {% if msg.message_type == 'text' %}{{ msg.content }}{% if msg.edited %}<span class="edited-badge">(edited)</span>{% endif %}
                     {% elif msg.message_type == 'image' %}<img src="{{ msg.content }}" class="media-preview" alt="Image">
                     {% elif msg.message_type == 'video' %}<video controls class="media-preview" src="{{ msg.content }}"></video>
                     {% elif msg.message_type == 'audio' %}<audio controls src="{{ msg.content }}" style="width:200px"></audio>
-                    {% else %}<a href="{{ msg.content }}" target="_blank">Download file</a>{% endif %}
+                    {% else %}<a href="{{ msg.content }}" target="_blank">📎 Download file</a>{% endif %}
                 </div>
                 <div class="message-time">
                     {{ msg.formatted_time }}
@@ -110,7 +181,6 @@
         <input type="text" id="messageInput" placeholder="Type a message...">
         <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
         <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
-        <input type="file" id="audioInput" accept="audio/*" capture="microphone">
     </div>
     <div id="emojiPicker" class="emoji-picker"></div>
 </div>
@@ -122,7 +192,6 @@
     const attachBtn = document.getElementById('attachBtn');
     const fileInput = document.getElementById('fileInput');
     const micBtn = document.getElementById('micBtn');
-    const audioInput = document.getElementById('audioInput');
     const typingIndicator = document.getElementById('typingIndicator');
     const audioCallBtn = document.getElementById('audioCallBtn');
     const videoCallBtn = document.getElementById('videoCallBtn');
@@ -143,7 +212,6 @@
     function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
     scrollToBottom();
 
-    // Load older messages on scroll to top
     chatBox.addEventListener('scroll', async () => {
         if (chatBox.scrollTop === 0 && !isLoadingMore) {
             isLoadingMore = true;
@@ -180,7 +248,7 @@
         } else if (msg.message_type === 'audio') {
             contentHtml = `<audio controls src="${msg.content}" style="width:200px"></audio>`;
         } else {
-            contentHtml = `<div class="message-text">File: <a href="${msg.content}" target="_blank">Download</a></div>`;
+            contentHtml = `<div class="message-text">📎 <a href="${msg.content}" target="_blank">Download file</a></div>`;
         }
         const time = msg.formatted_time || new Date(msg.created_at).toLocaleTimeString();
         let reactionsHtml = '';
@@ -196,7 +264,7 @@
         }
         div.innerHTML = `
             <div class="message-bubble">
-                ${msg.reply_to_id ? `<div class="reply-preview">Replying to: ${escapeHtml(msg.reply_to_content || "message")}</div>` : ''}
+                ${msg.reply_to_id ? `<div class="reply-preview">↩️ Replying to: ${escapeHtml(msg.reply_to_content || "message")}</div>` : ''}
                 ${contentHtml}
                 <div class="message-time">${time}${isMe ? (msg.is_read ? '<i class="fas fa-check-double" title="Seen"></i>' : '<i class="fas fa-check" style="opacity:0.6;" title="Sent"></i>') : ''}</div>
                 ${reactionsHtml}
@@ -243,7 +311,6 @@
                 body: JSON.stringify({message_id: messageId, content: newContent, receiver_id: otherUserId})
             });
             if (res.ok) {
-                // update UI optimistically
                 const msgDiv = document.querySelector(`.message[data-message-id="${messageId}"] .message-text`);
                 if (msgDiv) msgDiv.innerHTML = escapeHtml(newContent) + '<span class="edited-badge">(edited)</span>';
             }
@@ -259,7 +326,7 @@
         if (res.ok) {
             if (deleteFor === 'everyone') {
                 const msgDiv = document.querySelector(`.message[data-message-id="${messageId}"] .message-bubble`);
-                if (msgDiv) msgDiv.innerHTML = '<div class="message-text">This message was deleted</div><div class="message-time"></div>';
+                if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ This message was deleted</div><div class="message-time"></div>';
             } else {
                 document.querySelector(`.message[data-message-id="${messageId}"]`)?.remove();
             }
@@ -273,9 +340,7 @@
             body: JSON.stringify({message_id: messageId, reaction, receiver_id: otherUserId})
         });
         const data = await res.json();
-        if (data.success) {
-            updateReactionsUI(messageId, data.reactions);
-        }
+        if (data.success) updateReactionsUI(messageId, data.reactions);
     }
 
     function updateReactionsUI(messageId, reactions) {
@@ -305,10 +370,7 @@
             btn.textContent = r;
             btn.style.fontSize = '1.2rem';
             btn.style.margin = '0 4px';
-            btn.onclick = () => {
-                toggleReaction(messageId, r);
-                picker.remove();
-            };
+            btn.onclick = () => { toggleReaction(messageId, r); picker.remove(); };
             picker.appendChild(btn);
         });
         document.body.appendChild(picker);
@@ -349,7 +411,6 @@
         fileInput.value = '';
     });
 
-    // Voice recording
     micBtn.onclick = async () => {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
@@ -373,7 +434,6 @@
         }
     };
 
-    // Emoji picker
     if (typeof EmojiPicker !== 'undefined') {
         const picker = new EmojiPicker();
         emojiBtn.onclick = () => {
@@ -390,7 +450,6 @@
         };
     }
 
-    // Search
     searchInput.addEventListener('input', async () => {
         const q = searchInput.value.trim();
         if (q.length < 2) { searchResultsDiv.style.display = 'none'; return; }
@@ -412,7 +471,6 @@
     });
     document.addEventListener('click', (e) => { if (!searchInput.contains(e.target)) searchResultsDiv.style.display = 'none'; });
 
-    // Notifications
     if (Notification.permission === 'default') Notification.requestPermission();
     socket.on('new_message', (msg) => {
         if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
@@ -420,7 +478,7 @@
             if (msg.sender_id === otherUserId) {
                 socket.emit('mark_read', { sender_id: otherUserId });
                 if (Notification.permission === 'granted' && document.hidden) {
-                    new Notification(`New message from ${msg.sender_name || 'User'}`, { body: msg.message_type === 'text' ? msg.content : 'Media' });
+                    new Notification(`New message from ${otherUserId}`, { body: msg.message_type === 'text' ? msg.content : 'Media' });
                 }
             }
         }
@@ -429,12 +487,10 @@
         const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-text`);
         if (msgDiv) msgDiv.innerHTML = escapeHtml(data.new_content) + '<span class="edited-badge">(edited)</span>';
     });
-    socket.on('reaction_updated', (data) => {
-        updateReactionsUI(data.message_id, data.reactions);
-    });
+    socket.on('reaction_updated', (data) => { updateReactionsUI(data.message_id, data.reactions); });
     socket.on('user_status', data => {
         if (data.user_id === otherUserId) {
-            document.getElementById('onlineStatus').innerHTML = data.is_online ? 'Online' : `Last seen: ${data.last_seen ? new Date(data.last_seen).toLocaleString() : 'recently'}`;
+            document.getElementById('onlineStatus').innerHTML = data.is_online ? 'Online' : `Last seen: ${data.last_seen ? new Date(data.last_seen).toLocaleString('en-IN', { hour12: true }) : 'recently'}`;
         }
     });
     socket.on('messages_read', data => {
@@ -449,7 +505,7 @@
     socket.on('message_deleted', (data) => {
         if (data.for_everyone) {
             const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-bubble`);
-            if (msgDiv) msgDiv.innerHTML = '<div class="message-text">This message was deleted</div><div class="message-time"></div>';
+            if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ This message was deleted</div><div class="message-time"></div>';
         } else {
             document.querySelector(`.message[data-message-id="${data.message_id}"]`)?.remove();
         }
@@ -462,5 +518,6 @@
     audioCallBtn.onclick = () => window.location.href = `/audio-call/${otherUserId}`;
     videoCallBtn.onclick = () => window.location.href = `/video-call/${otherUserId}`;
 </script>
+<script src="{{ url_for('static', filename='js/call-notification.js') }}"></script>
 </body>
 </html>

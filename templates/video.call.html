@@ -51,7 +51,15 @@
         const otherUserId = "{{ other_user.id }}";
         const callType = "video";
         const socket = io();
-        const isCaller = new URLSearchParams(window.location.search).get('role') !== 'receiver';
+        let isCaller = new URLSearchParams(window.location.search).get('role') !== 'receiver';
+
+        const pendingOfferJson = sessionStorage.getItem('pendingOffer');
+        if (pendingOfferJson) {
+            sessionStorage.removeItem('pendingOffer');
+            const pending = JSON.parse(pendingOfferJson);
+            isCaller = false;
+            window.pendingCall = pending;
+        }
 
         let peerConnection = null;
         let localStream = null;
@@ -60,6 +68,7 @@
         let isVideoOff = false;
         let callStartTime = null;
         let timerInterval = null;
+        let ringtoneContext = null;
 
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
@@ -77,27 +86,51 @@
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'turn:relay1.metered.ca:80', username: 'your_username', credential: 'your_password' },
-                { urls: 'turn:relay1.metered.ca:443?transport=tcp', username: 'your_username', credential: 'your_password' }
-            ]
+                { urls: 'stun:stun2.l.google.com:19302' }
+            ],
+            iceCandidatePoolSize: 10
         };
 
-        function updateTimer() {
-            if (!callStartTime) return;
-            const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
-            const mins = Math.floor(elapsed / 60);
-            const secs = elapsed % 60;
-            document.getElementById('timer')?.remove(); // optional: display timer somewhere
-        }
+        function updateTimer() { if (callStartTime) { const elapsed = Math.floor((Date.now() - callStartTime) / 1000); /* optional */ } }
         function startTimer() { callStartTime = Date.now(); timerInterval = setInterval(updateTimer, 1000); }
         function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
+
+        function playRingtone() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            ringtoneContext = ctx;
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = 0.3;
+            gainNode.connect(ctx.destination);
+            const playTone = (freq, duration) => new Promise(resolve => {
+                const osc = ctx.createOscillator();
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                osc.connect(gainNode);
+                osc.start();
+                setTimeout(() => { osc.stop(); resolve(); }, duration);
+            });
+            const ringPattern = async () => {
+                if (!ringtoneContext) return;
+                await playTone(440, 400);
+                await new Promise(r => setTimeout(r, 200));
+                if (!ringtoneContext) return;
+                await playTone(440, 400);
+                await new Promise(r => setTimeout(r, 200));
+                if (!ringtoneContext) return;
+                await playTone(440, 400);
+                await new Promise(r => setTimeout(r, 800));
+                if (ringtoneContext) ringPattern();
+            };
+            ringPattern();
+        }
+        function stopRingtone() { if (ringtoneContext) { ringtoneContext.close(); ringtoneContext = null; } }
 
         async function createPeerConnection() {
             if (peerConnection) return peerConnection;
             peerConnection = new RTCPeerConnection(iceServers);
-            if (localStream) {
-                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-            }
+            if (localStream) localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
             peerConnection.ontrack = (event) => {
                 remoteStream = event.streams[0];
                 remoteVideo.srcObject = remoteStream;
@@ -115,7 +148,7 @@
 
         async function initiateCall() {
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: { echoCancellation: true, noiseSuppression: true } });
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 localVideo.srcObject = localStream;
                 const pc = await createPeerConnection();
                 const offer = await pc.createOffer();
@@ -129,7 +162,7 @@
                 });
                 socket.once('call_rejected', () => { clearTimeout(timeoutId); endCall('Call rejected'); });
                 socket.once('call_timeout', () => { clearTimeout(timeoutId); endCall('No answer'); });
-            } catch (err) { endCall('Camera error'); }
+            } catch (err) { endCall('Camera/Mic error'); }
         }
 
         async function acceptIncomingCall(callerId, offerSdp) {
@@ -143,6 +176,7 @@
                 socket.emit('answer_call', { caller_id: callerId, answer: pc.localDescription, call_type: callType });
                 incomingPopup.style.display = 'none';
                 startTimer();
+                stopRingtone();
             } catch (err) { endCall(); }
         }
 
@@ -151,6 +185,7 @@
             if (localStream) localStream.getTracks().forEach(t => t.stop());
             if (peerConnection) peerConnection.close();
             socket.emit('end_call', { target_id: otherUserId });
+            stopRingtone();
             window.location.href = "{{ url_for('chat', user_id=other_user.id) }}";
         }
 
@@ -175,18 +210,20 @@
             const capabilities = videoTrack.getCapabilities();
             if (!capabilities.facingMode) return;
             const newMode = videoTrack.getSettings().facingMode === 'user' ? 'environment' : 'user';
-            const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: newMode } }, audio: true });
-            const newVideoTrack = newStream.getVideoTracks()[0];
-            const oldVideoTrack = localStream.getVideoTracks()[0];
-            localStream.removeTrack(oldVideoTrack);
-            localStream.addTrack(newVideoTrack);
-            localVideo.srcObject = localStream;
-            if (peerConnection) {
-                const senders = peerConnection.getSenders();
-                const sender = senders.find(s => s.track === oldVideoTrack);
-                if (sender) sender.replaceTrack(newVideoTrack);
-            }
-            oldVideoTrack.stop();
+            try {
+                const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: newMode } }, audio: true });
+                const newVideoTrack = newStream.getVideoTracks()[0];
+                const oldVideoTrack = localStream.getVideoTracks()[0];
+                localStream.removeTrack(oldVideoTrack);
+                localStream.addTrack(newVideoTrack);
+                localVideo.srcObject = localStream;
+                if (peerConnection) {
+                    const senders = peerConnection.getSenders();
+                    const sender = senders.find(s => s.track === oldVideoTrack);
+                    if (sender) sender.replaceTrack(newVideoTrack);
+                }
+                oldVideoTrack.stop();
+            } catch (e) { console.warn('Camera switch failed', e); }
         }
         function toggleFullscreen() {
             const container = document.querySelector('.video-container');
@@ -204,11 +241,9 @@
             if (data.caller_id === otherUserId) {
                 callerNameSpan.innerText = data.caller_name;
                 incomingPopup.style.display = 'flex';
-                const ringtone = new Audio('/static/ringtone.mp3');
-                ringtone.loop = true;
-                ringtone.play();
-                acceptCallBtn.onclick = () => { ringtone.pause(); acceptIncomingCall(data.caller_id, data.offer); };
-                rejectCallBtn.onclick = () => { ringtone.pause(); socket.emit('reject_call', { caller_id: data.caller_id }); endCall(); };
+                playRingtone();
+                acceptCallBtn.onclick = () => { stopRingtone(); acceptIncomingCall(data.caller_id, data.offer); };
+                rejectCallBtn.onclick = () => { stopRingtone(); socket.emit('reject_call', { caller_id: data.caller_id }); endCall(); };
             }
         });
         socket.on('call_answered', async (data) => {
@@ -216,15 +251,25 @@
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
         });
         socket.on('ice_candidate', async (data) => {
-            if (peerConnection) await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            if (peerConnection) {
+                try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); }
+                catch (e) { console.warn(e); }
+            }
         });
         socket.on('call_ended', () => endCall());
         socket.on('call_rejected', () => endCall('Call rejected'));
         socket.on('call_timeout', () => endCall('No answer'));
         socket.on('call_error', (err) => endCall(err.message));
 
-        if (isCaller) initiateCall();
-        else document.getElementById('remoteVideo').style.display = 'none'; // wait for call
+        if (window.pendingCall) {
+            const pending = window.pendingCall;
+            const doAccept = () => { acceptIncomingCall(pending.callerId, pending.offer); };
+            if (socket.connected) doAccept(); else socket.once('connect', doAccept);
+        } else if (isCaller) {
+            initiateCall();
+        } else {
+            // wait for incoming call
+        }
     </script>
 </body>
 </html>
