@@ -19,13 +19,14 @@
         .end-call-btn { background: #e74c3c; border: none; width: 70px; height: 70px; border-radius: 35px; font-size: 2rem; color: white; cursor: pointer; transition: transform 0.2s; }
         .end-call-btn:hover { transform: scale(1.05); background: #c0392b; }
         .user-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 20px; font-size: 0.8rem; }
-        .back-link { position: fixed; top: 20px; left: 20px; color: white; background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 30px; text-decoration: none; font-size: 0.9rem; backdrop-filter: blur(5px); z-index: 101; }
-        .back-link:hover { background: rgba(0,0,0,0.7); color: white; }
+        .incoming-popup { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #0f3460; border-radius: 20px; padding: 15px; display: none; align-items: center; justify-content: space-between; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .incoming-popup button { background: none; border: none; font-size: 1.5rem; margin: 0 10px; cursor: pointer; }
+        .accept-btn { color: #2ecc71; }
+        .reject-btn { color: #e74c3c; }
         @media (max-width: 768px) { .video-container { flex-direction: column; } .video-box { min-height: 40vh; } .control-btn { width: 45px; height: 45px; font-size: 1.2rem; } }
     </style>
 </head>
 <body>
-    <a href="{{ url_for('chat', user_id=other_user.id) }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Chat</a>
     <div class="video-container">
         <div class="video-box"><video id="localVideo" autoplay muted playsinline></video><div class="user-label">You</div></div>
         <div class="video-box"><video id="remoteVideo" autoplay playsinline></video><div class="user-label">{{ other_user.username }}</div></div>
@@ -33,136 +34,197 @@
     <div class="controls">
         <button class="control-btn" id="muteBtn" title="Mute"><i class="fas fa-microphone"></i></button>
         <button class="control-btn" id="videoToggleBtn" title="Turn off camera"><i class="fas fa-video"></i></button>
-        <button class="control-btn" id="holdBtn" title="Hold"><i class="fas fa-pause"></i></button>
+        <button class="control-btn" id="cameraSwitchBtn" title="Switch camera"><i class="fas fa-sync-alt"></i></button>
+        <button class="control-btn" id="fullscreenBtn" title="Fullscreen"><i class="fas fa-expand"></i></button>
         <button class="end-call-btn" id="endCallBtn"><i class="fas fa-phone-slash"></i></button>
     </div>
-
+    <div id="incomingPopup" class="incoming-popup">
+        <span><i class="fas fa-video"></i> Incoming video call from <span id="callerName"></span></span>
+        <div>
+            <button id="acceptCallBtn" class="accept-btn"><i class="fas fa-check-circle"></i></button>
+            <button id="rejectCallBtn" class="reject-btn"><i class="fas fa-times-circle"></i></button>
+        </div>
+    </div>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script>
         const currentUserId = "{{ current_user.id }}";
         const otherUserId = "{{ other_user.id }}";
+        const callType = "video";
         const socket = io();
+        const isCaller = new URLSearchParams(window.location.search).get('role') !== 'receiver';
 
-        let peer = null;
-        let currentCall = null;
+        let peerConnection = null;
         let localStream = null;
+        let remoteStream = null;
         let isMuted = false;
         let isVideoOff = false;
-        let isOnHold = false;
-        let keepAliveInterval = null;
+        let callStartTime = null;
+        let timerInterval = null;
 
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
         const muteBtn = document.getElementById('muteBtn');
         const videoToggleBtn = document.getElementById('videoToggleBtn');
-        const holdBtn = document.getElementById('holdBtn');
+        const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
         const endCallBtn = document.getElementById('endCallBtn');
+        const incomingPopup = document.getElementById('incomingPopup');
+        const acceptCallBtn = document.getElementById('acceptCallBtn');
+        const rejectCallBtn = document.getElementById('rejectCallBtn');
+        const callerNameSpan = document.getElementById('callerName');
 
-        function startKeepAlive() {
-            if (keepAliveInterval) clearInterval(keepAliveInterval);
-            keepAliveInterval = setInterval(() => {
-                if (currentCall && currentCall.open) {
-                    socket.emit('call_keepalive', { target_id: otherUserId });
-                }
-            }, 10000);
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'turn:relay1.metered.ca:80', username: 'your_username', credential: 'your_password' },
+                { urls: 'turn:relay1.metered.ca:443?transport=tcp', username: 'your_username', credential: 'your_password' }
+            ]
+        };
+
+        function updateTimer() {
+            if (!callStartTime) return;
+            const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            document.getElementById('timer')?.remove(); // optional: display timer somewhere
         }
-        function stopKeepAlive() {
-            if (keepAliveInterval) clearInterval(keepAliveInterval);
-            keepAliveInterval = null;
+        function startTimer() { callStartTime = Date.now(); timerInterval = setInterval(updateTimer, 1000); }
+        function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
+
+        async function createPeerConnection() {
+            if (peerConnection) return peerConnection;
+            peerConnection = new RTCPeerConnection(iceServers);
+            if (localStream) {
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            }
+            peerConnection.ontrack = (event) => {
+                remoteStream = event.streams[0];
+                remoteVideo.srcObject = remoteStream;
+                remoteVideo.play();
+                startTimer();
+            };
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
+            };
+            peerConnection.oniceconnectionstatechange = () => {
+                if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') endCall();
+            };
+            return peerConnection;
+        }
+
+        async function initiateCall() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: { echoCancellation: true, noiseSuppression: true } });
+                localVideo.srcObject = localStream;
+                const pc = await createPeerConnection();
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                socket.emit('call_user', { target_id: otherUserId, call_type: callType, offer: pc.localDescription });
+                const timeoutId = setTimeout(() => endCall('No answer'), 30000);
+                socket.once('call_answered', async (data) => {
+                    clearTimeout(timeoutId);
+                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    startTimer();
+                });
+                socket.once('call_rejected', () => { clearTimeout(timeoutId); endCall('Call rejected'); });
+                socket.once('call_timeout', () => { clearTimeout(timeoutId); endCall('No answer'); });
+            } catch (err) { endCall('Camera error'); }
+        }
+
+        async function acceptIncomingCall(callerId, offerSdp) {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+                const pc = await createPeerConnection();
+                await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                socket.emit('answer_call', { caller_id: callerId, answer: pc.localDescription, call_type: callType });
+                incomingPopup.style.display = 'none';
+                startTimer();
+            } catch (err) { endCall(); }
+        }
+
+        function endCall(reason = '') {
+            stopTimer();
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (peerConnection) peerConnection.close();
+            socket.emit('end_call', { target_id: otherUserId });
+            window.location.href = "{{ url_for('chat', user_id=other_user.id) }}";
         }
 
         function toggleMute() {
             if (!localStream) return;
             isMuted = !isMuted;
-            localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+            localStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
             muteBtn.classList.toggle('active', isMuted);
             muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
         }
-
         function toggleVideo() {
             if (!localStream) return;
             isVideoOff = !isVideoOff;
-            localStream.getVideoTracks().forEach(track => track.enabled = !isVideoOff);
+            localStream.getVideoTracks().forEach(t => t.enabled = !isVideoOff);
             videoToggleBtn.classList.toggle('active', isVideoOff);
             videoToggleBtn.innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
         }
-
-        function toggleHold() {
-            isOnHold = !isOnHold;
-            if (localStream) {
-                localStream.getAudioTracks().forEach(track => track.enabled = !isOnHold);
-                localStream.getVideoTracks().forEach(track => track.enabled = !isOnHold);
+        async function switchCamera() {
+            if (!localStream) return;
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (!videoTrack) return;
+            const capabilities = videoTrack.getCapabilities();
+            if (!capabilities.facingMode) return;
+            const newMode = videoTrack.getSettings().facingMode === 'user' ? 'environment' : 'user';
+            const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: newMode } }, audio: true });
+            const newVideoTrack = newStream.getVideoTracks()[0];
+            const oldVideoTrack = localStream.getVideoTracks()[0];
+            localStream.removeTrack(oldVideoTrack);
+            localStream.addTrack(newVideoTrack);
+            localVideo.srcObject = localStream;
+            if (peerConnection) {
+                const senders = peerConnection.getSenders();
+                const sender = senders.find(s => s.track === oldVideoTrack);
+                if (sender) sender.replaceTrack(newVideoTrack);
             }
-            holdBtn.classList.toggle('active', isOnHold);
-            holdBtn.innerHTML = isOnHold ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+            oldVideoTrack.stop();
         }
-
-        function endCall() {
-            stopKeepAlive();
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            if (currentCall) currentCall.close();
-            socket.emit('end_call', { target_id: otherUserId });
-            setTimeout(() => window.location.href = "{{ url_for('chat', user_id=other_user.id) }}", 300);
-        }
-
-        const peerConfig = {
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    {
-                        urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
-                        username: 'webrtc',
-                        credential: 'webrtc'
-                    }
-                ],
-                iceCandidatePoolSize: 10
-            }
-        };
-
-        peer = new Peer(currentUserId, peerConfig);
-        peer.on('open', () => {
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                .then(stream => {
-                    localStream = stream;
-                    localVideo.srcObject = stream;
-                    const call = peer.call(otherUserId, stream);
-                    setupCall(call);
-                    currentCall = call;
-                })
-                .catch(() => { alert('Cannot access camera/microphone'); endCall(); });
-        });
-        peer.on('error', (err) => console.error('Peer error:', err));
-        peer.on('call', call => {
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                .then(stream => {
-                    localStream = stream;
-                    localVideo.srcObject = stream;
-                    call.answer(stream);
-                    setupCall(call);
-                    currentCall = call;
-                })
-                .catch(() => { call.close(); endCall(); });
-        });
-
-        function setupCall(call) {
-            call.on('stream', stream => {
-                remoteVideo.srcObject = stream;
-                remoteVideo.play().catch(e => console.log(e));
-                startKeepAlive();
-            });
-            call.on('close', () => endCall());
-            call.on('error', () => endCall());
+        function toggleFullscreen() {
+            const container = document.querySelector('.video-container');
+            if (!document.fullscreenElement) container.requestFullscreen();
+            else document.exitFullscreen();
         }
 
         muteBtn.onclick = toggleMute;
         videoToggleBtn.onclick = toggleVideo;
-        holdBtn.onclick = toggleHold;
-        endCallBtn.onclick = endCall;
+        cameraSwitchBtn.onclick = switchCamera;
+        fullscreenBtn.onclick = toggleFullscreen;
+        endCallBtn.onclick = () => endCall();
+
+        socket.on('incoming_call', (data) => {
+            if (data.caller_id === otherUserId) {
+                callerNameSpan.innerText = data.caller_name;
+                incomingPopup.style.display = 'flex';
+                const ringtone = new Audio('/static/ringtone.mp3');
+                ringtone.loop = true;
+                ringtone.play();
+                acceptCallBtn.onclick = () => { ringtone.pause(); acceptIncomingCall(data.caller_id, data.offer); };
+                rejectCallBtn.onclick = () => { ringtone.pause(); socket.emit('reject_call', { caller_id: data.caller_id }); endCall(); };
+            }
+        });
+        socket.on('call_answered', async (data) => {
+            if (peerConnection && peerConnection.signalingState === 'have-local-offer')
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        });
+        socket.on('ice_candidate', async (data) => {
+            if (peerConnection) await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        });
         socket.on('call_ended', () => endCall());
-        socket.on('call_keepalive_ack', () => {});
+        socket.on('call_rejected', () => endCall('Call rejected'));
+        socket.on('call_timeout', () => endCall('No answer'));
+        socket.on('call_error', (err) => endCall(err.message));
+
+        if (isCaller) initiateCall();
+        else document.getElementById('remoteVideo').style.display = 'none'; // wait for call
     </script>
 </body>
 </html>

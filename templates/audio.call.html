@@ -20,13 +20,14 @@
         .control-btn.active { background: #e74c3c; }
         .end-call-btn { background: #e74c3c; border: none; width: 70px; height: 70px; border-radius: 35px; font-size: 2rem; color: white; cursor: pointer; transition: transform 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .end-call-btn:hover { transform: scale(1.05); background: #c0392b; }
-        .back-link { position: fixed; top: 20px; left: 20px; color: white; background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 30px; text-decoration: none; font-size: 0.9rem; backdrop-filter: blur(5px); z-index: 100; }
-        .back-link:hover { background: rgba(0,0,0,0.7); color: white; }
+        .incoming-popup { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #0f3460; border-radius: 20px; padding: 15px; display: none; align-items: center; justify-content: space-between; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .incoming-popup button { background: none; border: none; font-size: 1.5rem; margin: 0 10px; cursor: pointer; }
+        .accept-btn { color: #2ecc71; }
+        .reject-btn { color: #e74c3c; }
         @media (max-width: 600px) { .avatar { width: 90px; height: 90px; font-size: 2.5rem; } .user-name { font-size: 1.5rem; } .timer { font-size: 1.5rem; } .control-btn { width: 45px; height: 45px; font-size: 1.2rem; } }
     </style>
 </head>
 <body>
-    <a href="{{ url_for('chat', user_id=other_user.id) }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Chat</a>
     <div class="call-container">
         <div class="avatar"><i class="fas fa-user-circle"></i></div>
         <div class="user-name">{{ other_user.username }}</div>
@@ -39,24 +40,29 @@
         </div>
         <button class="end-call-btn" id="endCallBtn"><i class="fas fa-phone-slash"></i></button>
     </div>
-
+    <div id="incomingPopup" class="incoming-popup">
+        <span><i class="fas fa-phone-alt"></i> Incoming call from <span id="callerName"></span></span>
+        <div>
+            <button id="acceptCallBtn" class="accept-btn"><i class="fas fa-check-circle"></i></button>
+            <button id="rejectCallBtn" class="reject-btn"><i class="fas fa-times-circle"></i></button>
+        </div>
+    </div>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script>
         const currentUserId = "{{ current_user.id }}";
         const otherUserId = "{{ other_user.id }}";
+        const callType = "audio";
         const socket = io();
+        const urlParams = new URLSearchParams(window.location.search);
+        const isCaller = urlParams.get('role') !== 'receiver';  // default caller
 
-        let peer = null;
-        let currentCall = null;
+        let peerConnection = null;
         let localStream = null;
         let remoteStream = null;
         let callStartTime = null;
         let timerInterval = null;
         let isMuted = false;
         let isOnHold = false;
-        let remoteAudio = null;
-        let keepAliveInterval = null;
 
         const callStatusDiv = document.getElementById('callStatus');
         const timerDiv = document.getElementById('timer');
@@ -64,8 +70,28 @@
         const speakerBtn = document.getElementById('speakerBtn');
         const holdBtn = document.getElementById('holdBtn');
         const endCallBtn = document.getElementById('endCallBtn');
+        const incomingPopup = document.getElementById('incomingPopup');
+        const acceptCallBtn = document.getElementById('acceptCallBtn');
+        const rejectCallBtn = document.getElementById('rejectCallBtn');
+        const callerNameSpan = document.getElementById('callerName');
 
-        // Timer functions
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                {
+                    urls: 'turn:relay1.metered.ca:80',
+                    username: 'your_username',   // Replace with your Metered.ca credentials
+                    credential: 'your_password'
+                },
+                {
+                    urls: 'turn:relay1.metered.ca:443?transport=tcp',
+                    username: 'your_username',
+                    credential: 'your_password'
+                }
+            ]
+        };
+
         function updateTimer() {
             if (!callStartTime) return;
             const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
@@ -84,21 +110,102 @@
             callStartTime = null;
         }
 
-        // Keep call alive (send ping every 10 sec)
-        function startKeepAlive() {
-            if (keepAliveInterval) clearInterval(keepAliveInterval);
-            keepAliveInterval = setInterval(() => {
-                if (currentCall && currentCall.open) {
-                    socket.emit('call_keepalive', { target_id: otherUserId });
+        async function createPeerConnection() {
+            if (peerConnection) return peerConnection;
+            peerConnection = new RTCPeerConnection(iceServers);
+            if (localStream) {
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            }
+            peerConnection.ontrack = (event) => {
+                remoteStream = event.streams[0];
+                const audioEl = new Audio();
+                audioEl.srcObject = remoteStream;
+                audioEl.autoplay = true;
+                callStatusDiv.innerText = 'Connected';
+                startTimer();
+            };
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
                 }
-            }, 10000);
-        }
-        function stopKeepAlive() {
-            if (keepAliveInterval) clearInterval(keepAliveInterval);
-            keepAliveInterval = null;
+            };
+            peerConnection.oniceconnectionstatechange = () => {
+                if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') {
+                    endCall('Connection lost');
+                }
+            };
+            return peerConnection;
         }
 
-        // Call controls
+        async function initiateCall() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+                });
+                const pc = await createPeerConnection();
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                socket.emit('call_user', {
+                    target_id: otherUserId,
+                    call_type: callType,
+                    offer: pc.localDescription
+                });
+                callStatusDiv.innerText = 'Ringing...';
+                const timeoutId = setTimeout(() => {
+                    if (callStatusDiv.innerText !== 'Connected') endCall('No answer');
+                }, 30000);
+                socket.once('call_answered', async (data) => {
+                    clearTimeout(timeoutId);
+                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    callStatusDiv.innerText = 'Connected';
+                    startTimer();
+                });
+                socket.once('call_rejected', () => {
+                    clearTimeout(timeoutId);
+                    endCall('Call rejected');
+                });
+                socket.once('call_timeout', () => {
+                    clearTimeout(timeoutId);
+                    endCall('No answer');
+                });
+            } catch (err) {
+                console.error(err);
+                endCall('Microphone error');
+            }
+        }
+
+        async function acceptIncomingCall(callerId, offerSdp) {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+                });
+                const pc = await createPeerConnection();
+                await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                socket.emit('answer_call', {
+                    caller_id: callerId,
+                    answer: pc.localDescription,
+                    call_type: callType
+                });
+                callStatusDiv.innerText = 'Connected';
+                startTimer();
+                incomingPopup.style.display = 'none';
+            } catch (err) {
+                console.error(err);
+                endCall();
+            }
+        }
+
+        function endCall(reason = '') {
+            stopTimer();
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (peerConnection) peerConnection.close();
+            socket.emit('end_call', { target_id: otherUserId });
+            if (reason) callStatusDiv.innerText = reason;
+            setTimeout(() => window.location.href = "{{ url_for('chat', user_id=other_user.id) }}", 1000);
+        }
+
         function toggleMute() {
             if (!localStream) return;
             isMuted = !isMuted;
@@ -106,153 +213,61 @@
             muteBtn.classList.toggle('active', isMuted);
             muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
         }
-
         function toggleSpeaker() {
-            if (!remoteAudio) {
-                remoteAudio = document.createElement('audio');
-                remoteAudio.autoplay = true;
-                remoteAudio.controls = false;
-                document.body.appendChild(remoteAudio);
-            }
-            if (remoteAudio.muted) {
-                remoteAudio.muted = false;
-                speakerBtn.classList.remove('active');
-                speakerBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
-            } else {
-                remoteAudio.muted = true;
-                speakerBtn.classList.add('active');
-                speakerBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
-            }
+            alert('Speaker toggle: Use system volume');
         }
-
         function toggleHold() {
+            if (!localStream) return;
             isOnHold = !isOnHold;
-            if (localStream) {
-                localStream.getAudioTracks().forEach(track => track.enabled = !isOnHold);
-            }
-            if (remoteStream) {
-                remoteStream.getAudioTracks().forEach(track => track.enabled = !isOnHold);
-            }
+            localStream.getAudioTracks().forEach(track => track.enabled = !isOnHold);
             holdBtn.classList.toggle('active', isOnHold);
             holdBtn.innerHTML = isOnHold ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
             callStatusDiv.innerText = isOnHold ? 'Call on hold' : 'Connected';
         }
 
-        function endCall() {
-            stopTimer();
-            stopKeepAlive();
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            if (currentCall) currentCall.close();
-            if (remoteAudio) remoteAudio.pause();
-            socket.emit('end_call', { target_id: otherUserId });
-            setTimeout(() => window.location.href = "{{ url_for('chat', user_id=other_user.id) }}", 300);
-        }
-
-        // PeerJS configuration with STUN + TURN (free)
-        const peerConfig = {
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' },
-                    {
-                        urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
-                        username: 'webrtc',
-                        credential: 'webrtc'
-                    },
-                    {
-                        urls: 'turn:turn.anyfirewall.com:443?transport=udp',
-                        username: 'webrtc',
-                        credential: 'webrtc'
-                    }
-                ],
-                iceCandidatePoolSize: 10
-            }
-        };
-
-        peer = new Peer(currentUserId, peerConfig);
-        peer.on('open', (id) => {
-            console.log('PeerJS open, id:', id);
-            // Request microphone and call the other user
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                .then(stream => {
-                    localStream = stream;
-                    callStatusDiv.innerText = 'Calling...';
-                    const call = peer.call(otherUserId, stream);
-                    setupCall(call);
-                    currentCall = call;
-                })
-                .catch(err => {
-                    console.error('Microphone error:', err);
-                    callStatusDiv.innerText = 'Microphone access denied';
-                    setTimeout(endCall, 2000);
-                });
-        });
-
-        peer.on('error', (err) => {
-            console.error('Peer error:', err);
-            callStatusDiv.innerText = 'Connection error';
-            setTimeout(endCall, 2000);
-        });
-
-        // Handle incoming call (if the other user calls us)
-        peer.on('call', (incomingCall) => {
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                .then(stream => {
-                    localStream = stream;
-                    incomingCall.answer(stream);
-                    setupCall(incomingCall);
-                    currentCall = incomingCall;
-                    callStatusDiv.innerText = 'Connected';
-                    startTimer();
-                    startKeepAlive();
-                })
-                .catch(err => {
-                    console.error('Failed to answer call:', err);
-                    incomingCall.close();
-                    endCall();
-                });
-        });
-
-        function setupCall(call) {
-            call.on('stream', (remoteStreamData) => {
-                remoteStream = remoteStreamData;
-                // Create or reuse audio element
-                if (!remoteAudio) {
-                    remoteAudio = document.createElement('audio');
-                    remoteAudio.autoplay = true;
-                    remoteAudio.controls = false;
-                    document.body.appendChild(remoteAudio);
-                }
-                remoteAudio.srcObject = remoteStream;
-                remoteAudio.play().catch(e => console.warn('Audio play error:', e));
-                callStatusDiv.innerText = 'Connected';
-                startTimer();
-                startKeepAlive();
-            });
-            call.on('close', () => {
-                console.log('Call closed by remote');
-                endCall();
-            });
-            call.on('error', (err) => {
-                console.error('Call error:', err);
-                endCall();
-            });
-        }
-
-        // Button listeners
         muteBtn.onclick = toggleMute;
         speakerBtn.onclick = toggleSpeaker;
         holdBtn.onclick = toggleHold;
-        endCallBtn.onclick = endCall;
+        endCallBtn.onclick = () => endCall();
 
-        // Socket events for keep-alive and remote end
-        socket.on('call_ended', () => endCall());
-        socket.on('call_keepalive_ack', () => {
-            // just keep connection alive
+        socket.on('incoming_call', (data) => {
+            if (data.caller_id === otherUserId) {
+                callerNameSpan.innerText = data.caller_name;
+                incomingPopup.style.display = 'flex';
+                const ringtone = new Audio('/static/ringtone.mp3'); // add your own
+                ringtone.loop = true;
+                ringtone.play();
+                acceptCallBtn.onclick = () => {
+                    ringtone.pause();
+                    acceptIncomingCall(data.caller_id, data.offer);
+                };
+                rejectCallBtn.onclick = () => {
+                    ringtone.pause();
+                    socket.emit('reject_call', { caller_id: data.caller_id });
+                    endCall();
+                };
+            }
         });
+        socket.on('call_answered', async (data) => {
+            if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            }
+        });
+        socket.on('ice_candidate', async (data) => {
+            if (peerConnection) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+        });
+        socket.on('call_ended', () => endCall());
+        socket.on('call_rejected', () => endCall('Call rejected'));
+        socket.on('call_timeout', () => endCall('No answer'));
+        socket.on('call_error', (err) => endCall(err.message));
+
+        if (isCaller) {
+            initiateCall();
+        } else {
+            callStatusDiv.innerText = 'Waiting for call...';
+        }
     </script>
 </body>
 </html>

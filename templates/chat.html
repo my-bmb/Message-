@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; height: 100dvh; background: #e5ddd5; }
+        html, body { height: 100%; background: #e5ddd5; }
         body { overflow: hidden; }
         .chat-container { display: flex; flex-direction: column; height: 100%; background: white; }
         .chat-header { background: #075e54; color: white; padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
@@ -16,21 +16,27 @@
         .typing-indicator { padding: 8px 16px; font-size: 0.8rem; color: #666; font-style: italic; background: white; flex-shrink: 0; border-top: 1px solid #eee; }
         .chat-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px 12px; border-top: 1px solid #ddd; display: flex; gap: 8px; align-items: center; z-index: 1000; }
         #messageInput { flex-grow: 1; border-radius: 24px; border: 1px solid #ddd; padding: 10px 16px; outline: none; font-size: 16px; }
-        .attach-btn, .send-btn { background: none; border: none; font-size: 1.5rem; color: #075e54; cursor: pointer; }
+        .attach-btn, .send-btn, .emoji-btn { background: none; border: none; font-size: 1.5rem; color: #075e54; cursor: pointer; }
         #fileInput { display: none; }
-        .message { margin-bottom: 12px; display: flex; }
+        .message { margin-bottom: 12px; display: flex; position: relative; }
         .my-message { justify-content: flex-end; }
         .other-message { justify-content: flex-start; }
-        .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 18px; word-wrap: break-word; }
+        .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 18px; word-wrap: break-word; position: relative; }
         .my-message .message-bubble { background: #dcf8c5; border-bottom-right-radius: 4px; }
         .other-message .message-bubble { background: white; border-bottom-left-radius: 4px; }
         .media-preview { max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 4px; }
         .message-time { font-size: 0.65rem; opacity: 0.7; text-align: right; margin-top: 4px; }
         .fa-check-double { color: #34b7f1; }
+        .reply-preview { background: #f0f0f0; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-bottom: 4px; border-left: 3px solid #075e54; }
+        .message-actions { position: absolute; right: 0; top: -20px; background: white; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: none; gap: 8px; padding: 4px 8px; z-index: 10; }
+        .message:hover .message-actions { display: flex; }
+        .message-actions button { background: none; border: none; cursor: pointer; font-size: 0.8rem; }
+        .emoji-picker { position: absolute; bottom: 70px; right: 20px; display: none; z-index: 1000; }
         .back-btn { color: white; text-decoration: none; font-size: 1.3rem; }
         .call-buttons button { background: none; border: none; color: white; margin-left: 10px; font-size: 1.2rem; cursor: pointer; }
         @media (max-width: 768px) { .chat-footer { position: sticky; bottom: 0; } body { overflow: auto; } .chat-container { height: auto; min-height: 100dvh; } }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.2.0/index.js" defer></script>
 </head>
 <body>
 <div class="chat-container">
@@ -38,7 +44,9 @@
         <a href="{{ url_for('users') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <div class="user-info flex-grow-1">
             <div class="user-name fw-bold">{{ other_user.username }}</div>
-            <div class="user-status small" id="onlineStatus">{% if other_user.is_online %}Online{% else %}Offline{% endif %}</div>
+            <div class="user-status small" id="onlineStatus">
+                {% if other_user.is_online %}Online{% else %}Last seen: {{ other_user.last_seen|default("never") }}{% endif %}
+            </div>
         </div>
         <div class="call-buttons">
             <button id="audioCallBtn" title="Audio Call"><i class="fas fa-phone"></i></button>
@@ -47,8 +55,11 @@
     </div>
     <div class="chat-box" id="chatBox">
         {% for msg in messages %}
-        <div class="message {% if msg.sender_id == current_user.id %}my-message{% else %}other-message{% endif %}">
+        <div class="message {% if msg.sender_id == current_user.id %}my-message{% else %}other-message{% endif %}" data-message-id="{{ msg.id }}" data-sender-id="{{ msg.sender_id }}">
             <div class="message-bubble">
+                {% if msg.reply_to_id %}
+                <div class="reply-preview">Replying to a message</div>
+                {% endif %}
                 {% if msg.message_type == 'text' %}{{ msg.content }}
                 {% elif msg.message_type == 'image' %}<img src="{{ msg.content }}" class="media-preview" alt="Image">
                 {% elif msg.message_type == 'video' %}<video controls class="media-preview" src="{{ msg.content }}"></video>
@@ -61,16 +72,25 @@
                     {% endif %}
                 </div>
             </div>
+            <div class="message-actions">
+                <button class="reply-btn" title="Reply"><i class="fas fa-reply"></i></button>
+                {% if msg.sender_id == current_user.id %}
+                <button class="delete-btn" title="Delete for me"><i class="fas fa-trash"></i></button>
+                <button class="delete-everyone-btn" title="Delete for everyone"><i class="fas fa-trash-alt"></i></button>
+                {% endif %}
+            </div>
         </div>
         {% endfor %}
     </div>
     <div id="typingIndicator" class="typing-indicator" style="display: none;">Typing...</div>
     <div class="chat-footer">
         <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
+        <button class="emoji-btn" id="emojiBtn"><i class="fas fa-smile"></i></button>
         <input type="text" id="messageInput" placeholder="Type a message...">
         <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
         <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
     </div>
+    <div id="emojiPicker" class="emoji-picker"></div>
 </div>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
@@ -82,9 +102,13 @@
     const typingIndicator = document.getElementById('typingIndicator');
     const audioCallBtn = document.getElementById('audioCallBtn');
     const videoCallBtn = document.getElementById('videoCallBtn');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPicker = document.getElementById('emojiPicker');
     const currentUserId = "{{ current_user.id }}";
     const otherUserId = "{{ other_user.id }}";
     const socket = io();
+
+    let replyToId = null;
 
     function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
     scrollToBottom();
@@ -95,6 +119,8 @@
         const isMe = (isMyMessage !== null) ? isMyMessage : (msg.sender_id === currentUserId);
         const div = document.createElement('div');
         div.className = `message ${isMe ? 'my-message' : 'other-message'}`;
+        div.setAttribute('data-message-id', msg.id);
+        div.setAttribute('data-sender-id', msg.sender_id);
         let contentHtml = '';
         if (msg.message_type === 'text') contentHtml = `<div class="message-text">${escapeHtml(msg.content)}</div>`;
         else if (msg.message_type === 'image') contentHtml = `<img src="${msg.content}" class="media-preview" alt="Image">`;
@@ -102,16 +128,55 @@
         else if (msg.message_type === 'audio') contentHtml = `<audio controls src="${msg.content}" style="width:200px"></audio>`;
         else contentHtml = `<div class="message-text">File: <a href="${msg.content}" target="_blank">Download</a></div>`;
         const time = msg.formatted_time || new Date(msg.created_at).toLocaleTimeString();
-        div.innerHTML = `<div class="message-bubble">${contentHtml}<div class="message-time">${time}${isMe ? (msg.is_read ? '<i class="fas fa-check-double" title="Seen"></i>' : '<i class="fas fa-check" style="opacity:0.6;" title="Sent"></i>') : ''}</div></div>`;
+        div.innerHTML = `
+            <div class="message-bubble">
+                ${msg.reply_to_id ? '<div class="reply-preview">Replying to a message</div>' : ''}
+                ${contentHtml}
+                <div class="message-time">${time}${isMe ? (msg.is_read ? '<i class="fas fa-check-double" title="Seen"></i>' : '<i class="fas fa-check" style="opacity:0.6;" title="Sent"></i>') : ''}</div>
+            </div>
+            <div class="message-actions">
+                <button class="reply-btn" title="Reply"><i class="fas fa-reply"></i></button>
+                ${isMe ? `<button class="delete-btn" title="Delete for me"><i class="fas fa-trash"></i></button>
+                <button class="delete-everyone-btn" title="Delete for everyone"><i class="fas fa-trash-alt"></i></button>` : ''}
+            </div>
+        `;
         chatBox.appendChild(div);
+        attachMessageActions(div, msg);
         scrollToBottom();
+    }
+
+    function attachMessageActions(messageDiv, msg) {
+        messageDiv.querySelector('.reply-btn')?.addEventListener('click', () => {
+            replyToId = msg.id;
+            messageInput.placeholder = `Reply to message...`;
+        });
+        messageDiv.querySelector('.delete-btn')?.addEventListener('click', () => deleteMessage(msg.id, 'me'));
+        messageDiv.querySelector('.delete-everyone-btn')?.addEventListener('click', () => deleteMessage(msg.id, 'everyone'));
+    }
+
+    async function deleteMessage(messageId, deleteFor) {
+        const res = await fetch(`/delete_message/${messageId}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({delete_for: deleteFor})
+        });
+        if (res.ok) {
+            if (deleteFor === 'everyone') {
+                const msgDiv = document.querySelector(`.message[data-message-id="${messageId}"] .message-bubble`);
+                if (msgDiv) msgDiv.innerHTML = '<div class="message-text">This message was deleted</div><div class="message-time"></div>';
+            } else {
+                document.querySelector(`.message[data-message-id="${messageId}"]`)?.remove();
+            }
+        }
     }
 
     function sendTextMessage() {
         const content = messageInput.value.trim();
         if (!content) return;
-        socket.emit('send_message', { receiver_id: otherUserId, content, message_type: 'text' });
+        socket.emit('send_message', { receiver_id: otherUserId, content, message_type: 'text', reply_to_id: replyToId });
         messageInput.value = '';
+        replyToId = null;
+        messageInput.placeholder = 'Type a message...';
     }
     sendBtn.onclick = sendTextMessage;
     messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendTextMessage(); });
@@ -145,8 +210,29 @@
             if (msg.sender_id === otherUserId) socket.emit('mark_read', { sender_id: otherUserId });
         }
     });
-    socket.on('user_status', data => { if (data.user_id === otherUserId) document.getElementById('onlineStatus').innerText = data.is_online ? 'Online' : 'Offline'; });
-    socket.on('messages_read', data => { if (data.sender_id === otherUserId) document.querySelectorAll('.message.my-message .fa-check').forEach(icon => { icon.classList.remove('fa-check'); icon.classList.add('fa-check-double'); icon.style.opacity = '1'; icon.title = 'Seen'; }); });
+    socket.on('user_status', data => {
+        if (data.user_id === otherUserId) {
+            document.getElementById('onlineStatus').innerHTML = data.is_online ? 'Online' : `Last seen: ${data.last_seen ? new Date(data.last_seen).toLocaleString() : 'recently'}`;
+        }
+    });
+    socket.on('messages_read', data => {
+        if (data.sender_id === otherUserId) {
+            document.querySelectorAll('.message.my-message .fa-check').forEach(icon => {
+                icon.classList.remove('fa-check');
+                icon.classList.add('fa-check-double');
+                icon.style.opacity = '1';
+                icon.title = 'Seen';
+            });
+        }
+    });
+    socket.on('message_deleted', (data) => {
+        if (data.for_everyone) {
+            const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-bubble`);
+            if (msgDiv) msgDiv.innerHTML = '<div class="message-text">This message was deleted</div><div class="message-time"></div>';
+        } else {
+            document.querySelector(`.message[data-message-id="${data.message_id}"]`)?.remove();
+        }
+    });
     function sendReadReceipt() { socket.emit('mark_read', { sender_id: otherUserId }); }
     sendReadReceipt();
     chatBox.addEventListener('scroll', () => { if (chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 50) sendReadReceipt(); });
@@ -154,7 +240,24 @@
     audioCallBtn.onclick = () => window.location.href = `/audio-call/${otherUserId}`;
     videoCallBtn.onclick = () => window.location.href = `/video-call/${otherUserId}`;
 
-    window.addEventListener('resize', () => { if (document.activeElement === messageInput) setTimeout(() => messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); });
+    // Emoji picker
+    if (typeof EmojiPicker !== 'undefined') {
+        const picker = new EmojiPicker();
+        emojiBtn.onclick = () => {
+            if (emojiPicker.style.display === 'none' || !emojiPicker.style.display) {
+                emojiPicker.style.display = 'block';
+                picker.render(emojiPicker);
+                picker.addEventListener('emoji-click', event => {
+                    messageInput.value += event.detail.unicode;
+                    messageInput.focus();
+                });
+            } else {
+                emojiPicker.style.display = 'none';
+            }
+        };
+    } else {
+        emojiBtn.style.display = 'none';
+    }
 </script>
 </body>
 </html>
