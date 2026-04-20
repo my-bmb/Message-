@@ -28,6 +28,11 @@
             margin: 20px;
             box-shadow: 0 25px 45px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.08);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
         .avatar-wrapper { text-align: center; margin-bottom: 1.5rem; }
         .avatar-ring {
@@ -158,21 +163,6 @@
             display: none;
             white-space: nowrap;
         }
-        .debug-panel {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: #0f0;
-            font-family: monospace;
-            font-size: 10px;
-            padding: 5px 10px;
-            border-radius: 8px;
-            z-index: 3000;
-            display: none;
-            max-width: 300px;
-            word-break: break-all;
-        }
         @media (max-width: 550px) {
             .call-card { padding: 1.5rem; border-radius: 40px; }
             .avatar-ring { width: 90px; height: 90px; }
@@ -217,7 +207,6 @@
     </div>
     
     <div id="toastMsg" class="toast-msg"></div>
-    <div id="debugPanel" class="debug-panel"></div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
@@ -228,27 +217,11 @@
         const chatUrl = "{{ url_for('chat', user_id=other_user.id) }}";
         const callType = "audio";
         
-        // Debug function
-        function debugLog(msg) {
-            console.log(msg);
-            const panel = document.getElementById('debugPanel');
-            if (panel) {
-                panel.style.display = 'block';
-                panel.innerHTML = msg + '<br>' + panel.innerHTML.split('<br>')[0];
-                setTimeout(() => {
-                    if (panel) panel.style.display = 'none';
-                }, 5000);
-            }
-        }
-        
-        // Socket connection with better configuration
+        // Socket connection
         const socket = io({
             reconnection: true,
-            reconnectionAttempts: 10,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            timeout: 15000,
-            transports: ['websocket', 'polling']  // WebSocket first
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000
         });
 
         // Check if caller or receiver
@@ -263,7 +236,7 @@
                 pendingCallData = JSON.parse(pendingOfferJson);
                 sessionStorage.removeItem('pendingOffer');
                 isCaller = false;
-                debugLog('📦 Pending call found');
+                console.log('📦 Found pending call');
             } catch(e) { console.error('Failed to parse pending offer', e); }
         }
 
@@ -292,39 +265,31 @@
         let audioEnabledByUser = false;
         let isCallActive = false;
         let callTimeout = null;
-        let iceGatheringTimeout = null;
 
-        // -------------------- ICE Servers (Multiple STUN + Free TURN) --------------------
+        // -------------------- ICE Servers --------------------
         const iceServers = {
             iceServers: [
-                // Google STUN (fast)
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
                 { urls: 'stun:stun3.l.google.com:19302' },
-                // Other free STUN
                 { urls: 'stun:stun.voipbuster.com' },
-                { urls: 'stun:stun.ekiga.net' },
-                { urls: 'stun:stun.ideasip.com' },
-                // Free TURN servers (critical for NAT traversal)
                 { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-                { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-                { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-                // Additional free TURN
-                { urls: 'turn:freeturn.net:3478', username: 'free', credential: 'free' }
+                { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
             ],
-            iceCandidatePoolSize: 10,
-            iceTransportPolicy: 'all'  // Try all candidates, not just relay
+            iceCandidatePoolSize: 10
         };
 
+        // -------------------- Helper Functions --------------------
         function showToast(msg, duration = 2500) {
             toastMsg.innerText = msg;
             toastMsg.style.display = 'block';
             setTimeout(() => { toastMsg.style.display = 'none'; }, duration);
         }
 
+        // REDIRECT ONLY ON MANUAL END CALL BUTTON
         function redirectToChat() {
-            debugLog('🚀 Redirecting to chat');
+            console.log('🚀 Redirecting to chat:', chatUrl);
             window.location.href = chatUrl;
         }
 
@@ -406,20 +371,18 @@
             }
         }
 
-        // Create PeerConnection with aggressive ICE gathering
+        // Create PeerConnection
         async function createPeerConnection() {
             if (peerConnection) {
                 try { peerConnection.close(); } catch(e) {}
                 peerConnection = null;
             }
             
-            debugLog('🔧 Creating PeerConnection...');
             peerConnection = new RTCPeerConnection(iceServers);
             
             if (localStream && localStream.getTracks) {
                 localStream.getTracks().forEach(track => {
                     if (track) peerConnection.addTrack(track, localStream);
-                    debugLog(`➕ Added track: ${track.kind}`);
                 });
                 
                 const sender = peerConnection.getSenders().find(s => s.track?.kind === 'audio');
@@ -433,7 +396,7 @@
             }
             
             peerConnection.ontrack = (event) => {
-                debugLog('✅ ONTRACK - Remote audio received!');
+                console.log('✅ Received remote audio track');
                 if (event.streams && event.streams[0]) {
                     remoteAudio.srcObject = event.streams[0];
                     ensureAudioPlay();
@@ -442,35 +405,26 @@
             
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    debugLog(`📡 ICE Candidate: ${event.candidate.candidate.substring(0, 50)}...`);
+                    console.log('📡 Sending ICE candidate');
                     socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
-                } else {
-                    debugLog('✅ ICE gathering complete');
                 }
-            };
-            
-            peerConnection.onicegatheringstatechange = () => {
-                debugLog(`🔄 ICE gathering state: ${peerConnection.iceGatheringState}`);
             };
             
             peerConnection.oniceconnectionstatechange = () => {
                 const state = peerConnection.iceConnectionState;
-                debugLog(`🔌 ICE connection state: ${state}`);
+                console.log('🔌 ICE state:', state);
                 
                 if (state === 'connected' || state === 'completed') {
                     callStatusDiv.innerText = 'Connected ✅';
                     if (!callStartTime) startTimer();
                     isCallActive = true;
                     if (callTimeout) clearTimeout(callTimeout);
-                    if (iceGatheringTimeout) clearTimeout(iceGatheringTimeout);
                     showToast('Call connected!', 1500);
-                    debugLog('🎉 CALL CONNECTED SUCCESSFULLY!');
                 } 
                 else if (state === 'failed') {
                     callStatusDiv.innerText = 'Connection failed ❌';
-                    showToast('Connection failed!', 2000);
-                    debugLog('❌ ICE connection FAILED');
-                    endCallInternal(false);
+                    showToast('Connection lost!', 2000);
+                    endCallInternal(false); // No redirect, just cleanup
                 } 
                 else if (state === 'disconnected') {
                     showToast('Connection unstable...', 2000);
@@ -481,22 +435,16 @@
                 }
             };
             
-            // Force ICE gathering to start immediately
-            if (peerConnection.iceGatheringState === 'new') {
-                peerConnection.createDataChannel('ping');
-            }
-            
             return peerConnection;
         }
 
-        // Clean end call
+        // Clean end call - NO REDIRECT HERE
         function endCallInternal(notifyServer = true) {
-            debugLog('🔚 Ending call cleanup');
+            console.log('🔚 Ending call - cleanup only, no redirect');
             stopTimer();
             isCallActive = false;
             
             if (callTimeout) clearTimeout(callTimeout);
-            if (iceGatheringTimeout) clearTimeout(iceGatheringTimeout);
             
             if (localStream && localStream.getTracks) {
                 localStream.getTracks().forEach(track => {
@@ -530,8 +478,9 @@
             }
         }
 
+        // End call by user clicking red button - THIS WILL REDIRECT
         function endCallAndRedirect() {
-            debugLog('🔴 End call button clicked - redirecting');
+            console.log('🔴 User clicked end call button - redirecting to chat');
             endCallInternal(true);
             redirectToChat();
         }
@@ -544,28 +493,25 @@
             endCallInternal(true);
         }
 
-        // Initiate call with aggressive timeout handling
+        // Initiate call (Caller)
         async function initiateCall() {
-            debugLog('📞 Initiating call...');
+            console.log('📞 Initiating call to user:', otherUserId);
             
             endCallInternal(false);
-            callStatusDiv.innerText = 'Requesting microphone... 🎤';
+            callStatusDiv.innerText = 'Starting call... 🚀';
             
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
                 });
                 
-                debugLog('🎤 Microphone granted');
-                callStatusDiv.innerText = 'Creating connection... 🔧';
-                
+                console.log('🎤 Microphone ready');
                 const pc = await createPeerConnection();
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
                 
-                debugLog('📤 Sending offer to remote');
-                
                 const sendCallSignal = () => {
+                    console.log('📤 Sending call offer');
                     socket.emit('call_user', { 
                         target_id: otherUserId, 
                         call_type: callType, 
@@ -583,32 +529,20 @@
                 
                 callStatusDiv.innerText = 'Ringing... 🔔';
                 
-                // Timeout for ICE gathering
-                iceGatheringTimeout = setTimeout(() => {
-                    if (peerConnection && peerConnection.iceGatheringState !== 'complete') {
-                        debugLog('⚠️ ICE gathering timeout - forcing restart');
-                        if (peerConnection) {
-                            peerConnection.createOffer({ iceRestart: true }).then(offer => {
-                                return peerConnection.setLocalDescription(offer);
-                            }).catch(e => console.log);
-                        }
-                    }
-                }, 8000);
-                
                 callTimeout = setTimeout(() => {
                     if (peerConnection?.iceConnectionState !== 'connected' && 
                         peerConnection?.iceConnectionState !== 'completed') {
-                        debugLog('⏰ Call timeout');
+                        console.log('⏰ Call timeout - no answer');
                         endCallWithMessage('No answer ⏰');
                     }
-                }, 45000);
+                }, 35000);
                 
                 socket.once('call_answered', async (data) => {
-                    debugLog('📞 Received answer!');
+                    console.log('📞 Got answer from remote');
                     if (callTimeout) clearTimeout(callTimeout);
                     if (pc && pc.signalingState === 'have-local-offer') {
                         await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-                        debugLog('✅ Remote description set');
+                        console.log('✅ Remote description set');
                     }
                 });
                 
@@ -623,7 +557,7 @@
                 });
                 
             } catch (err) {
-                debugLog(`❌ Error: ${err.name} - ${err.message}`);
+                console.error('❌ Error:', err);
                 let errorMsg = 'Microphone access denied';
                 if (err.name === 'NotAllowedError') errorMsg = 'Please allow microphone access';
                 if (err.name === 'NotFoundError') errorMsg = 'No microphone found';
@@ -631,20 +565,17 @@
             }
         }
 
-        // Accept incoming call
+        // Accept incoming call (Receiver)
         async function acceptIncomingCall(callerId, offerSdp) {
-            debugLog('📞 Accepting incoming call');
+            console.log('📞 Accepting call from:', callerId);
             stopRingtone();
             incomingPopup.style.display = 'none';
-            callStatusDiv.innerText = 'Requesting microphone... 🎤';
+            callStatusDiv.innerText = 'Connecting... 🔄';
             
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
                 });
-                
-                debugLog('🎤 Microphone granted');
-                callStatusDiv.innerText = 'Creating connection... 🔧';
                 
                 const pc = await createPeerConnection();
                 await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
@@ -656,10 +587,10 @@
                     answer: pc.localDescription, 
                     call_type: callType 
                 });
-                debugLog('✅ Answer sent');
+                console.log('✅ Answer sent');
                 
             } catch (err) {
-                debugLog(`❌ Accept error: ${err.message}`);
+                console.error('❌ Accept error:', err);
                 endCallWithMessage('Failed to accept call');
             }
         }
@@ -694,32 +625,32 @@
         muteBtn.onclick = toggleMute;
         speakerBtn.onclick = toggleSpeaker;
         holdBtn.onclick = toggleHold;
+        
+        // ONLY END CALL BUTTON TRIGGERS REDIRECT
         endCallBtn.onclick = () => endCallAndRedirect();
 
-        // Socket Events with debugging
+        // Socket Events
         socket.on('connect', () => {
-            debugLog(`✅ Socket connected! ID: ${socket.id}`);
+            console.log('✅ Socket connected, ID:', socket.id);
             showToast('Connected to server', 1000);
             
             if (pendingCallData && !isCallActive) {
-                debugLog('📞 Processing pending call');
+                console.log('📞 Processing pending call after socket connect');
                 acceptIncomingCall(pendingCallData.callerId, pendingCallData.offer);
                 pendingCallData = null;
             }
         });
         
-        socket.on('connect_error', (error) => {
-            debugLog(`❌ Socket connection error: ${error.message}`);
-            callStatusDiv.innerText = 'Server connection failed ❌';
-        });
-        
         socket.on('disconnect', () => {
-            debugLog('⚠️ Socket disconnected');
+            console.log('⚠️ Socket disconnected');
             showToast('Server connection lost', 2000);
+            if (isCallActive) {
+                endCallWithMessage('Connection lost');
+            }
         });
         
         socket.on('incoming_call', (data) => {
-            debugLog(`📞 INCOMING CALL from: ${data.caller_id}`);
+            console.log('📞 Incoming call from:', data.caller_id);
             
             if (data.caller_id === otherUserId) {
                 callerNameSpan.innerText = data.caller_name || 'User';
@@ -742,7 +673,7 @@
         });
         
         socket.on('call_answered', async (data) => {
-            debugLog('📞 Call answered event');
+            console.log('📞 Call answered event');
             if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
             }
@@ -752,30 +683,30 @@
             if (peerConnection && data.candidate) {
                 try {
                     await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                    debugLog('✅ ICE candidate added');
+                    console.log('✅ ICE candidate added');
                 } catch (e) { 
-                    debugLog(`⚠️ ICE candidate error: ${e.message}`);
+                    console.warn('⚠️ ICE candidate error:', e); 
                 }
             }
         });
         
         socket.on('call_ended', () => {
-            debugLog('📞 Remote ended call');
+            console.log('📞 Remote ended call');
             endCallWithMessage('Call ended');
         });
         
         socket.on('call_rejected', () => {
-            debugLog('📞 Call rejected');
+            console.log('📞 Call rejected');
             endCallWithMessage('Call rejected');
         });
         
         socket.on('call_timeout', () => {
-            debugLog('⏰ Call timeout');
+            console.log('⏰ Call timeout');
             endCallWithMessage('No answer');
         });
         
         socket.on('call_error', (err) => {
-            debugLog(`❌ Call error: ${err.message}`);
+            console.error('❌ Call error:', err);
             endCallWithMessage(err.message || 'Call error');
         });
 
@@ -785,7 +716,7 @@
                 acceptIncomingCall(pendingCallData.callerId, pendingCallData.offer);
                 pendingCallData = null;
             } else {
-                debugLog('⏳ Waiting for socket connection');
+                console.log('⏳ Waiting for socket connection to accept pending call');
                 callStatusDiv.innerText = 'Connecting to server...';
             }
         } 
