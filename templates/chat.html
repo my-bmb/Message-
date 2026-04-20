@@ -704,58 +704,90 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // ========== SAME TIME CONVERSION FOR BOTH MESSAGE AND LAST SEEN ==========
-    // This is the SAME function used for message time display
+    // ========== CORRECT TIME CONVERSION FOR IST (UTC+5:30) ==========
+    function convertUTCtoIST(utcTimestamp) {
+        if (!utcTimestamp) return null;
+        let date = new Date(utcTimestamp);
+        if (isNaN(date.getTime())) return null;
+        // Add 5 hours 30 minutes for IST
+        let istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+        return istDate;
+    }
+
+    function formatIndianTime(utcTimestamp) {
+        if (!utcTimestamp) return '';
+        let istDate = convertUTCtoIST(utcTimestamp);
+        if (!istDate) return '';
+        
+        let hours = istDate.getUTCHours();
+        let minutes = istDate.getUTCMinutes();
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        let minutesStr = minutes.toString().padStart(2, '0');
+        
+        return `${hours}:${minutesStr} ${ampm}`;
+    }
+
+    function formatFullDateTime(utcTimestamp) {
+        if (!utcTimestamp) return '';
+        let istDate = convertUTCtoIST(utcTimestamp);
+        if (!istDate) return '';
+        
+        let day = istDate.getUTCDate();
+        let month = istDate.getUTCMonth();
+        let year = istDate.getUTCFullYear();
+        let hours = istDate.getUTCHours();
+        let minutes = istDate.getUTCMinutes();
+        
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        let minutesStr = minutes.toString().padStart(2, '0');
+        
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${day} ${monthNames[month]} ${year}, ${hours}:${minutesStr} ${ampm}`;
+    }
+
     function formatMessageTime(utcTimestamp) {
         if (!utcTimestamp) return '';
-        try {
-            const date = new Date(utcTimestamp);
-            if (isNaN(date.getTime())) return '';
-            
-            const now = new Date();
-            const isToday = now.toDateString() === date.toDateString();
-            
-            if (isToday) {
-                // Today: Only time like "11:20 AM"
-                return date.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-            } else {
-                // Older: Date + time like "20 Apr 2026, 11:20 AM"
-                const day = date.getDate();
-                const month = date.toLocaleString('en-IN', { month: 'short' });
-                const year = date.getFullYear();
-                const time = date.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                return `${day} ${month} ${year}, ${time}`;
-            }
-        } catch(e) {
-            return '';
+        let istDate = convertUTCtoIST(utcTimestamp);
+        if (!istDate) return '';
+        
+        let now = new Date();
+        let nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+        
+        let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
+        let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
+        
+        let isToday = istDateOnly.getTime() === nowISTDateOnly.getTime();
+        
+        if (isToday) {
+            return formatIndianTime(utcTimestamp);
+        } else {
+            return formatFullDateTime(utcTimestamp);
         }
     }
-    
-    // SAME function for Last Seen - consistent with message time format
+
     function formatLastSeen(utcTimestamp) {
         if (!utcTimestamp) return 'recently';
-        try {
-            const date = new Date(utcTimestamp);
-            if (isNaN(date.getTime())) return 'recently';
-            
-            const now = new Date();
-            const isToday = now.toDateString() === date.toDateString();
-            const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
-            
-            const time = date.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-            
-            if (isToday) {
-                return `Last seen today at ${time}`;
-            } else if (isYesterday) {
-                return `Last seen yesterday at ${time}`;
-            } else {
-                const day = date.getDate();
-                const month = date.toLocaleString('en-IN', { month: 'short' });
-                const year = date.getFullYear();
-                return `Last seen on ${day} ${month} ${year} at ${time}`;
-            }
-        } catch(e) {
-            return 'recently';
+        let istDate = convertUTCtoIST(utcTimestamp);
+        if (!istDate) return 'recently';
+        
+        let now = new Date();
+        let nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+        
+        let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
+        let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
+        
+        let diffDays = Math.floor((nowISTDateOnly - istDateOnly) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) {
+            return `Last seen today at ${formatIndianTime(utcTimestamp)}`;
+        } else if (diffDays === 1) {
+            return `Last seen yesterday at ${formatIndianTime(utcTimestamp)}`;
+        } else {
+            return `Last seen on ${formatFullDateTime(utcTimestamp)}`;
         }
     }
     
@@ -1379,5 +1411,6 @@
     loadInitialMessages();
     if (Notification.permission === 'default') Notification.requestPermission();
 </script>
+<script src="{{ url_for('static', filename='js/call-notification.js') }}"></script>
 </body>
 </html>
