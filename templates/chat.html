@@ -704,63 +704,46 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // ========== CORRECT TIME CONVERSION FOR IST (UTC+5:30) ==========
-    function convertUTCtoIST(utcTimestamp) {
-        if (!utcTimestamp) return null;
-        let date = new Date(utcTimestamp);
-        if (isNaN(date.getTime())) return null;
-        // Add 5 hours 30 minutes for IST
-        let istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
-        return istDate;
-    }
-
+    // ========== SINGLE TIME CONVERSION (Frontend only - NO double conversion) ==========
+    
     function formatIndianTime(utcTimestamp) {
         if (!utcTimestamp) return '';
-        let istDate = convertUTCtoIST(utcTimestamp);
-        if (!istDate) return '';
+        let date = new Date(utcTimestamp);
+        if (isNaN(date.getTime())) return '';
         
-        let hours = istDate.getUTCHours();
-        let minutes = istDate.getUTCMinutes();
-        let ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        let minutesStr = minutes.toString().padStart(2, '0');
-        
-        return `${hours}:${minutesStr} ${ampm}`;
+        // Browser automatically converts UTC to local IST
+        return date.toLocaleString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: 'Asia/Kolkata'
+        });
     }
-
+    
     function formatFullDateTime(utcTimestamp) {
         if (!utcTimestamp) return '';
-        let istDate = convertUTCtoIST(utcTimestamp);
-        if (!istDate) return '';
+        let date = new Date(utcTimestamp);
+        if (isNaN(date.getTime())) return '';
         
-        let day = istDate.getUTCDate();
-        let month = istDate.getUTCMonth();
-        let year = istDate.getUTCFullYear();
-        let hours = istDate.getUTCHours();
-        let minutes = istDate.getUTCMinutes();
-        
-        let ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        let minutesStr = minutes.toString().padStart(2, '0');
-        
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${day} ${monthNames[month]} ${year}, ${hours}:${minutesStr} ${ampm}`;
+        const day = date.getDate();
+        const month = date.toLocaleString('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' });
+        const year = date.getFullYear();
+        const time = date.toLocaleString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: 'Asia/Kolkata'
+        });
+        return `${day} ${month} ${year}, ${time}`;
     }
-
+    
     function formatMessageTime(utcTimestamp) {
         if (!utcTimestamp) return '';
-        let istDate = convertUTCtoIST(utcTimestamp);
-        if (!istDate) return '';
+        let date = new Date(utcTimestamp);
+        if (isNaN(date.getTime())) return '';
         
-        let now = new Date();
-        let nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
-        
-        let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
-        let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
-        
-        let isToday = istDateOnly.getTime() === nowISTDateOnly.getTime();
+        const now = new Date();
+        const isToday = now.toDateString() === date.toDateString();
         
         if (isToday) {
             return formatIndianTime(utcTimestamp);
@@ -768,26 +751,32 @@
             return formatFullDateTime(utcTimestamp);
         }
     }
-
+    
     function formatLastSeen(utcTimestamp) {
         if (!utcTimestamp) return 'recently';
-        let istDate = convertUTCtoIST(utcTimestamp);
-        if (!istDate) return 'recently';
+        let date = new Date(utcTimestamp);
+        if (isNaN(date.getTime())) return 'recently';
         
-        let now = new Date();
-        let nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+        const now = new Date();
+        const isToday = now.toDateString() === date.toDateString();
+        const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
         
-        let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
-        let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
+        const time = date.toLocaleString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: 'Asia/Kolkata'
+        });
         
-        let diffDays = Math.floor((nowISTDateOnly - istDateOnly) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 0) {
-            return `Last seen today at ${formatIndianTime(utcTimestamp)}`;
-        } else if (diffDays === 1) {
-            return `Last seen yesterday at ${formatIndianTime(utcTimestamp)}`;
+        if (isToday) {
+            return `Last seen today at ${time}`;
+        } else if (isYesterday) {
+            return `Last seen yesterday at ${time}`;
         } else {
-            return `Last seen on ${formatFullDateTime(utcTimestamp)}`;
+            const day = date.getDate();
+            const month = date.toLocaleString('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' });
+            const year = date.getFullYear();
+            return `Last seen on ${day} ${month} ${year} at ${time}`;
         }
     }
     
@@ -850,7 +839,7 @@
     let pendingAudioBlob = null;
     let mediaStream = null;
     
-    // Set initial status from server
+    // Set initial status from server (UTC to IST in frontend)
     {% if other_user.is_online %}
         updateOnlineStatus(true, null);
     {% else %}
@@ -958,12 +947,12 @@
             timeHtml = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         } else if (isMe) {
             if (msg.is_read) {
-                timeHtml = `<i class="fas fa-check-double" style="color:#34b7f1;"></i> ${msg.formatted_time || formatMessageTime(msg.created_at)}`;
+                timeHtml = `<i class="fas fa-check-double" style="color:#34b7f1;"></i> ${formatMessageTime(msg.created_at)}`;
             } else {
-                timeHtml = `<i class="fas fa-check"></i> ${msg.formatted_time || formatMessageTime(msg.created_at)}`;
+                timeHtml = `<i class="fas fa-check"></i> ${formatMessageTime(msg.created_at)}`;
             }
         } else {
-            timeHtml = msg.formatted_time || formatMessageTime(msg.created_at);
+            timeHtml = formatMessageTime(msg.created_at);
         }
         
         let reactionsHtml = '';
@@ -1341,7 +1330,6 @@
     
     socket.on('new_message', (msg) => {
         if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
-            if (!msg.formatted_time) msg.formatted_time = formatMessageTime(msg.created_at);
             const isMe = msg.sender_id === currentUserId;
             if (isMe && window.pendingMessages) {
                 for (let tempId in window.pendingMessages) {
