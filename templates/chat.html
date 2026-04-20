@@ -30,7 +30,6 @@
             position: relative;
         }
         
-        /* Fixed Header */
         .chat-header {
             position: fixed;
             top: 0;
@@ -69,10 +68,9 @@
             display: flex;
             flex-direction: column;
             -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
+            scroll-behavior: auto;
         }
         
-        /* Message Styles */
         .message { 
             margin-bottom: 10px; 
             display: flex; 
@@ -110,7 +108,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
         }
         
-        /* Message Actions */
         .message-actions {
             position: absolute;
             right: 0;
@@ -141,7 +138,6 @@
             justify-content: center;
         }
         
-        /* Media */
         .media-image, .media-video {
             max-width: 100%;
             max-height: 250px;
@@ -205,7 +201,6 @@
             gap: 3px;
         }
         
-        /* Typing Indicator */
         .typing-indicator {
             position: fixed;
             bottom: 60px;
@@ -236,7 +231,6 @@
             30% { transform: translateY(-4px); opacity: 1; }
         }
         
-        /* File Preview Container */
         .file-preview-container {
             position: fixed;
             bottom: 60px;
@@ -275,7 +269,6 @@
             text-overflow: ellipsis;
         }
         
-        /* Audio Preview Container */
         .audio-preview-container {
             position: fixed;
             bottom: 60px;
@@ -323,7 +316,6 @@
         .cancel-preview-btn { color: #e74c3c; }
         .send-preview-btn { color: #075e54; }
         
-        /* Fixed Footer */
         .chat-footer {
             position: fixed;
             bottom: 0;
@@ -438,7 +430,6 @@
             cursor: pointer;
         }
         
-        /* Reaction Modal */
         .reaction-modal {
             display: none;
             position: fixed;
@@ -503,7 +494,6 @@
         
         #fileInput { display: none; }
         
-        /* Recording State */
         .recording-state {
             position: fixed;
             bottom: 70px;
@@ -527,17 +517,9 @@
             100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
         }
         
-        .recording-state i {
-            animation: blink 1s infinite;
-        }
+        .recording-state i { animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-        
-        /* Scroll to Bottom Button */
         .scroll-to-bottom {
             position: fixed;
             bottom: 70px;
@@ -564,8 +546,7 @@
             .chat-content { margin-top: 52px; margin-bottom: 56px; height: calc(100vh - 108px); }
             .chat-footer { height: 56px; padding: 5px 8px; }
             .typing-indicator { bottom: 56px; left: 10px; padding: 5px 10px; font-size: 11px; }
-            .file-preview-container { bottom: 56px; padding: 8px 10px; }
-            .audio-preview-container { bottom: 56px; padding: 8px 10px; }
+            .file-preview-container, .audio-preview-container { bottom: 56px; padding: 8px 10px; }
             .audio-preview audio { height: 36px; min-width: 100px; }
             .cancel-preview-btn, .send-preview-btn { width: 38px; height: 38px; font-size: 1.2rem; }
             .action-btn { width: 36px; height: 36px; font-size: 1.1rem; }
@@ -621,12 +602,10 @@
         <div class="chat-box" id="chatBox"></div>
     </div>
     
-    <!-- Scroll to Bottom Button -->
     <button id="scrollToBottomBtn" class="scroll-to-bottom" title="Go to bottom">
         <i class="fas fa-arrow-down"></i>
     </button>
     
-    <!-- File Preview Container -->
     <div id="filePreviewContainer" class="file-preview-container">
         <div class="file-preview">
             <img id="previewImage" style="display:none;">
@@ -637,7 +616,6 @@
         <button class="send-preview-btn" id="sendFileBtn"><i class="fas fa-paper-plane"></i></button>
     </div>
     
-    <!-- Audio Preview Container -->
     <div id="audioPreviewContainer" class="audio-preview-container">
         <div class="audio-preview">
             <i class="fas fa-headphones" style="color:#075e54; font-size:1.2rem; flex-shrink:0;"></i>
@@ -647,7 +625,6 @@
         <button class="send-preview-btn" id="sendAudioBtn"><i class="fas fa-paper-plane"></i></button>
     </div>
     
-    <!-- Recording State Indicator -->
     <div id="recordingState" class="recording-state">
         <i class="fas fa-circle"></i>
         <span>Recording...</span>
@@ -688,49 +665,38 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // ========== CORRECT TIMEZONE FUNCTIONS ==========
-    // Convert UTC timestamp to IST and format as 12-hour AM/PM
+    // ========== CORRECT TIMEZONE CONVERSION (UTC to IST) ==========
+    // IST is UTC+5:30 - Add 5 hours 30 minutes to UTC time
     function convertUTCtoIST(utcTimestamp) {
         if (!utcTimestamp) return null;
-        
-        // Create date object from UTC string
         let date = new Date(utcTimestamp);
         if (isNaN(date.getTime())) return null;
-        
-        // Convert to IST by adding 5 hours 30 minutes
-        // IST is UTC+5:30
+        // Add 5 hours 30 minutes (5.5 * 60 * 60 * 1000 milliseconds)
         let istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
-        
         return istDate;
     }
     
     function formatIndianTime(utcTimestamp) {
         if (!utcTimestamp) return '';
-        
         let istDate = convertUTCtoIST(utcTimestamp);
         if (!istDate) return '';
         
         let hours = istDate.getUTCHours();
         let minutes = istDate.getUTCMinutes();
-        
-        // Format to 12-hour
         let ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
-        hours = hours ? hours : 12; // 12-hour format (0 becomes 12)
-        
+        hours = hours ? hours : 12;
         let minutesStr = minutes.toString().padStart(2, '0');
-        
         return `${hours}:${minutesStr} ${ampm}`;
     }
     
     function formatFullDateTime(utcTimestamp) {
         if (!utcTimestamp) return '';
-        
         let istDate = convertUTCtoIST(utcTimestamp);
         if (!istDate) return '';
         
         let day = istDate.getUTCDate();
-        let month = istDate.getUTCMonth() + 1;
+        let month = istDate.getUTCMonth();
         let year = istDate.getUTCFullYear();
         let hours = istDate.getUTCHours();
         let minutes = istDate.getUTCMinutes();
@@ -741,13 +707,11 @@
         let minutesStr = minutes.toString().padStart(2, '0');
         
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
-        return `${day} ${monthNames[month-1]} ${year}, ${hours}:${minutesStr} ${ampm}`;
+        return `${day} ${monthNames[month]} ${year}, ${hours}:${minutesStr} ${ampm}`;
     }
     
     function formatMessageTime(utcTimestamp) {
         if (!utcTimestamp) return '';
-        
         let istDate = convertUTCtoIST(utcTimestamp);
         if (!istDate) return '';
         
@@ -768,7 +732,6 @@
     
     function formatLastSeen(utcTimestamp) {
         if (!utcTimestamp) return 'recently';
-        
         let istDate = convertUTCtoIST(utcTimestamp);
         if (!istDate) return 'recently';
         
@@ -778,7 +741,8 @@
         let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
         let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
         
-        let diffDays = Math.floor((nowISTDateOnly - istDateOnly) / (1000 * 60 * 60 * 24));
+        let diffTime = nowISTDateOnly - istDateOnly;
+        let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         
         if (diffDays === 0) {
             return `Last seen today at ${formatIndianTime(utcTimestamp)}`;
@@ -789,14 +753,12 @@
         }
     }
     
-    // Update online status with correct time
     function updateOnlineStatus(isOnline, lastSeenUtc) {
         const statusDiv = document.getElementById('onlineStatus');
         if (isOnline) {
             statusDiv.innerHTML = '<span class="online">● Online</span>';
         } else {
-            const lastSeenText = formatLastSeen(lastSeenUtc);
-            statusDiv.innerHTML = lastSeenText;
+            statusDiv.innerHTML = formatLastSeen(lastSeenUtc);
         }
     }
     
@@ -854,7 +816,23 @@
         updateOnlineStatus(false, "{{ other_user.last_seen }}");
     {% endif %}
     
-    // Scroll to bottom function
+    // Force scroll to bottom function - ensures latest messages are visible
+    function forceScrollToBottom() {
+        // Multiple attempts to ensure scroll works
+        setTimeout(() => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 10);
+        setTimeout(() => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 50);
+        setTimeout(() => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 100);
+        setTimeout(() => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 200);
+    }
+    
     function scrollToBottom(behavior = 'smooth') {
         chatBox.scrollTo({
             top: chatBox.scrollHeight,
@@ -862,7 +840,6 @@
         });
     }
     
-    // Show/hide scroll to bottom button
     function checkScrollPosition() {
         const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
         if (isNearBottom) {
@@ -1062,7 +1039,6 @@
         }, 5000);
     }
     
-    // Send Audio with Preview
     async function sendAudio() {
         if (!pendingAudioBlob) return;
         
@@ -1103,7 +1079,6 @@
         previewAudio.src = '';
     }
     
-    // Send File
     async function sendFile() {
         if (!pendingFile) return;
         
@@ -1148,7 +1123,6 @@
         fileInput.value = '';
     }
     
-    // File Attachment
     attachBtn.onclick = () => fileInput.click();
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -1181,13 +1155,11 @@
     
     sendFileBtn.onclick = sendFile;
     
-    // Audio Recording with Preview
     function stopRecordingAndPreview() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
             recordingState.style.display = 'none';
             micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-            
             if (mediaStream) {
                 mediaStream.getTracks().forEach(track => track.stop());
                 mediaStream = null;
@@ -1200,60 +1172,41 @@
             stopRecordingAndPreview();
             return;
         }
-        
         if (pendingAudioBlob) {
             cancelAudioBtn.click();
         }
-        
         try {
             mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(mediaStream);
             audioChunks = [];
-            
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    audioChunks.push(e.data);
-                }
-            };
-            
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
             mediaRecorder.onstop = () => {
                 if (audioChunks.length > 0) {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     const audioURL = URL.createObjectURL(audioBlob);
-                    
                     previewAudio.src = audioURL;
                     audioPreviewContainer.style.display = 'flex';
                     pendingAudioBlob = audioBlob;
                 }
                 audioChunks = [];
             };
-            
             mediaRecorder.start();
             recordingState.style.display = 'flex';
             micBtn.innerHTML = '<i class="fas fa-stop"></i>';
-            
             setTimeout(() => {
-                if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    stopRecordingAndPreview();
-                }
+                if (mediaRecorder && mediaRecorder.state === 'recording') stopRecordingAndPreview();
             }, 60000);
-            
         } catch (error) {
             alert('Microphone access denied');
-            console.error(error);
         }
     };
     
     cancelAudioBtn.onclick = () => {
-        if (pendingAudioBlob) {
-            URL.revokeObjectURL(previewAudio.src);
-            pendingAudioBlob = null;
-        }
+        if (pendingAudioBlob) URL.revokeObjectURL(previewAudio.src);
+        pendingAudioBlob = null;
         audioPreviewContainer.style.display = 'none';
         previewAudio.src = '';
-        if (mediaRecorder && mediaRecorder.state !== 'recording') {
-            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-        }
+        if (mediaRecorder && mediaRecorder.state !== 'recording') micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
     };
     
     sendAudioBtn.onclick = sendAudio;
@@ -1310,12 +1263,13 @@
                 const isMe = msg.sender_id === currentUserId;
                 chatBox.appendChild(createMessageElement(msg, isMe, false));
             });
-            setTimeout(() => {
-                scrollToBottom('auto');
-                initialLoadDone = true;
-            }, 100);
+            // Force scroll to bottom multiple times to ensure it works
+            forceScrollToBottom();
         }
         addLoadMoreButton();
+        // Extra scroll attempts after images load
+        setTimeout(forceScrollToBottom, 500);
+        setTimeout(forceScrollToBottom, 1000);
     }
     
     async function editMessage(messageId, oldContent) {
@@ -1375,12 +1329,10 @@
         }
     });
     
-    // Socket Events
     socket.on('new_message', (msg) => {
         if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
             if (!msg.formatted_time) msg.formatted_time = formatMessageTime(msg.created_at);
             const isMe = msg.sender_id === currentUserId;
-            
             if (isMe && window.pendingMessages) {
                 for (let tempId in window.pendingMessages) {
                     const pending = window.pendingMessages[tempId];
@@ -1392,9 +1344,7 @@
                     }
                 }
             }
-            
             appendMessage(msg, isMe);
-            
             if (msg.sender_id === otherUserId) {
                 socket.emit('mark_read', { sender_id: otherUserId });
                 if (Notification.permission === 'granted' && document.hidden) {
