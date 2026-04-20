@@ -10,7 +10,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: radial-gradient(circle at 20% 30%, #0a0f1c, #03060c);
+            background: #000;
             font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
@@ -19,22 +19,22 @@
         }
         /* Status Bar */
         .status-bar {
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
             padding: 6px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             color: white;
             font-size: 0.8rem;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
             z-index: 100;
             position: relative;
         }
         .call-timer {
             font-family: monospace;
             font-weight: 600;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.5);
             padding: 3px 10px;
             border-radius: 30px;
             letter-spacing: 1px;
@@ -51,39 +51,79 @@
         .connection-badge.connected { background: #2ecc71; }
         .connection-badge.failed { background: #e11d48; }
         
-        /* Video Container */
+        /* Video Container - Full screen area */
         .video-container {
-            display: flex;
-            flex: 1;
-            gap: 10px;
-            padding: 10px;
-            background: #0a0c15;
-            min-height: 0;
             position: relative;
-            overflow: hidden;
-        }
-        .video-box {
             flex: 1;
             background: #000;
-            border-radius: 20px;
             overflow: hidden;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.08);
         }
-        video {
+        
+        /* Large Box - Full screen fit */
+        .video-box.large {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .video-box.large video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+        
+        /* Small Box - Draggable, 9:16 aspect ratio, default top-right */
+        .video-box.small {
+            position: absolute;
+            width: 170px;
+            height: auto;
+            aspect-ratio: 9 / 16;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            cursor: grab;
+            z-index: 20;
+            transition: box-shadow 0.2s;
+            top: 20px;
+            right: 20px;
+            left: auto;
+            bottom: auto;
+        }
+        .video-box.small:active {
+            cursor: grabbing;
+        }
+        .video-box.small.dragging {
+            opacity: 0.9;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+            border-color: #2ecc71;
+        }
+        .video-box.small video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Responsive small box size */
+        @media (max-width: 768px) {
+            .video-box.small { width: 130px; top: 15px; right: 15px; }
+        }
+        @media (max-width: 480px) {
+            .video-box.small { width: 110px; top: 10px; right: 10px; }
+        }
+        
         .user-label {
             position: absolute;
-            bottom: 12px;
-            left: 12px;
-            background: rgba(0,0,0,0.5);
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(6px);
             color: white;
             padding: 4px 10px;
@@ -93,6 +133,59 @@
             z-index: 15;
             pointer-events: none;
         }
+        
+        /* Swap Button on small box */
+        .swap-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            z-index: 25;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            opacity: 0.95;
+        }
+        .swap-btn:hover {
+            background: #2ecc71;
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        
+        /* Large box swap button - shows on hover */
+        .video-box.large .swap-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            z-index: 25;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .video-box.large .swap-btn:hover {
+            background: #2ecc71;
+            transform: scale(1.05);
+        }
+        
         .connecting-overlay {
             position: absolute;
             top: 0;
@@ -104,7 +197,6 @@
             align-items: center;
             justify-content: center;
             z-index: 20;
-            border-radius: 20px;
         }
         .spinner-ring {
             width: 40px;
@@ -116,7 +208,7 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Controls - No Card, Separate Buttons, Transparent */
+        /* Controls - Separate Buttons */
         .controls-wrapper {
             position: fixed;
             bottom: 0;
@@ -130,7 +222,6 @@
             z-index: 200;
             pointer-events: none;
         }
-        /* No card/container - buttons directly in wrapper */
         .controls {
             display: flex;
             justify-content: center;
@@ -138,11 +229,10 @@
             background: transparent;
             padding: 0;
             border: none;
-            box-shadow: none;
             pointer-events: auto;
         }
         .control-btn {
-            background: rgba(0, 0, 0, 0.55);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.15);
             width: 44px;
@@ -158,7 +248,7 @@
         }
         .control-btn:hover {
             transform: scale(1.08);
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.8);
             border-color: rgba(255,255,255,0.3);
         }
         .control-btn.active {
@@ -217,13 +307,10 @@
             font-size: 1.5rem;
             margin: 0 4px;
             cursor: pointer;
-            transition: transform 0.1s;
         }
-        .incoming-popup button:hover { transform: scale(1.08); }
         .accept-btn { color: #34d399; }
         .reject-btn { color: #f87171; }
         
-        /* Toast Message */
         .toast-msg {
             position: fixed;
             bottom: 90px;
@@ -240,23 +327,6 @@
             white-space: nowrap;
             pointer-events: none;
         }
-        
-        @media (max-width: 768px) {
-            .video-container { flex-direction: column; gap: 8px; padding: 8px; }
-            .video-box { min-height: 40vh; }
-            .controls { gap: 12px; }
-            .control-btn { width: 40px; height: 40px; font-size: 1.1rem; }
-            .end-call-btn { width: 46px; height: 46px; font-size: 1.3rem; }
-            .controls-wrapper { padding: 12px 12px 20px 12px; }
-            .incoming-popup { bottom: 75px; padding: 8px 15px; font-size: 0.8rem; }
-            .toast-msg { bottom: 80px; }
-        }
-        
-        @media (max-width: 480px) {
-            .controls { gap: 10px; }
-            .control-btn { width: 36px; height: 36px; font-size: 1rem; }
-            .end-call-btn { width: 42px; height: 42px; font-size: 1.2rem; }
-        }
     </style>
 </head>
 <body>
@@ -268,24 +338,29 @@
         </div>
     </div>
 
-    <div class="video-container">
-        <div class="video-box">
-            <video id="localVideo" autoplay muted playsinline></video>
-            <div class="user-label"><i class="fas fa-user"></i> You</div>
-            <div id="localConnectingOverlay" class="connecting-overlay" style="display: none;">
+    <div class="video-container" id="videoContainer">
+        <!-- Large Box (Remote User - Full Screen Fit) -->
+        <div id="remoteBox" class="video-box large">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div class="user-label"><i class="fas fa-user"></i> {{ other_user.username }}</div>
+            <button class="swap-btn" id="swapToRemoteBtn" title="Swap with your video"><i class="fas fa-exchange-alt"></i></button>
+            <div id="remoteConnectingOverlay" class="connecting-overlay" style="display: none;">
                 <div class="spinner-ring"></div>
             </div>
         </div>
-        <div class="video-box">
-            <video id="remoteVideo" autoplay playsinline></video>
-            <div class="user-label"><i class="fas fa-user"></i> {{ other_user.username }}</div>
-            <div id="remoteConnectingOverlay" class="connecting-overlay" style="display: none;">
+        
+        <!-- Small Box (Local User - Draggable, 9:16, Top Right Corner) -->
+        <div id="localBox" class="video-box small">
+            <video id="localVideo" autoplay muted playsinline></video>
+            <div class="user-label"><i class="fas fa-user"></i> You</div>
+            <button class="swap-btn" id="swapToLocalBtn" title="Swap with remote video"><i class="fas fa-exchange-alt"></i></button>
+            <div id="localConnectingOverlay" class="connecting-overlay" style="display: none;">
                 <div class="spinner-ring"></div>
             </div>
         </div>
     </div>
 
-    <!-- Controls - No Card, Direct Separate Buttons -->
+    <!-- Controls -->
     <div class="controls-wrapper">
         <div class="controls">
             <button class="control-btn" id="muteBtn" title="Mute"><i class="fas fa-microphone"></i></button>
@@ -317,6 +392,8 @@
         // ========== DOM ELEMENTS ==========
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
+        const localBox = document.getElementById('localBox');
+        const remoteBox = document.getElementById('remoteBox');
         const muteBtn = document.getElementById('muteBtn');
         const videoToggleBtn = document.getElementById('videoToggleBtn');
         const cameraSwitchBtn = document.getElementById('cameraSwitchBtn');
@@ -331,6 +408,9 @@
         const toastMsg = document.getElementById('toastMsg');
         const remoteConnectingOverlay = document.getElementById('remoteConnectingOverlay');
         const localConnectingOverlay = document.getElementById('localConnectingOverlay');
+        const swapToRemoteBtn = document.getElementById('swapToRemoteBtn');
+        const swapToLocalBtn = document.getElementById('swapToLocalBtn');
+        const videoContainer = document.getElementById('videoContainer');
 
         // ========== STATE ==========
         let peerConnection = null;
@@ -345,6 +425,11 @@
         let callTimeoutId = null;
         let isCaller = new URLSearchParams(window.location.search).get('role') !== 'receiver';
         let pendingOfferData = null;
+        
+        // Drag state for small box
+        let isDragging = false;
+        let dragStartX, dragStartY;
+        let boxStartLeft, boxStartTop;
 
         // Check for pending call
         const pendingOfferJson = sessionStorage.getItem('pendingOffer');
@@ -356,7 +441,143 @@
             } catch(e) {}
         }
 
-        // ========== FAST SOCKET ==========
+        // ========== DRAG FUNCTIONALITY for small box ==========
+        function initDrag() {
+            const smallBox = localBox;
+            
+            const startDrag = (e) => {
+                if (!localBox.classList.contains('small')) return;
+                e.preventDefault();
+                isDragging = true;
+                
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const rect = smallBox.getBoundingClientRect();
+                const containerRect = videoContainer.getBoundingClientRect();
+                
+                boxStartLeft = rect.left - containerRect.left;
+                boxStartTop = rect.top - containerRect.top;
+                dragStartX = clientX - boxStartLeft;
+                dragStartY = clientY - boxStartTop;
+                
+                smallBox.classList.add('dragging');
+                
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchmove', onDrag, { passive: false });
+                document.addEventListener('touchend', stopDrag);
+            };
+            
+            const onDrag = (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                let newLeft = clientX - dragStartX;
+                let newTop = clientY - dragStartY;
+                
+                const containerRect = videoContainer.getBoundingClientRect();
+                const boxRect = smallBox.getBoundingClientRect();
+                
+                newLeft = Math.max(5, Math.min(containerRect.width - boxRect.width - 5, newLeft));
+                newTop = Math.max(5, Math.min(containerRect.height - boxRect.height - 5, newTop));
+                
+                smallBox.style.left = newLeft + 'px';
+                smallBox.style.top = newTop + 'px';
+                smallBox.style.right = 'auto';
+                smallBox.style.bottom = 'auto';
+            };
+            
+            const stopDrag = () => {
+                isDragging = false;
+                smallBox.classList.remove('dragging');
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', onDrag);
+                document.removeEventListener('touchend', stopDrag);
+            };
+            
+            smallBox.addEventListener('mousedown', startDrag);
+            smallBox.addEventListener('touchstart', startDrag, { passive: false });
+        }
+
+        // ========== SWAP FUNCTION - Fixed ==========
+        function swapContainers() {
+            console.log('Swap button clicked');
+            
+            // Swap video streams
+            const tempStream = localVideo.srcObject;
+            localVideo.srcObject = remoteVideo.srcObject;
+            remoteVideo.srcObject = tempStream;
+            
+            // Swap labels
+            const localLabel = localBox.querySelector('.user-label');
+            const remoteLabel = remoteBox.querySelector('.user-label');
+            const localText = localLabel.innerHTML;
+            const remoteText = remoteLabel.innerHTML;
+            localLabel.innerHTML = remoteText;
+            remoteLabel.innerHTML = localText;
+            
+            // Swap classes: large <-> small
+            if (localBox.classList.contains('small')) {
+                // Local is small, Remote is large -> Local becomes large, Remote becomes small
+                localBox.classList.remove('small');
+                localBox.classList.add('large');
+                remoteBox.classList.remove('large');
+                remoteBox.classList.add('small');
+                
+                // Reset position for new small box (remote) - top-right corner
+                remoteBox.style.left = '';
+                remoteBox.style.top = '';
+                remoteBox.style.right = '20px';
+                remoteBox.style.bottom = 'auto';
+                remoteBox.style.top = '20px';
+                
+                // Reset local large box position
+                localBox.style.left = '';
+                localBox.style.top = '';
+                localBox.style.right = '';
+                localBox.style.bottom = '';
+            } else {
+                // Local is large, Remote is small -> Local becomes small, Remote becomes large
+                localBox.classList.remove('large');
+                localBox.classList.add('small');
+                remoteBox.classList.remove('small');
+                remoteBox.classList.add('large');
+                
+                // Reset position for new small box (local) - top-right corner
+                localBox.style.left = '';
+                localBox.style.top = '';
+                localBox.style.right = '20px';
+                localBox.style.top = '20px';
+                localBox.style.bottom = 'auto';
+                
+                // Reset remote large box position
+                remoteBox.style.left = '';
+                remoteBox.style.top = '';
+                remoteBox.style.right = '';
+                remoteBox.style.bottom = '';
+            }
+            
+            showToast('View swapped', 1000);
+        }
+
+        // ========== SOCKET & WEBRTC ==========
         const socket = io({
             transports: ['websocket'],
             reconnection: true,
@@ -366,7 +587,6 @@
             timeout: 8000
         });
 
-        // ========== ICE SERVERS ==========
         const iceServers = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -379,7 +599,6 @@
             iceTransportPolicy: 'all'
         };
 
-        // ========== UI HELPERS ==========
         function showToast(msg, duration = 1500) {
             toastMsg.innerText = msg;
             toastMsg.style.display = 'block';
@@ -452,21 +671,17 @@
             }
         }
 
-        // ========== PEER CONNECTION ==========
         async function createPeerConnection() {
             if (peerConnection) {
                 try { peerConnection.close(); } catch(e) {}
                 peerConnection = null;
             }
-            
             peerConnection = new RTCPeerConnection(iceServers);
-            
             if (localStream) {
                 localStream.getTracks().forEach(track => {
                     if (track) peerConnection.addTrack(track, localStream);
                 });
             }
-            
             peerConnection.ontrack = (event) => {
                 if (event.streams && event.streams[0]) {
                     remoteStream = event.streams[0];
@@ -478,13 +693,11 @@
                     showToast('Video connected!', 1000);
                 }
             };
-            
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
                     socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
                 }
             };
-            
             peerConnection.oniceconnectionstatechange = () => {
                 const state = peerConnection.iceConnectionState;
                 if (state === 'connected' || state === 'completed') {
@@ -503,7 +716,6 @@
                     showToast('Network issue', 1000);
                 }
             };
-            
             return peerConnection;
         }
 
@@ -511,9 +723,6 @@
             if (callTimeoutId) clearTimeout(callTimeoutId);
             stopTimer();
             isCallActive = false;
-            remoteConnectingOverlay.style.display = 'none';
-            localConnectingOverlay.style.display = 'none';
-            
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
                 localStream = null;
@@ -526,7 +735,6 @@
                 socket.emit('end_call', { target_id: otherUserId });
             }
             stopRingtone();
-            if (remoteVideo) remoteVideo.srcObject = null;
             updateConnectionStatus('Call ended');
         }
         
@@ -535,11 +743,9 @@
             window.location.href = chatRedirectUrl;
         }
 
-        // ========== INITIATE CALL ==========
         async function initiateCall() {
             updateConnectionStatus('Starting...');
             localConnectingOverlay.style.display = 'flex';
-            
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
@@ -547,34 +753,19 @@
                 });
                 localVideo.srcObject = localStream;
                 localConnectingOverlay.style.display = 'none';
-                
                 const pc = await createPeerConnection();
-                const offer = await pc.createOffer({
-                    offerToReceiveVideo: true,
-                    offerToReceiveAudio: true,
-                    iceRestart: false
-                });
+                const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true, iceRestart: false });
                 await pc.setLocalDescription(offer);
-                
-                socket.emit('call_user', { 
-                    target_id: otherUserId, 
-                    call_type: callType, 
-                    offer: pc.localDescription,
-                    caller_name: currentUserName
-                });
-                
+                socket.emit('call_user', { target_id: otherUserId, call_type: callType, offer: pc.localDescription, caller_name: currentUserName });
                 updateConnectionStatus('Ringing...');
                 isCallActive = true;
-                
                 callTimeoutId = setTimeout(() => {
-                    if (peerConnection && peerConnection.iceConnectionState !== 'connected' && 
-                        peerConnection.iceConnectionState !== 'completed') {
+                    if (peerConnection && peerConnection.iceConnectionState !== 'connected' && peerConnection.iceConnectionState !== 'completed') {
                         endCallInternal(true);
                         showToast('No answer', 1500);
                         setTimeout(() => { window.location.href = chatRedirectUrl; }, 1200);
                     }
                 }, 25000);
-                
                 socket.once('call_answered', async (data) => {
                     if (callTimeoutId) clearTimeout(callTimeoutId);
                     if (pc && pc.signalingState === 'have-local-offer') {
@@ -584,23 +775,19 @@
                         remoteConnectingOverlay.style.display = 'none';
                     }
                 });
-                
                 socket.once('call_rejected', () => {
                     if (callTimeoutId) clearTimeout(callTimeoutId);
                     endCallInternal(true);
                     showToast('Call rejected', 1000);
                     setTimeout(() => { window.location.href = chatRedirectUrl; }, 1000);
                 });
-                
                 socket.once('call_timeout', () => {
                     if (callTimeoutId) clearTimeout(callTimeoutId);
                     endCallInternal(true);
                     showToast('No answer', 1000);
                     setTimeout(() => { window.location.href = chatRedirectUrl; }, 1000);
                 });
-                
             } catch (err) {
-                console.error('Media error:', err);
                 localConnectingOverlay.style.display = 'none';
                 let msg = 'Camera/Mic access denied';
                 if (err.name === 'NotFoundError') msg = 'No camera/mic found';
@@ -610,37 +797,27 @@
             }
         }
 
-        // ========== ACCEPT CALL ==========
         async function acceptIncomingCall(callerId, offerSdp) {
             stopRingtone();
             incomingPopup.style.display = 'none';
             updateConnectionStatus('Accepting...');
             remoteConnectingOverlay.style.display = 'flex';
             localConnectingOverlay.style.display = 'flex';
-            
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-                    audio: { echoCancellation: true, noiseSuppression: true } 
-                });
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 localVideo.srcObject = localStream;
                 localConnectingOverlay.style.display = 'none';
-                
                 const pc = await createPeerConnection();
                 await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
-                
                 socket.emit('answer_call', { caller_id: callerId, answer: pc.localDescription, call_type: callType });
-                
                 updateConnectionStatus('Connected');
                 startTimer();
                 isCallActive = true;
                 remoteConnectingOverlay.style.display = 'none';
                 showToast('Call connected!', 1000);
-                
             } catch (err) {
-                console.error('Accept error:', err);
                 localConnectingOverlay.style.display = 'none';
                 remoteConnectingOverlay.style.display = 'none';
                 endCallInternal(true);
@@ -649,7 +826,7 @@
             }
         }
 
-        // ========== UI CONTROLS ==========
+        // UI Controls
         function toggleMute() {
             if (!localStream) { showToast('No active call'); return; }
             isMuted = !isMuted;
@@ -657,7 +834,6 @@
             muteBtn.classList.toggle('active', isMuted);
             muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
         }
-        
         function toggleVideo() {
             if (!localStream) return;
             isVideoOff = !isVideoOff;
@@ -665,7 +841,6 @@
             videoToggleBtn.classList.toggle('active', isVideoOff);
             videoToggleBtn.innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
         }
-        
         async function switchCamera() {
             if (!localStream) return;
             const videoTrack = localStream.getVideoTracks()[0];
@@ -689,7 +864,6 @@
                 showToast('Camera switched');
             } catch(e) { showToast('Switch failed'); }
         }
-        
         function toggleFullscreen() {
             const container = document.querySelector('.video-container');
             if (!document.fullscreenElement) container.requestFullscreen().catch(e=>{});
@@ -701,8 +875,18 @@
         cameraSwitchBtn.onclick = switchCamera;
         fullscreenBtn.onclick = toggleFullscreen;
         endCallBtn.onclick = endCallAndRedirect;
+        
+        // Fix swap buttons - remove old listeners and add new ones
+        if (swapToRemoteBtn) {
+            swapToRemoteBtn.removeEventListener('click', swapContainers);
+            swapToRemoteBtn.addEventListener('click', swapContainers);
+        }
+        if (swapToLocalBtn) {
+            swapToLocalBtn.removeEventListener('click', swapContainers);
+            swapToLocalBtn.addEventListener('click', swapContainers);
+        }
 
-        // ========== SOCKET EVENTS ==========
+        // Socket Events
         socket.on('connect', () => {
             if (pendingOfferData && !isCallActive) {
                 acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer);
@@ -713,16 +897,12 @@
                 updateConnectionStatus('Waiting');
             }
         });
-
         socket.on('incoming_call', (data) => {
             if (data.caller_id === otherUserId) {
                 callerNameSpan.innerText = data.caller_name || 'User';
                 incomingPopup.style.display = 'flex';
                 playRingtone();
-                
-                acceptCallBtn.onclick = () => {
-                    acceptIncomingCall(data.caller_id, data.offer);
-                };
+                acceptCallBtn.onclick = () => { acceptIncomingCall(data.caller_id, data.offer); };
                 rejectCallBtn.onclick = () => {
                     stopRingtone();
                     socket.emit('reject_call', { caller_id: data.caller_id });
@@ -732,7 +912,6 @@
                 };
             }
         });
-
         socket.on('call_answered', async (data) => {
             if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -740,40 +919,35 @@
                 updateConnectionStatus('Connected');
             }
         });
-
         socket.on('ice_candidate', async (data) => {
             if (peerConnection && data.candidate) {
-                try {
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                } catch(e) {}
+                try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {}
             }
         });
-
         socket.on('call_ended', () => {
             if (isCallActive) showToast('Call ended', 1000);
             endCallInternal(false);
             setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
         });
-        
         socket.on('call_rejected', () => {
             showToast('Call rejected', 1000);
             endCallInternal(false);
             setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
         });
-        
         socket.on('call_timeout', () => {
             showToast('Call timeout', 1000);
             endCallInternal(false);
             setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
         });
-        
         socket.on('call_error', (err) => {
             showToast(err.message || 'Call error', 1500);
             endCallInternal(false);
             setTimeout(() => { window.location.href = chatRedirectUrl; }, 1000);
         });
 
-        // Initial trigger
+        // Initialize drag
+        initDrag();
+        
         if (pendingOfferData) {
             if (socket.connected) acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer);
             else socket.once('connect', () => acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer));
