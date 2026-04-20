@@ -39,12 +39,12 @@
             z-index: 1000;
             background: #075e54;
             color: white;
-            padding: 12px 16px;
+            padding: 10px 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            height: 60px;
+            height: 56px;
         }
         
         .chat-content {
@@ -52,9 +52,9 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            margin-top: 60px;
+            margin-top: 56px;
             margin-bottom: 60px;
-            height: calc(100vh - 120px);
+            height: calc(100vh - 116px);
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -62,8 +62,8 @@
         .chat-box {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 12px;
-            padding-bottom: 80px;
+            padding: 12px;
+            padding-bottom: 70px;
             background-image: url('https://www.transparenttextures.com/patterns/brilliant.png');
             background-color: #e5ddd5;
             display: flex;
@@ -73,7 +73,7 @@
         
         /* Message Styles */
         .message { 
-            margin-bottom: 12px; 
+            margin-bottom: 10px; 
             display: flex; 
             position: relative;
             cursor: pointer;
@@ -81,10 +81,10 @@
         
         .message.selected .message-bubble {
             outline: 2px solid #075e54;
-            outline-offset: 2px;
+            outline-offset: 1px;
         }
         
-        .message.sending { opacity: 0.8; }
+        .message.sending { opacity: 0.7; }
         
         .my-message { justify-content: flex-end; }
         .other-message { justify-content: flex-start; }
@@ -95,7 +95,7 @@
             border-radius: 18px;
             word-wrap: break-word;
             position: relative;
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.4;
         }
         
@@ -113,13 +113,13 @@
         .message-actions {
             position: absolute;
             right: 0;
-            top: -35px;
+            top: -32px;
             background: white;
-            border-radius: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border-radius: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             display: none;
-            gap: 8px;
-            padding: 6px 12px;
+            gap: 6px;
+            padding: 4px 10px;
             z-index: 10;
         }
         
@@ -129,12 +129,12 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             color: #075e54;
-            padding: 6px;
+            padding: 5px;
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -143,61 +143,61 @@
         /* Media */
         .media-image, .media-video {
             max-width: 100%;
-            max-height: 300px;
-            border-radius: 12px;
+            max-height: 250px;
+            border-radius: 10px;
             margin-top: 4px;
             cursor: pointer;
             object-fit: contain;
         }
         
         .media-audio { 
-            width: 220px; 
+            width: 200px; 
+            height: 38px;
             margin-top: 4px;
-            height: 40px;
         }
         .media-file {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: rgba(7,94,84,0.1);
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 8px;
             text-decoration: none;
             color: #075e54;
-            font-size: 13px;
+            font-size: 12px;
         }
         
         .message-time {
-            font-size: 11px;
+            font-size: 10px;
             opacity: 0.7;
             text-align: right;
             margin-top: 4px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 4px;
+            gap: 3px;
         }
         
-        .fa-check-double { color: #34b7f1; font-size: 11px; }
-        .fa-check, .fa-clock, .fa-spinner { font-size: 11px; }
+        .fa-check-double { color: #34b7f1; font-size: 10px; }
+        .fa-check, .fa-clock, .fa-spinner { font-size: 10px; }
         .fa-spinner { animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .reply-preview { 
             background: #f0f0f0; 
-            padding: 4px 8px; 
-            border-radius: 10px; 
-            font-size: 12px; 
-            margin-bottom: 5px; 
+            padding: 3px 6px; 
+            border-radius: 8px; 
+            font-size: 11px; 
+            margin-bottom: 4px; 
             border-left: 2px solid #075e54; 
         }
         
-        .reactions { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+        .reactions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
         .reaction {
             background: rgba(0,0,0,0.05);
-            border-radius: 20px;
-            padding: 2px 8px;
-            font-size: 12px;
+            border-radius: 16px;
+            padding: 2px 6px;
+            font-size: 11px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -208,23 +208,23 @@
         .typing-indicator {
             position: fixed;
             bottom: 60px;
-            left: 16px;
+            left: 12px;
             background: white;
-            border-radius: 20px;
-            padding: 8px 16px;
+            border-radius: 16px;
+            padding: 6px 12px;
             display: none;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            gap: 6px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
             z-index: 99;
-            font-size: 13px;
+            font-size: 12px;
             color: #666;
         }
         
-        .typing-dots { display: flex; gap: 4px; align-items: center; }
+        .typing-dots { display: flex; gap: 3px; align-items: center; }
         .typing-dots .dot {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             background: #075e54;
             border-radius: 50%;
             animation: typingAnimation 1.4s infinite ease-in-out;
@@ -232,7 +232,7 @@
         
         @keyframes typingAnimation {
             0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-6px); opacity: 1; }
+            30% { transform: translateY(-4px); opacity: 1; }
         }
         
         /* File Preview Container */
@@ -242,33 +242,36 @@
             left: 0;
             right: 0;
             background: white;
-            padding: 12px 16px;
+            padding: 8px 12px;
             border-top: 1px solid #ddd;
             display: none;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             z-index: 99;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
         }
         
         .file-preview {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex: 1;
         }
         
         .file-preview img, .file-preview video {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             border-radius: 8px;
             object-fit: cover;
         }
         
         .file-preview .file-info {
             flex: 1;
-            font-size: 13px;
+            font-size: 12px;
             color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         /* Audio Preview Container */
@@ -278,36 +281,36 @@
             left: 0;
             right: 0;
             background: white;
-            padding: 12px 16px;
+            padding: 10px 12px;
             border-top: 1px solid #ddd;
             display: none;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             z-index: 99;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
         }
         
         .audio-preview {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex: 1;
         }
         
         .audio-preview audio {
             flex: 1;
-            height: 40px;
+            height: 38px;
         }
         
         .cancel-preview-btn, .send-preview-btn {
             background: none;
             border: none;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            padding: 8px;
+            padding: 6px;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -316,25 +319,25 @@
         .cancel-preview-btn { color: #e74c3c; }
         .send-preview-btn { color: #075e54; }
         
-        /* Fixed Footer */
+        /* Fixed Footer - Compact */
         .chat-footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: white;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-top: 1px solid #ddd;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
             z-index: 100;
-            min-height: 60px;
+            height: 60px;
         }
         
         .left-buttons {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             align-items: center;
             flex-shrink: 0;
         }
@@ -342,11 +345,11 @@
         .action-btn {
             background: none;
             border: none;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             color: #075e54;
             cursor: pointer;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -357,24 +360,24 @@
         
         #messageInput {
             flex: 1;
-            border-radius: 24px;
+            border-radius: 22px;
             border: 1px solid #ddd;
-            padding: 10px 16px;
+            padding: 8px 14px;
             outline: none;
-            font-size: 15px;
+            font-size: 14px;
             background: white;
             min-width: 0;
-            height: 44px;
+            height: 40px;
         }
         
         .send-btn {
             background: #075e54;
             border: none;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: white;
             cursor: pointer;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -387,9 +390,9 @@
         .back-btn { 
             color: white; 
             text-decoration: none; 
-            font-size: 1.3rem;
-            width: 40px;
-            height: 40px;
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -398,19 +401,19 @@
         .back-btn:active { background: rgba(255,255,255,0.2); }
         
         .user-info { flex: 1; min-width: 0; }
-        .user-name { font-weight: bold; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-status { font-size: 12px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-name { font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-status { font-size: 11px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-status.online { color: #2E7D32; }
         
-        .call-buttons { display: flex; gap: 8px; margin-left: auto; }
+        .call-buttons { display: flex; gap: 6px; margin-left: auto; }
         .call-buttons button { 
             background: rgba(255,255,255,0.2); 
             border: none; 
             color: white; 
-            font-size: 1.1rem; 
+            font-size: 1rem; 
             cursor: pointer; 
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -420,14 +423,14 @@
         
         .search-container { display: none; }
         
-        .load-more-container { display: flex; justify-content: center; padding: 12px; }
+        .load-more-container { display: flex; justify-content: center; padding: 10px; }
         .load-more-btn {
             background: #075e54;
             color: white;
             border: none;
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-size: 13px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
             cursor: pointer;
         }
         
@@ -439,23 +442,23 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            border-radius: 20px;
-            padding: 16px;
+            border-radius: 16px;
+            padding: 12px;
             z-index: 2000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            max-width: 280px;
+            gap: 8px;
+            max-width: 240px;
         }
         
         .reaction-modal button {
             background: none;
             border: none;
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             cursor: pointer;
-            padding: 8px;
+            padding: 6px;
             transition: transform 0.2s;
-            border-radius: 12px;
+            border-radius: 10px;
         }
         
         .reaction-modal button:active { transform: scale(1.1); background: #f0f0f0; }
@@ -487,10 +490,10 @@
         .image-modal img { max-width: 90%; max-height: 90%; object-fit: contain; }
         .image-modal .close-modal {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             color: white;
-            font-size: 32px;
+            font-size: 28px;
             cursor: pointer;
         }
         
@@ -504,20 +507,20 @@
             transform: translateX(-50%);
             background: #e74c3c;
             color: white;
-            padding: 8px 20px;
+            padding: 6px 16px;
             border-radius: 30px;
             display: none;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             z-index: 99;
-            font-size: 14px;
+            font-size: 13px;
             animation: pulse 1s infinite;
         }
         
         @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
+            0% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.02); }
+            100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
         }
         
         .recording-state i {
@@ -531,30 +534,35 @@
         }
         
         @media (max-width: 480px) {
-            .chat-header { height: 56px; padding: 10px 12px; }
-            .chat-content { margin-top: 56px; margin-bottom: 56px; height: calc(100vh - 112px); }
-            .chat-footer { min-height: 56px; padding: 6px 10px; }
-            .typing-indicator { bottom: 56px; left: 12px; padding: 6px 12px; font-size: 12px; }
-            .file-preview-container, .audio-preview-container { bottom: 56px; padding: 10px 12px; }
-            .action-btn { width: 40px; height: 40px; font-size: 1.2rem; }
-            .send-btn { width: 40px; height: 40px; font-size: 1.1rem; }
-            #messageInput { height: 40px; padding: 8px 12px; font-size: 14px; }
-            .message-bubble { padding: 6px 10px; font-size: 14px; }
-            .media-image, .media-video { max-height: 220px; }
-            .reaction-modal { padding: 12px; gap: 8px; max-width: 240px; }
-            .reaction-modal button { font-size: 1.4rem; padding: 6px; }
+            .chat-header { height: 52px; padding: 8px 10px; }
+            .chat-content { margin-top: 52px; margin-bottom: 56px; height: calc(100vh - 108px); }
+            .chat-footer { height: 56px; padding: 5px 8px; }
+            .typing-indicator { bottom: 56px; left: 10px; padding: 5px 10px; font-size: 11px; }
+            .file-preview-container, .audio-preview-container { bottom: 56px; padding: 8px 10px; }
+            .recording-state { bottom: 66px; padding: 5px 14px; font-size: 12px; }
+            .action-btn { width: 36px; height: 36px; font-size: 1.1rem; }
+            .send-btn { width: 36px; height: 36px; font-size: 1rem; }
+            #messageInput { height: 36px; padding: 6px 12px; font-size: 13px; }
+            .message-bubble { padding: 6px 10px; font-size: 13px; max-width: 85%; }
+            .media-image, .media-video { max-height: 200px; }
+            .reaction-modal { padding: 10px; gap: 6px; max-width: 200px; }
+            .reaction-modal button { font-size: 1.2rem; padding: 5px; }
+            .user-name { font-size: 14px; }
+            .user-status { font-size: 10px; }
+            .call-buttons button { width: 30px; height: 30px; font-size: 0.9rem; }
         }
         
         @media (orientation: landscape) and (max-height: 500px) {
-            .chat-header, .chat-footer { height: 50px; }
-            .chat-content { margin-top: 50px; margin-bottom: 50px; height: calc(100vh - 100px); }
-            .typing-indicator, .file-preview-container, .audio-preview-container { bottom: 50px; }
-            .media-image, .media-video { max-height: 150px; }
+            .chat-header, .chat-footer { height: 48px; }
+            .chat-content { margin-top: 48px; margin-bottom: 48px; height: calc(100vh - 96px); }
+            .typing-indicator, .file-preview-container, .audio-preview-container { bottom: 48px; }
+            .recording-state { bottom: 58px; }
+            .media-image, .media-video { max-height: 130px; }
         }
         
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .chat-footer { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
-            .chat-header { padding-top: max(10px, env(safe-area-inset-top)); }
+            .chat-footer { padding-bottom: max(5px, env(safe-area-inset-bottom)); }
+            .chat-header { padding-top: max(8px, env(safe-area-inset-top)); }
         }
     </style>
 </head>
@@ -600,9 +608,8 @@
     <!-- Audio Preview Container -->
     <div id="audioPreviewContainer" class="audio-preview-container">
         <div class="audio-preview">
-            <i class="fas fa-headphones" style="color:#075e54; font-size:1.3rem;"></i>
+            <i class="fas fa-headphones" style="color:#075e54; font-size:1.2rem;"></i>
             <audio id="previewAudio" controls></audio>
-            <div class="file-info" id="audioInfo" style="font-size:12px; color:#666;">Voice message</div>
         </div>
         <button class="cancel-preview-btn" id="cancelAudioBtn"><i class="fas fa-times"></i></button>
         <button class="send-preview-btn" id="sendAudioBtn"><i class="fas fa-paper-plane"></i></button>
@@ -706,7 +713,6 @@
     const sendFileBtn = document.getElementById('sendFileBtn');
     const audioPreviewContainer = document.getElementById('audioPreviewContainer');
     const previewAudio = document.getElementById('previewAudio');
-    const audioInfo = document.getElementById('audioInfo');
     const cancelAudioBtn = document.getElementById('cancelAudioBtn');
     const sendAudioBtn = document.getElementById('sendAudioBtn');
     const recordingState = document.getElementById('recordingState');
@@ -720,11 +726,12 @@
     let isLoadingMore = false;
     let offset = {{ messages|length }};
     let hasMoreMessages = true;
-    let mediaRecorder;
+    let mediaRecorder = null;
     let audioChunks = [];
     let typingTimeout = null;
     let pendingFile = null;
     let pendingAudioBlob = null;
+    let mediaStream = null;
     
     // Update Online Status
     function updateOnlineStatus(isOnline, lastSeen) {
@@ -1033,7 +1040,7 @@
             previewImage.style.display = 'none';
             previewVideo.style.display = 'none';
         }
-        fileInfo.textContent = `${file.name.substring(0, 30)} (${(file.size/1024).toFixed(0)} KB)`;
+        fileInfo.textContent = `${file.name.substring(0, 25)} (${(file.size/1024).toFixed(0)} KB)`;
         filePreviewContainer.style.display = 'flex';
     });
     
@@ -1046,66 +1053,72 @@
     
     sendFileBtn.onclick = sendFile;
     
-    // Audio Recording with Preview (Manual Send)
-    let mediaStream = null;
-    
-    micBtn.onclick = async () => {
+    // Audio Recording with Preview (Fixed Stop Button)
+    function stopRecordingAndPreview() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
-            // Stop recording
             mediaRecorder.stop();
             recordingState.style.display = 'none';
             micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            
             if (mediaStream) {
                 mediaStream.getTracks().forEach(track => track.stop());
                 mediaStream = null;
             }
-        } else {
-            // Start recording
-            try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(mediaStream);
-                audioChunks = [];
-                
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) {
-                        audioChunks.push(e.data);
-                    }
-                };
-                
-                mediaRecorder.onstop = () => {
+        }
+    }
+    
+    micBtn.onclick = async () => {
+        // If currently recording, stop and show preview
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            stopRecordingAndPreview();
+            return;
+        }
+        
+        // If there's a pending audio preview, cancel it first
+        if (pendingAudioBlob) {
+            cancelAudioBtn.click();
+        }
+        
+        // Start new recording
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(mediaStream);
+            audioChunks = [];
+            
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    audioChunks.push(e.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                if (audioChunks.length > 0) {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     const audioURL = URL.createObjectURL(audioBlob);
                     
                     // Show preview
                     previewAudio.src = audioURL;
-                    audioInfo.textContent = `Voice message (${(audioBlob.size/1024).toFixed(0)} KB)`;
                     audioPreviewContainer.style.display = 'flex';
                     
                     pendingAudioBlob = audioBlob;
-                    audioChunks = [];
-                };
-                
-                mediaRecorder.start();
-                recordingState.style.display = 'flex';
-                micBtn.innerHTML = '<i class="fas fa-stop"></i>';
-                
-                // Auto stop after 60 seconds
-                setTimeout(() => {
-                    if (mediaRecorder && mediaRecorder.state === 'recording') {
-                        mediaRecorder.stop();
-                        recordingState.style.display = 'none';
-                        micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-                        if (mediaStream) {
-                            mediaStream.getTracks().forEach(track => track.stop());
-                            mediaStream = null;
-                        }
-                    }
-                }, 60000);
-                
-            } catch (error) {
-                alert('Microphone access denied');
-                console.error(error);
-            }
+                }
+                audioChunks = [];
+            };
+            
+            mediaRecorder.start();
+            recordingState.style.display = 'flex';
+            micBtn.innerHTML = '<i class="fas fa-stop"></i>';
+            
+            // Auto stop after 60 seconds
+            setTimeout(() => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    stopRecordingAndPreview();
+                }
+            }, 60000);
+            
+        } catch (error) {
+            alert('Microphone access denied');
+            console.error(error);
         }
     };
     
@@ -1117,6 +1130,10 @@
         }
         audioPreviewContainer.style.display = 'none';
         previewAudio.src = '';
+        // Also reset mic button if needed
+        if (mediaRecorder && mediaRecorder.state !== 'recording') {
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        }
     };
     
     // Send audio manually
