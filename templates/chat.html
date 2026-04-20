@@ -11,7 +11,7 @@
         
         body { 
             background: #e5ddd5; 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             height: 100vh; 
             overflow: hidden;
             position: fixed;
@@ -39,12 +39,12 @@
             z-index: 1000;
             background: #075e54;
             color: white;
-            padding: 10px 12px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            height: 56px;
+            height: 60px;
         }
         
         .chat-content {
@@ -52,9 +52,9 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            margin-top: 56px;
-            margin-bottom: 56px;
-            height: calc(100vh - 112px);
+            margin-top: 60px;
+            margin-bottom: 60px;
+            height: calc(100vh - 120px);
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -62,8 +62,8 @@
         .chat-box {
             flex: 1;
             overflow-y: auto;
-            padding: 12px 10px;
-            padding-bottom: 60px;
+            padding: 16px 12px;
+            padding-bottom: 80px;
             background-image: url('https://www.transparenttextures.com/patterns/brilliant.png');
             background-color: #e5ddd5;
             display: flex;
@@ -73,7 +73,7 @@
         
         /* Message Styles */
         .message { 
-            margin-bottom: 8px; 
+            margin-bottom: 12px; 
             display: flex; 
             position: relative;
             cursor: pointer;
@@ -81,31 +81,31 @@
         
         .message.selected .message-bubble {
             outline: 2px solid #075e54;
-            outline-offset: 1px;
+            outline-offset: 2px;
         }
         
         .message.sending { opacity: 0.8; }
-        .message.sending .message-bubble { background: #e0e0e0; }
         
         .my-message { justify-content: flex-end; }
         .other-message { justify-content: flex-start; }
         
         .message-bubble {
             max-width: 80%;
-            padding: 6px 10px;
-            border-radius: 16px;
+            padding: 8px 12px;
+            border-radius: 18px;
             word-wrap: break-word;
             position: relative;
-            font-size: 0.85rem;
+            font-size: 15px;
+            line-height: 1.4;
         }
         
         .my-message .message-bubble { 
             background: #dcf8c5; 
-            border-bottom-right-radius: 3px; 
+            border-bottom-right-radius: 4px; 
         }
         .other-message .message-bubble { 
             background: white; 
-            border-bottom-left-radius: 3px; 
+            border-bottom-left-radius: 4px; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
         }
         
@@ -113,13 +113,13 @@
         .message-actions {
             position: absolute;
             right: 0;
-            top: -30px;
+            top: -35px;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            border-radius: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             display: none;
-            gap: 6px;
-            padding: 4px 10px;
+            gap: 8px;
+            padding: 6px 12px;
             z-index: 10;
         }
         
@@ -129,152 +129,8 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 0.75rem;
+            font-size: 14px;
             color: #075e54;
-            padding: 4px;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Media */
-        .media-image, .media-video {
-            max-width: 100%;
-            max-height: 250px;
-            border-radius: 10px;
-            margin-top: 3px;
-            cursor: pointer;
-            object-fit: contain;
-        }
-        
-        .media-audio { width: 180px; margin-top: 3px; }
-        .media-file {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(7,94,84,0.1);
-            padding: 4px 8px;
-            border-radius: 6px;
-            text-decoration: none;
-            color: #075e54;
-            font-size: 0.7rem;
-        }
-        
-        .message-time {
-            font-size: 0.55rem;
-            opacity: 0.7;
-            text-align: right;
-            margin-top: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 3px;
-        }
-        
-        .fa-check-double { color: #34b7f1; font-size: 0.5rem; }
-        .fa-check, .fa-clock, .fa-spinner { font-size: 0.5rem; }
-        .fa-spinner { animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .reply-preview { 
-            background: #f0f0f0; 
-            padding: 2px 5px; 
-            border-radius: 8px; 
-            font-size: 0.6rem; 
-            margin-bottom: 3px; 
-            border-left: 2px solid #075e54; 
-        }
-        
-        .reactions { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; }
-        .reaction {
-            background: rgba(0,0,0,0.05);
-            border-radius: 16px;
-            padding: 1px 5px;
-            font-size: 0.65rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
-        }
-        
-        /* Typing Indicator */
-        .typing-indicator {
-            position: fixed;
-            bottom: 56px;
-            left: 12px;
-            background: white;
-            border-radius: 16px;
-            padding: 5px 12px;
-            display: none;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-            z-index: 99;
-            font-size: 0.7rem;
-            color: #666;
-        }
-        
-        .typing-dots { display: flex; gap: 3px; align-items: center; }
-        .typing-dots .dot {
-            width: 5px;
-            height: 5px;
-            background: #075e54;
-            border-radius: 50%;
-            animation: typingAnimation 1.4s infinite ease-in-out;
-        }
-        
-        @keyframes typingAnimation {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-4px); opacity: 1; }
-        }
-        
-        /* File Preview */
-        .file-preview-container {
-            position: fixed;
-            bottom: 56px;
-            left: 0;
-            right: 0;
-            background: white;
-            padding: 8px 12px;
-            border-top: 1px solid #ddd;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            z-index: 99;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .file-preview {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-        
-        .file-preview img, .file-preview video {
-            width: 40px;
-            height: 40px;
-            border-radius: 6px;
-            object-fit: cover;
-        }
-        
-        .file-preview .file-info {
-            flex: 1;
-            font-size: 0.7rem;
-            color: #333;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .cancel-preview-btn, .send-file-btn {
-            background: none;
-            border: none;
-            font-size: 1.1rem;
-            cursor: pointer;
             padding: 6px;
             border-radius: 50%;
             width: 32px;
@@ -284,8 +140,181 @@
             justify-content: center;
         }
         
+        /* Media */
+        .media-image, .media-video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            margin-top: 4px;
+            cursor: pointer;
+            object-fit: contain;
+        }
+        
+        .media-audio { 
+            width: 220px; 
+            margin-top: 4px;
+            height: 40px;
+        }
+        .media-file {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(7,94,84,0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #075e54;
+            font-size: 13px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            text-align: right;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+        
+        .fa-check-double { color: #34b7f1; font-size: 11px; }
+        .fa-check, .fa-clock, .fa-spinner { font-size: 11px; }
+        .fa-spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .reply-preview { 
+            background: #f0f0f0; 
+            padding: 4px 8px; 
+            border-radius: 10px; 
+            font-size: 12px; 
+            margin-bottom: 5px; 
+            border-left: 2px solid #075e54; 
+        }
+        
+        .reactions { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+        .reaction {
+            background: rgba(0,0,0,0.05);
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        /* Typing Indicator */
+        .typing-indicator {
+            position: fixed;
+            bottom: 60px;
+            left: 16px;
+            background: white;
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 99;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .typing-dots { display: flex; gap: 4px; align-items: center; }
+        .typing-dots .dot {
+            width: 6px;
+            height: 6px;
+            background: #075e54;
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+        
+        /* File Preview Container */
+        .file-preview-container {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 16px;
+            border-top: 1px solid #ddd;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 99;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .file-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .file-preview img, .file-preview video {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        
+        .file-preview .file-info {
+            flex: 1;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        /* Audio Preview Container */
+        .audio-preview-container {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 16px;
+            border-top: 1px solid #ddd;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 99;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .audio-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .audio-preview audio {
+            flex: 1;
+            height: 40px;
+        }
+        
+        .cancel-preview-btn, .send-preview-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
         .cancel-preview-btn { color: #e74c3c; }
-        .send-file-btn { color: #075e54; }
+        .send-preview-btn { color: #075e54; }
         
         /* Fixed Footer */
         .chat-footer {
@@ -294,18 +323,18 @@
             left: 0;
             right: 0;
             background: white;
-            padding: 6px 10px;
+            padding: 8px 12px;
             border-top: 1px solid #ddd;
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
             z-index: 100;
-            height: 56px;
+            min-height: 60px;
         }
         
         .left-buttons {
             display: flex;
-            gap: 4px;
+            gap: 8px;
             align-items: center;
             flex-shrink: 0;
         }
@@ -313,11 +342,11 @@
         .action-btn {
             background: none;
             border: none;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             color: #075e54;
             cursor: pointer;
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -328,24 +357,24 @@
         
         #messageInput {
             flex: 1;
-            border-radius: 20px;
+            border-radius: 24px;
             border: 1px solid #ddd;
-            padding: 8px 12px;
+            padding: 10px 16px;
             outline: none;
-            font-size: 14px;
+            font-size: 15px;
             background: white;
             min-width: 0;
-            height: 36px;
+            height: 44px;
         }
         
         .send-btn {
             background: #075e54;
             border: none;
-            font-size: 1rem;
+            font-size: 1.2rem;
             color: white;
             cursor: pointer;
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -358,9 +387,9 @@
         .back-btn { 
             color: white; 
             text-decoration: none; 
-            font-size: 1.1rem;
-            width: 32px;
-            height: 32px;
+            font-size: 1.3rem;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -369,19 +398,19 @@
         .back-btn:active { background: rgba(255,255,255,0.2); }
         
         .user-info { flex: 1; min-width: 0; }
-        .user-name { font-weight: bold; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-status { font-size: 0.6rem; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-name { font-weight: bold; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-status { font-size: 12px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-status.online { color: #2E7D32; }
         
-        .call-buttons { display: flex; gap: 4px; margin-left: auto; }
+        .call-buttons { display: flex; gap: 8px; margin-left: auto; }
         .call-buttons button { 
             background: rgba(255,255,255,0.2); 
             border: none; 
             color: white; 
-            font-size: 0.9rem; 
+            font-size: 1.1rem; 
             cursor: pointer; 
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -391,14 +420,14 @@
         
         .search-container { display: none; }
         
-        .load-more-container { display: flex; justify-content: center; padding: 8px; }
+        .load-more-container { display: flex; justify-content: center; padding: 12px; }
         .load-more-btn {
             background: #075e54;
             color: white;
             border: none;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.7rem;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 13px;
             cursor: pointer;
         }
         
@@ -410,23 +439,23 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            border-radius: 16px;
-            padding: 12px;
+            border-radius: 20px;
+            padding: 16px;
             z-index: 2000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            max-width: 240px;
+            gap: 12px;
+            max-width: 280px;
         }
         
         .reaction-modal button {
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             cursor: pointer;
-            padding: 6px;
+            padding: 8px;
             transition: transform 0.2s;
-            border-radius: 10px;
+            border-radius: 12px;
         }
         
         .reaction-modal button:active { transform: scale(1.1); background: #f0f0f0; }
@@ -458,40 +487,74 @@
         .image-modal img { max-width: 90%; max-height: 90%; object-fit: contain; }
         .image-modal .close-modal {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 20px;
+            right: 20px;
             color: white;
-            font-size: 28px;
+            font-size: 32px;
             cursor: pointer;
         }
         
         #fileInput { display: none; }
         
+        /* Recording State */
+        .recording-state {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 99;
+            font-size: 14px;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        .recording-state i {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
         @media (max-width: 480px) {
-            .chat-header { height: 50px; padding: 6px 10px; }
-            .chat-content { margin-top: 50px; margin-bottom: 50px; height: calc(100vh - 100px); }
-            .chat-footer { height: 50px; padding: 5px 8px; }
-            .typing-indicator { bottom: 50px; left: 8px; padding: 4px 10px; font-size: 0.65rem; }
-            .file-preview-container { bottom: 50px; }
-            .action-btn { width: 32px; height: 32px; font-size: 1rem; }
-            .send-btn { width: 32px; height: 32px; font-size: 0.9rem; }
-            #messageInput { height: 32px; padding: 6px 10px; font-size: 13px; }
-            .message-bubble { padding: 5px 8px; font-size: 0.8rem; max-width: 85%; }
-            .media-image, .media-video { max-height: 200px; }
-            .reaction-modal { padding: 10px; gap: 6px; max-width: 200px; }
-            .reaction-modal button { font-size: 1.2rem; padding: 4px; }
+            .chat-header { height: 56px; padding: 10px 12px; }
+            .chat-content { margin-top: 56px; margin-bottom: 56px; height: calc(100vh - 112px); }
+            .chat-footer { min-height: 56px; padding: 6px 10px; }
+            .typing-indicator { bottom: 56px; left: 12px; padding: 6px 12px; font-size: 12px; }
+            .file-preview-container, .audio-preview-container { bottom: 56px; padding: 10px 12px; }
+            .action-btn { width: 40px; height: 40px; font-size: 1.2rem; }
+            .send-btn { width: 40px; height: 40px; font-size: 1.1rem; }
+            #messageInput { height: 40px; padding: 8px 12px; font-size: 14px; }
+            .message-bubble { padding: 6px 10px; font-size: 14px; }
+            .media-image, .media-video { max-height: 220px; }
+            .reaction-modal { padding: 12px; gap: 8px; max-width: 240px; }
+            .reaction-modal button { font-size: 1.4rem; padding: 6px; }
         }
         
         @media (orientation: landscape) and (max-height: 500px) {
-            .chat-header, .chat-footer { height: 44px; }
-            .chat-content { margin-top: 44px; margin-bottom: 44px; height: calc(100vh - 88px); }
-            .typing-indicator { bottom: 44px; }
+            .chat-header, .chat-footer { height: 50px; }
+            .chat-content { margin-top: 50px; margin-bottom: 50px; height: calc(100vh - 100px); }
+            .typing-indicator, .file-preview-container, .audio-preview-container { bottom: 50px; }
             .media-image, .media-video { max-height: 150px; }
         }
         
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .chat-footer { padding-bottom: max(5px, env(safe-area-inset-bottom)); }
-            .chat-header { padding-top: max(6px, env(safe-area-inset-top)); }
+            .chat-footer { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+            .chat-header { padding-top: max(10px, env(safe-area-inset-top)); }
         }
     </style>
 </head>
@@ -523,6 +586,7 @@
         <div class="chat-box" id="chatBox"></div>
     </div>
     
+    <!-- File Preview Container -->
     <div id="filePreviewContainer" class="file-preview-container">
         <div class="file-preview">
             <img id="previewImage" style="display:none;">
@@ -530,7 +594,24 @@
             <div class="file-info" id="fileInfo"></div>
         </div>
         <button class="cancel-preview-btn" id="cancelPreviewBtn"><i class="fas fa-times"></i></button>
-        <button class="send-file-btn" id="sendFileBtn"><i class="fas fa-paper-plane"></i></button>
+        <button class="send-preview-btn" id="sendFileBtn"><i class="fas fa-paper-plane"></i></button>
+    </div>
+    
+    <!-- Audio Preview Container -->
+    <div id="audioPreviewContainer" class="audio-preview-container">
+        <div class="audio-preview">
+            <i class="fas fa-headphones" style="color:#075e54; font-size:1.3rem;"></i>
+            <audio id="previewAudio" controls></audio>
+            <div class="file-info" id="audioInfo" style="font-size:12px; color:#666;">Voice message</div>
+        </div>
+        <button class="cancel-preview-btn" id="cancelAudioBtn"><i class="fas fa-times"></i></button>
+        <button class="send-preview-btn" id="sendAudioBtn"><i class="fas fa-paper-plane"></i></button>
+    </div>
+    
+    <!-- Recording State Indicator -->
+    <div id="recordingState" class="recording-state">
+        <i class="fas fa-circle"></i>
+        <span>Recording...</span>
     </div>
     
     <div id="typingIndicator" class="typing-indicator">
@@ -623,6 +704,12 @@
     const fileInfo = document.getElementById('fileInfo');
     const cancelPreviewBtn = document.getElementById('cancelPreviewBtn');
     const sendFileBtn = document.getElementById('sendFileBtn');
+    const audioPreviewContainer = document.getElementById('audioPreviewContainer');
+    const previewAudio = document.getElementById('previewAudio');
+    const audioInfo = document.getElementById('audioInfo');
+    const cancelAudioBtn = document.getElementById('cancelAudioBtn');
+    const sendAudioBtn = document.getElementById('sendAudioBtn');
+    const recordingState = document.getElementById('recordingState');
     
     const currentUserId = "{{ current_user.id }}";
     const otherUserId = "{{ other_user.id }}";
@@ -637,20 +724,18 @@
     let audioChunks = [];
     let typingTimeout = null;
     let pendingFile = null;
+    let pendingAudioBlob = null;
     
-    // Update Online Status in Header
+    // Update Online Status
     function updateOnlineStatus(isOnline, lastSeen) {
         const statusDiv = document.getElementById('onlineStatus');
         if (isOnline) {
             statusDiv.innerHTML = '<span class="online">● Online</span>';
         } else {
-            const lastSeenText = formatLastSeen(lastSeen);
-            statusDiv.innerHTML = lastSeenText;
-            statusDiv.className = 'user-status';
+            statusDiv.innerHTML = formatLastSeen(lastSeen);
         }
     }
     
-    // Set initial status from template (no loading text)
     {% if other_user.is_online %}
         updateOnlineStatus(true, null);
     {% else %}
@@ -774,7 +859,7 @@
         messageDiv.querySelector('.reply-action-btn')?.addEventListener('click', (e) => {
             e.stopPropagation();
             replyToId = msg.id;
-            messageInput.placeholder = `Reply to: ${(msg.content || '').substring(0, 25)}...`;
+            messageInput.placeholder = `Reply to: ${(msg.content || '').substring(0, 30)}...`;
             messageInput.focus();
             clearMessageSelection();
         });
@@ -811,7 +896,6 @@
             message_type: 'text',
             content: content,
             reply_to_id: replyToId,
-            reply_to_content: null,
             created_at: new Date().toISOString(),
             is_read: false,
             reactions: []
@@ -832,11 +916,59 @@
         replyToId = null;
         messageInput.placeholder = 'Type a message...';
         
-        // Store pending message
         window.pendingMessages = window.pendingMessages || {};
         window.pendingMessages[tempId] = { content, type: 'text' };
+        
+        setTimeout(() => {
+            const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
+            if (tempElement && tempElement.classList.contains('sending')) {
+                tempElement.remove();
+            }
+        }, 5000);
     }
     
+    // Send Audio with Preview
+    async function sendAudio() {
+        if (!pendingAudioBlob) return;
+        
+        const tempId = 'temp_audio_' + Date.now();
+        const audioURL = URL.createObjectURL(pendingAudioBlob);
+        
+        const pendingMsg = {
+            id: tempId,
+            sender_id: currentUserId,
+            message_type: 'audio',
+            content: audioURL,
+            created_at: new Date().toISOString(),
+            is_read: false,
+            reactions: []
+        };
+        
+        const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
+        chatBox.appendChild(pendingDiv);
+        scrollToBottom();
+        
+        const formData = new FormData();
+        formData.append('audio', pendingAudioBlob, 'voice.wav');
+        formData.append('receiver_id', otherUserId);
+        
+        try {
+            await fetch('/upload_audio', { method: 'POST', body: formData });
+            const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
+            if (tempElement) tempElement.remove();
+        } catch (error) {
+            alert('Upload failed');
+            const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
+            if (tempElement) tempElement.remove();
+        }
+        
+        URL.revokeObjectURL(audioURL);
+        pendingAudioBlob = null;
+        audioPreviewContainer.style.display = 'none';
+        previewAudio.src = '';
+    }
+    
+    // Send File
     async function sendFile() {
         if (!pendingFile) return;
         
@@ -881,6 +1013,7 @@
         fileInput.value = '';
     }
     
+    // File Attachment
     attachBtn.onclick = () => fileInput.click();
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -900,14 +1033,12 @@
             previewImage.style.display = 'none';
             previewVideo.style.display = 'none';
         }
-        fileInfo.textContent = `${file.name.substring(0, 20)} (${(file.size/1024).toFixed(0)} KB)`;
+        fileInfo.textContent = `${file.name.substring(0, 30)} (${(file.size/1024).toFixed(0)} KB)`;
         filePreviewContainer.style.display = 'flex';
     });
     
     cancelPreviewBtn.onclick = () => {
-        if (pendingFile && pendingFile.type) {
-            URL.revokeObjectURL(URL.createObjectURL(pendingFile));
-        }
+        if (pendingFile) URL.revokeObjectURL(URL.createObjectURL(pendingFile));
         pendingFile = null;
         filePreviewContainer.style.display = 'none';
         fileInput.value = '';
@@ -915,13 +1046,89 @@
     
     sendFileBtn.onclick = sendFile;
     
+    // Audio Recording with Preview (Manual Send)
+    let mediaStream = null;
+    
+    micBtn.onclick = async () => {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            // Stop recording
+            mediaRecorder.stop();
+            recordingState.style.display = 'none';
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        } else {
+            // Start recording
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(mediaStream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        audioChunks.push(e.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioURL = URL.createObjectURL(audioBlob);
+                    
+                    // Show preview
+                    previewAudio.src = audioURL;
+                    audioInfo.textContent = `Voice message (${(audioBlob.size/1024).toFixed(0)} KB)`;
+                    audioPreviewContainer.style.display = 'flex';
+                    
+                    pendingAudioBlob = audioBlob;
+                    audioChunks = [];
+                };
+                
+                mediaRecorder.start();
+                recordingState.style.display = 'flex';
+                micBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                
+                // Auto stop after 60 seconds
+                setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                        recordingState.style.display = 'none';
+                        micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                        if (mediaStream) {
+                            mediaStream.getTracks().forEach(track => track.stop());
+                            mediaStream = null;
+                        }
+                    }
+                }, 60000);
+                
+            } catch (error) {
+                alert('Microphone access denied');
+                console.error(error);
+            }
+        }
+    };
+    
+    // Cancel audio preview
+    cancelAudioBtn.onclick = () => {
+        if (pendingAudioBlob) {
+            URL.revokeObjectURL(previewAudio.src);
+            pendingAudioBlob = null;
+        }
+        audioPreviewContainer.style.display = 'none';
+        previewAudio.src = '';
+    };
+    
+    // Send audio manually
+    sendAudioBtn.onclick = sendAudio;
+    
     function addLoadMoreButton() {
         const existing = document.querySelector('.load-more-container');
         if (existing) existing.remove();
         if (hasMoreMessages && offset > 0) {
             const container = document.createElement('div');
             container.className = 'load-more-container';
-            container.innerHTML = `<button class="load-more-btn" id="loadMoreBtn"><i class="fas fa-arrow-up"></i> Load Previous</button>`;
+            container.innerHTML = `<button class="load-more-btn" id="loadMoreBtn"><i class="fas fa-arrow-up"></i> Load Previous Messages</button>`;
             if (chatBox.firstChild) chatBox.insertBefore(container, chatBox.firstChild);
             else chatBox.appendChild(container);
             document.getElementById('loadMoreBtn')?.addEventListener('click', loadMoreMessages);
@@ -948,7 +1155,7 @@
                 offset += older.length;
                 hasMoreMessages = older.length === 20;
                 addLoadMoreButton();
-                setTimeout(() => { chatBox.scrollTop = scrollPos; }, 30);
+                setTimeout(() => { chatBox.scrollTop = scrollPos; }, 50);
             } else { hasMoreMessages = false; addLoadMoreButton(); }
         } catch(e) { console.error(e); }
         isLoadingMore = false;
@@ -1029,58 +1236,12 @@
         }
     });
     
-    micBtn.onclick = async () => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-        } else {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    const tempId = 'temp_audio_' + Date.now();
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const audioURL = URL.createObjectURL(audioBlob);
-                    
-                    const pendingMsg = {
-                        id: tempId,
-                        sender_id: currentUserId,
-                        message_type: 'audio',
-                        content: audioURL,
-                        created_at: new Date().toISOString(),
-                        is_read: false,
-                        reactions: []
-                    };
-                    const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
-                    chatBox.appendChild(pendingDiv);
-                    scrollToBottom();
-                    
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob, 'voice.wav');
-                    formData.append('receiver_id', otherUserId);
-                    await fetch('/upload_audio', { method: 'POST', body: formData });
-                    
-                    const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
-                    if (tempElement) tempElement.remove();
-                    stream.getTracks().forEach(t => t.stop());
-                    URL.revokeObjectURL(audioURL);
-                };
-                mediaRecorder.start();
-                micBtn.innerHTML = '<i class="fas fa-stop"></i>';
-                setTimeout(() => { if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 60000);
-            } catch(e) { alert('Microphone access denied'); }
-        }
-    };
-    
     // Socket Events
     socket.on('new_message', (msg) => {
         if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
             if (!msg.formatted_time) msg.formatted_time = formatMessageTime(msg.created_at);
             const isMe = msg.sender_id === currentUserId;
             
-            // Remove pending message if exists
             if (isMe && window.pendingMessages) {
                 for (let tempId in window.pendingMessages) {
                     const pending = window.pendingMessages[tempId];
