@@ -704,9 +704,8 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // ========== TIME CONVERSION - SAME AS users.html ==========
-    // Using toLocaleString with 'en-IN' and hour12: true for Indian time format
-    
+    // ========== SAME TIME CONVERSION FOR BOTH MESSAGE AND LAST SEEN ==========
+    // This is the SAME function used for message time display
     function formatMessageTime(utcTimestamp) {
         if (!utcTimestamp) return '';
         try {
@@ -717,10 +716,10 @@
             const isToday = now.toDateString() === date.toDateString();
             
             if (isToday) {
-                // Today: Show only time like "11:20 AM"
+                // Today: Only time like "11:20 AM"
                 return date.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
             } else {
-                // Older: Show date and time like "20 Apr 2026, 11:20 AM"
+                // Older: Date + time like "20 Apr 2026, 11:20 AM"
                 const day = date.getDate();
                 const month = date.toLocaleString('en-IN', { month: 'short' });
                 const year = date.getFullYear();
@@ -732,6 +731,7 @@
         }
     }
     
+    // SAME function for Last Seen - consistent with message time format
     function formatLastSeen(utcTimestamp) {
         if (!utcTimestamp) return 'recently';
         try {
