@@ -31,7 +31,7 @@
             position: relative;
         }
         
-        /* Fixed Header */
+        /* Fixed Header - Never Scrolls */
         .chat-header {
             position: fixed;
             top: 0;
@@ -44,21 +44,23 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             height: 60px;
         }
         
-        /* Content with fixed header offset */
+        /* Content Area - Scrolls but header and footer stay fixed */
         .chat-content {
-            margin-top: 60px;
+            position: relative;
             flex: 1;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 60px);
-            position: relative;
+            margin-top: 60px;
+            margin-bottom: 60px;
+            height: calc(100vh - 120px);
+            overflow: hidden;
         }
         
-        /* Messages Area */
+        /* Messages Area - Scrollable */
         .chat-box {
             flex: 1;
             overflow-y: auto;
@@ -112,7 +114,7 @@
             font-style: italic;
         }
         
-        /* Typing Indicator */
+        /* Typing Indicator - Fixed above footer */
         .typing-indicator { 
             padding: 6px 12px; 
             font-size: 0.7rem; 
@@ -120,15 +122,15 @@
             font-style: italic; 
             background: white; 
             border-top: 1px solid #eee; 
-            position: fixed;
-            bottom: 65px;
+            position: absolute;
+            bottom: 60px;
             left: 0;
             right: 0;
             z-index: 99;
             display: none;
         }
         
-        /* Fixed Footer */
+        /* Fixed Footer - Never Scrolls */
         .chat-footer {
             position: fixed;
             bottom: 0;
@@ -208,7 +210,11 @@
         }
         
         /* Message Styles */
-        .message { margin-bottom: 12px; display: flex; position: relative; }
+        .message { 
+            margin-bottom: 12px; 
+            display: flex; 
+            position: relative;
+        }
         .my-message { justify-content: flex-end; }
         .other-message { justify-content: flex-start; }
         
@@ -477,7 +483,8 @@
             }
             .chat-content {
                 margin-top: 55px;
-                height: calc(100vh - 55px);
+                margin-bottom: 55px;
+                height: calc(100vh - 110px);
             }
             .chat-footer {
                 height: 55px;
@@ -524,7 +531,8 @@
             }
             .chat-content {
                 margin-top: 50px;
-                height: calc(100vh - 50px);
+                margin-bottom: 50px;
+                height: calc(100vh - 100px);
             }
             .chat-footer {
                 height: 50px;
@@ -571,7 +579,8 @@
             }
             .chat-content {
                 margin-top: 45px;
-                height: calc(100vh - 45px);
+                margin-bottom: 45px;
+                height: calc(100vh - 90px);
             }
             .typing-indicator {
                 bottom: 45px;
@@ -586,7 +595,7 @@
 </head>
 <body>
 <div class="chat-container">
-    <!-- Fixed Header -->
+    <!-- Fixed Header - Never Scrolls -->
     <div class="chat-header">
         <a href="{{ url_for('users') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <div class="user-info">
@@ -607,7 +616,7 @@
         </div>
     </div>
     
-    <!-- Chat Content -->
+    <!-- Chat Content - Scrolls but header/footer stay fixed -->
     <div class="chat-content">
         <div class="chat-box" id="chatBox">
             <!-- Messages will appear here -->
@@ -616,21 +625,21 @@
         <div id="typingIndicator" class="typing-indicator">
             <i class="fas fa-ellipsis-h"></i> Typing...
         </div>
-        
-        <!-- Fixed Footer -->
-        <div class="chat-footer">
-            <div class="left-buttons">
-                <button class="action-btn" id="attachBtn" title="Attach file">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-                <button class="action-btn" id="micBtn" title="Voice message">
-                    <i class="fas fa-microphone"></i>
-                </button>
-            </div>
-            <input type="text" id="messageInput" placeholder="Type a message...">
-            <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
-            <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
+    </div>
+    
+    <!-- Fixed Footer - Never Scrolls -->
+    <div class="chat-footer">
+        <div class="left-buttons">
+            <button class="action-btn" id="attachBtn" title="Attach file">
+                <i class="fas fa-paperclip"></i>
+            </button>
+            <button class="action-btn" id="micBtn" title="Voice message">
+                <i class="fas fa-microphone"></i>
+            </button>
         </div>
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+        <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
     </div>
 </div>
 
@@ -642,7 +651,7 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // ========== INDIAN TIME FORMAT FUNCTION ==========
+    // ========== INDIAN TIME FORMAT FUNCTION (12-hour AM/PM) ==========
     function formatIndianTime(timestamp) {
         if (!timestamp) return '';
         
@@ -655,6 +664,7 @@
         
         if (isNaN(date.getTime())) return '';
         
+        // Convert to Indian timezone (IST - UTC+5:30)
         const options = {
             hour: '2-digit',
             minute: '2-digit',
@@ -663,15 +673,6 @@
         };
         
         let timeString = date.toLocaleTimeString('en-IN', options);
-        
-        if (!timeString.includes('AM') && !timeString.includes('PM')) {
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const hour12 = hours % 12 || 12;
-            timeString = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-        }
-        
         return timeString;
     }
     
@@ -687,8 +688,9 @@
         
         if (isNaN(date.getTime())) return '';
         
-        const now = new Date();
+        // Convert to IST for comparison
         const options = { timeZone: 'Asia/Kolkata' };
+        const now = new Date();
         const todayIST = new Date(now.toLocaleString('en-US', options));
         const msgDateIST = new Date(date.toLocaleString('en-US', options));
         
@@ -702,6 +704,36 @@
             const year = msgDateIST.getFullYear();
             const time = formatIndianTime(date);
             return `${day} ${month} ${year}, ${time}`;
+        }
+    }
+    
+    function formatLastSeen(timestamp) {
+        if (!timestamp) return 'recently';
+        
+        let date;
+        if (typeof timestamp === 'string') {
+            date = new Date(timestamp);
+        } else {
+            date = timestamp;
+        }
+        
+        if (isNaN(date.getTime())) return 'recently';
+        
+        const options = { timeZone: 'Asia/Kolkata' };
+        const now = new Date();
+        const todayIST = new Date(now.toLocaleString('en-US', options));
+        const msgDateIST = new Date(date.toLocaleString('en-US', options));
+        
+        const isToday = todayIST.toDateString() === msgDateIST.toDateString();
+        
+        if (isToday) {
+            return `Last seen today at ${formatIndianTime(date)}`;
+        } else {
+            const day = msgDateIST.getDate();
+            const month = msgDateIST.toLocaleString('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' });
+            const year = msgDateIST.getFullYear();
+            const time = formatIndianTime(date);
+            return `Last seen on ${day} ${month} ${year} at ${time}`;
         }
     }
     
@@ -732,6 +764,7 @@
     
     // Store scroll position before loading
     let scrollPositionBeforeLoad = 0;
+    let firstMessageIdBeforeLoad = null;
 
     function openImageModal(src) {
         modalImage.src = src;
@@ -867,13 +900,14 @@
             loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
         }
         
-        // Save current scroll position (where the button is)
-        const loadMoreContainer = document.querySelector('.load-more-container');
-        if (loadMoreContainer) {
-            scrollPositionBeforeLoad = loadMoreContainer.offsetTop;
-        } else {
-            scrollPositionBeforeLoad = chatBox.scrollTop;
+        // Save the current first message ID to maintain position
+        const firstMessage = chatBox.querySelector('.message');
+        if (firstMessage) {
+            firstMessageIdBeforeLoad = firstMessage.getAttribute('data-message-id');
         }
+        
+        // Save current scroll position
+        scrollPositionBeforeLoad = chatBox.scrollTop;
         
         try {
             const res = await fetch(`/load_more_messages?other_user_id=${otherUserId}&offset=${offset}`);
@@ -904,10 +938,18 @@
                 // Re-add load more button
                 addLoadMoreButton();
                 
-                // Restore scroll position - NO AUTO SCROLL
-                // User needs to scroll manually
+                // Restore scroll position - NO AUTO SCROLLING
+                // User will stay at the same position (near the load more button)
                 setTimeout(() => {
-                    if (scrollPositionBeforeLoad > 0) {
+                    if (firstMessageIdBeforeLoad) {
+                        // Try to find the message that was previously first
+                        const targetMessage = document.querySelector(`.message[data-message-id="${firstMessageIdBeforeLoad}"]`);
+                        if (targetMessage) {
+                            targetMessage.scrollIntoView({ block: 'start', behavior: 'auto' });
+                        } else if (scrollPositionBeforeLoad > 0) {
+                            chatBox.scrollTop = scrollPositionBeforeLoad;
+                        }
+                    } else if (scrollPositionBeforeLoad > 0) {
                         chatBox.scrollTop = scrollPositionBeforeLoad;
                     }
                 }, 50);
@@ -1126,8 +1168,8 @@
             if (data.is_online) {
                 statusDiv.innerHTML = '<span style="color: #2E7D32;">● Online</span>';
             } else {
-                const lastSeen = data.last_seen ? formatMessageTime(data.last_seen) : 'recently';
-                statusDiv.innerHTML = `Last seen: ${lastSeen}`;
+                const lastSeenText = formatLastSeen(data.last_seen);
+                statusDiv.innerHTML = lastSeenText;
             }
         }
     });
