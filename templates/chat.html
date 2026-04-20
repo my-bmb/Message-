@@ -108,7 +108,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
         }
         
-        /* Reply Preview inside input */
         .reply-preview-input {
             position: fixed;
             bottom: 60px;
@@ -636,7 +635,6 @@
         <div class="chat-box" id="chatBox"></div>
     </div>
     
-    <!-- Reply Preview Bar -->
     <div id="replyPreviewBar" class="reply-preview-input">
         <i class="fas fa-reply" style="color:#075e54;"></i>
         <span id="replyPreviewText">Replying to...</span>
@@ -706,68 +704,59 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // ========== TIMEZONE CONVERSION FUNCTIONS ==========
-    function convertUTCtoIST(utcTimestamp) {
-        if (!utcTimestamp) return null;
-        let date = new Date(utcTimestamp);
-        if (isNaN(date.getTime())) return null;
-        let istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
-        return istDate;
-    }
-    
-    function formatIndianTime(utcTimestamp) {
-        if (!utcTimestamp) return '';
-        let istDate = convertUTCtoIST(utcTimestamp);
-        if (!istDate) return '';
-        let hours = istDate.getUTCHours();
-        let minutes = istDate.getUTCMinutes();
-        let ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        return `${hours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-    }
-    
-    function formatFullDateTime(utcTimestamp) {
-        if (!utcTimestamp) return '';
-        let istDate = convertUTCtoIST(utcTimestamp);
-        if (!istDate) return '';
-        let day = istDate.getUTCDate();
-        let month = istDate.getUTCMonth();
-        let year = istDate.getUTCFullYear();
-        let hours = istDate.getUTCHours();
-        let minutes = istDate.getUTCMinutes();
-        let ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${day} ${monthNames[month]} ${year}, ${hours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-    }
+    // ========== TIME CONVERSION - SAME AS users.html ==========
+    // Using toLocaleString with 'en-IN' and hour12: true for Indian time format
     
     function formatMessageTime(utcTimestamp) {
         if (!utcTimestamp) return '';
-        let istDate = convertUTCtoIST(utcTimestamp);
-        if (!istDate) return '';
-        let now = new Date();
-        let nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
-        let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
-        let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
-        let isToday = istDateOnly.getTime() === nowISTDateOnly.getTime();
-        if (isToday) return formatIndianTime(utcTimestamp);
-        return formatFullDateTime(utcTimestamp);
+        try {
+            const date = new Date(utcTimestamp);
+            if (isNaN(date.getTime())) return '';
+            
+            const now = new Date();
+            const isToday = now.toDateString() === date.toDateString();
+            
+            if (isToday) {
+                // Today: Show only time like "11:20 AM"
+                return date.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            } else {
+                // Older: Show date and time like "20 Apr 2026, 11:20 AM"
+                const day = date.getDate();
+                const month = date.toLocaleString('en-IN', { month: 'short' });
+                const year = date.getFullYear();
+                const time = date.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                return `${day} ${month} ${year}, ${time}`;
+            }
+        } catch(e) {
+            return '';
+        }
     }
     
     function formatLastSeen(utcTimestamp) {
         if (!utcTimestamp) return 'recently';
-        let istDate = convertUTCtoIST(utcTimestamp);
-        if (!istDate) return 'recently';
-        let now = new Date();
-        let nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
-        let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
-        let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
-        let diffDays = Math.floor((nowISTDateOnly - istDateOnly) / (1000 * 60 * 60 * 24));
-        if (diffDays === 0) return `Last seen today at ${formatIndianTime(utcTimestamp)}`;
-        if (diffDays === 1) return `Last seen yesterday at ${formatIndianTime(utcTimestamp)}`;
-        return `Last seen on ${formatFullDateTime(utcTimestamp)}`;
+        try {
+            const date = new Date(utcTimestamp);
+            if (isNaN(date.getTime())) return 'recently';
+            
+            const now = new Date();
+            const isToday = now.toDateString() === date.toDateString();
+            const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
+            
+            const time = date.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            
+            if (isToday) {
+                return `Last seen today at ${time}`;
+            } else if (isYesterday) {
+                return `Last seen yesterday at ${time}`;
+            } else {
+                const day = date.getDate();
+                const month = date.toLocaleString('en-IN', { month: 'short' });
+                const year = date.getFullYear();
+                return `Last seen on ${day} ${month} ${year} at ${time}`;
+            }
+        } catch(e) {
+            return 'recently';
+        }
     }
     
     function updateOnlineStatus(isOnline, lastSeenUtc) {
@@ -829,14 +818,13 @@
     let pendingAudioBlob = null;
     let mediaStream = null;
     
-    // Set initial status
+    // Set initial status from server
     {% if other_user.is_online %}
         updateOnlineStatus(true, null);
     {% else %}
         updateOnlineStatus(false, "{{ other_user.last_seen }}");
     {% endif %}
     
-    // Cancel reply function
     function cancelReply() {
         replyToId = null;
         replyToContent = null;
@@ -851,6 +839,7 @@
         setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
         setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 100);
         setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 200);
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 500);
     }
     
     function scrollToBottom(behavior = 'smooth') {
@@ -878,9 +867,7 @@
         const isMessageClick = e.target.closest('.message');
         const isActionClick = e.target.closest('.message-actions');
         const isReactionModalClick = e.target.closest('.reaction-modal') || e.target.closest('.modal-overlay');
-        if (!isMessageClick && !isActionClick && !isReactionModalClick) {
-            clearMessageSelection();
-        }
+        if (!isMessageClick && !isActionClick && !isReactionModalClick) clearMessageSelection();
     });
     
     reactionModalOverlay.addEventListener('click', () => {
@@ -978,7 +965,6 @@
     }
     
     function attachMessageActions(messageDiv, msg) {
-        // Reply Button Handler
         messageDiv.querySelector('.reply-action-btn')?.addEventListener('click', (e) => {
             e.stopPropagation();
             replyToId = msg.id;
@@ -1036,7 +1022,6 @@
         chatBox.appendChild(pendingDiv);
         scrollToBottom('smooth');
         
-        // Send with reply data
         socket.emit('send_message', { 
             receiver_id: otherUserId, 
             content: content, 
@@ -1045,8 +1030,7 @@
         });
         
         messageInput.value = '';
-        cancelReply(); // Clear reply preview
-        messageInput.placeholder = 'Type a message...';
+        cancelReply();
         
         window.pendingMessages = window.pendingMessages || {};
         window.pendingMessages[tempId] = { content, type: 'text' };
@@ -1264,8 +1248,6 @@
             forceScrollToBottom();
         }
         addLoadMoreButton();
-        setTimeout(forceScrollToBottom, 500);
-        setTimeout(forceScrollToBottom, 1000);
     }
     
     async function editMessage(messageId, oldContent) {
@@ -1357,17 +1339,17 @@
     socket.on('reaction_updated', (data) => updateReactionsUI(data.message_id, data.reactions));
     
     socket.on('user_status', data => {
-        if (data.user_id === otherUserId) updateOnlineStatus(data.is_online, data.last_seen);
+        if (data.user_id === otherUserId) {
+            updateOnlineStatus(data.is_online, data.last_seen);
+        }
     });
     
     socket.on('messages_read', data => {
         if (data.sender_id === otherUserId) {
             document.querySelectorAll('.message.my-message').forEach(msg => {
                 const timeSpan = msg.querySelector('.message-time');
-                if (timeSpan) {
-                    if (timeSpan.innerHTML.includes('fa-check')) {
-                        timeSpan.innerHTML = timeSpan.innerHTML.replace('<i class="fas fa-check"></i>', '<i class="fas fa-check-double" style="color:#34b7f1;"></i>');
-                    }
+                if (timeSpan && timeSpan.innerHTML.includes('fa-check')) {
+                    timeSpan.innerHTML = timeSpan.innerHTML.replace('<i class="fas fa-check"></i>', '<i class="fas fa-check-double" style="color:#34b7f1;"></i>');
                 }
             });
         }
