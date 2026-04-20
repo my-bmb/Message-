@@ -704,14 +704,32 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // ========== SINGLE TIME CONVERSION (Frontend only - NO double conversion) ==========
-    
+    // ================== FINAL TIME FIX SYSTEM ==================
+
+    // 🔥 Universal Safe Date Parser (MAIN FIX)
+    function parseUTC(utcTimestamp) {
+        if (!utcTimestamp) return null;
+
+        // अगर backend से "2026-04-20 11:49:00" आ रहा है
+        // तो इसे force ISO + UTC बना देंगे
+        let fixed = utcTimestamp.replace(' ', 'T');
+
+        // अगर Z या timezone नहीं है तो add कर दो
+        if (!fixed.includes('Z') && !fixed.includes('+')) {
+            fixed += 'Z';
+        }
+
+        let date = new Date(fixed);
+        if (isNaN(date.getTime())) return null;
+
+        return date;
+    }
+
+    // ⏰ Time only (WhatsApp style)
     function formatIndianTime(utcTimestamp) {
-        if (!utcTimestamp) return '';
-        let date = new Date(utcTimestamp);
-        if (isNaN(date.getTime())) return '';
-        
-        // Browser automatically converts UTC to local IST
+        let date = parseUTC(utcTimestamp);
+        if (!date) return '';
+
         return date.toLocaleString('en-IN', {
             hour: '2-digit',
             minute: '2-digit',
@@ -719,67 +737,64 @@
             timeZone: 'Asia/Kolkata'
         });
     }
-    
+
+    // 📅 Full date + time
     function formatFullDateTime(utcTimestamp) {
-        if (!utcTimestamp) return '';
-        let date = new Date(utcTimestamp);
-        if (isNaN(date.getTime())) return '';
-        
-        const day = date.getDate();
+        let date = parseUTC(utcTimestamp);
+        if (!date) return '';
+
+        const day = date.toLocaleString('en-IN', { day: 'numeric', timeZone: 'Asia/Kolkata' });
         const month = date.toLocaleString('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' });
-        const year = date.getFullYear();
-        const time = date.toLocaleString('en-IN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-            timeZone: 'Asia/Kolkata'
-        });
+        const year = date.toLocaleString('en-IN', { year: 'numeric', timeZone: 'Asia/Kolkata' });
+        const time = formatIndianTime(utcTimestamp);
+
         return `${day} ${month} ${year}, ${time}`;
     }
-    
+
+    // 🧠 Smart message time (Today / Old)
     function formatMessageTime(utcTimestamp) {
-        if (!utcTimestamp) return '';
-        let date = new Date(utcTimestamp);
-        if (isNaN(date.getTime())) return '';
-        
-        const now = new Date();
-        const isToday = now.toDateString() === date.toDateString();
-        
-        if (isToday) {
+        let date = parseUTC(utcTimestamp);
+        if (!date) return '';
+
+        let now = new Date();
+
+        const today = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+        const msgDay = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+        if (today === msgDay) {
             return formatIndianTime(utcTimestamp);
         } else {
             return formatFullDateTime(utcTimestamp);
         }
     }
-    
+
+    // 🟢 Last seen system (WhatsApp style)
     function formatLastSeen(utcTimestamp) {
-        if (!utcTimestamp) return 'recently';
-        let date = new Date(utcTimestamp);
-        if (isNaN(date.getTime())) return 'recently';
-        
-        const now = new Date();
-        const isToday = now.toDateString() === date.toDateString();
-        const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
-        
-        const time = date.toLocaleString('en-IN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-            timeZone: 'Asia/Kolkata'
-        });
-        
-        if (isToday) {
+        let date = parseUTC(utcTimestamp);
+        if (!date) return 'recently';
+
+        let now = new Date();
+
+        const today = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+        let yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterday = yesterdayDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+        const msgDay = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+        const time = formatIndianTime(utcTimestamp);
+
+        if (msgDay === today) {
             return `Last seen today at ${time}`;
-        } else if (isYesterday) {
+        } else if (msgDay === yesterday) {
             return `Last seen yesterday at ${time}`;
         } else {
-            const day = date.getDate();
-            const month = date.toLocaleString('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' });
-            const year = date.getFullYear();
-            return `Last seen on ${day} ${month} ${year} at ${time}`;
+            const full = formatFullDateTime(utcTimestamp);
+            return `Last seen on ${full}`;
         }
     }
-    
+
+    // 🔄 Status update
     function updateOnlineStatus(isOnline, lastSeenUtc) {
         const statusDiv = document.getElementById('onlineStatus');
         if (isOnline) {
@@ -839,7 +854,7 @@
     let pendingAudioBlob = null;
     let mediaStream = null;
     
-    // Set initial status from server (UTC to IST in frontend)
+    // Set initial status from server
     {% if other_user.is_online %}
         updateOnlineStatus(true, null);
     {% else %}
