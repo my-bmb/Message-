@@ -69,6 +69,7 @@
             display: flex;
             flex-direction: column;
             -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
         }
         
         /* Message Styles */
@@ -274,7 +275,7 @@
             text-overflow: ellipsis;
         }
         
-        /* Audio Preview Container - Mobile Optimized */
+        /* Audio Preview Container */
         .audio-preview-container {
             position: fixed;
             bottom: 60px;
@@ -322,7 +323,7 @@
         .cancel-preview-btn { color: #e74c3c; }
         .send-preview-btn { color: #075e54; }
         
-        /* Fixed Footer - Compact */
+        /* Fixed Footer */
         .chat-footer {
             position: fixed;
             bottom: 0;
@@ -536,35 +537,37 @@
             100% { opacity: 1; }
         }
         
-        /* ========== MOBILE SPECIFIC FIXES ========== */
+        /* Scroll to Bottom Button */
+        .scroll-to-bottom {
+            position: fixed;
+            bottom: 70px;
+            right: 16px;
+            background: #075e54;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 98;
+            border: none;
+            font-size: 1.2rem;
+        }
+        
+        .scroll-to-bottom:active { transform: scale(0.95); }
+        
         @media (max-width: 480px) {
             .chat-header { height: 52px; padding: 8px 10px; }
             .chat-content { margin-top: 52px; margin-bottom: 56px; height: calc(100vh - 108px); }
             .chat-footer { height: 56px; padding: 5px 8px; }
             .typing-indicator { bottom: 56px; left: 10px; padding: 5px 10px; font-size: 11px; }
             .file-preview-container { bottom: 56px; padding: 8px 10px; }
-            
-            /* Audio Preview - Mobile Visible */
-            .audio-preview-container { 
-                bottom: 56px; 
-                padding: 8px 10px;
-                background: white;
-                z-index: 101;
-            }
-            .audio-preview {
-                gap: 6px;
-            }
-            .audio-preview audio {
-                height: 36px;
-                min-width: 100px;
-            }
-            .cancel-preview-btn, .send-preview-btn {
-                width: 38px;
-                height: 38px;
-                font-size: 1.2rem;
-                padding: 6px;
-            }
-            
+            .audio-preview-container { bottom: 56px; padding: 8px 10px; }
+            .audio-preview audio { height: 36px; min-width: 100px; }
+            .cancel-preview-btn, .send-preview-btn { width: 38px; height: 38px; font-size: 1.2rem; }
             .action-btn { width: 36px; height: 36px; font-size: 1.1rem; }
             .send-btn { width: 36px; height: 36px; font-size: 1rem; }
             #messageInput { height: 36px; padding: 6px 12px; font-size: 13px; }
@@ -572,26 +575,7 @@
             .media-image, .media-video { max-height: 200px; }
             .reaction-modal { padding: 10px; gap: 6px; max-width: 200px; }
             .reaction-modal button { font-size: 1.2rem; padding: 5px; }
-            .user-name { font-size: 14px; }
-            .user-status { font-size: 10px; }
-            .call-buttons button { width: 30px; height: 30px; font-size: 0.9rem; }
-            .recording-state { bottom: 66px; padding: 5px 14px; font-size: 12px; }
-        }
-        
-        /* Extra small devices */
-        @media (max-width: 380px) {
-            .audio-preview audio {
-                min-width: 80px;
-                height: 34px;
-            }
-            .cancel-preview-btn, .send-preview-btn {
-                width: 34px;
-                height: 34px;
-                font-size: 1.1rem;
-            }
-            .audio-preview-container {
-                padding: 6px 8px;
-            }
+            .scroll-to-bottom { bottom: 66px; right: 12px; width: 36px; height: 36px; font-size: 1rem; }
         }
         
         @media (orientation: landscape) and (max-height: 500px) {
@@ -600,13 +584,12 @@
             .typing-indicator, .file-preview-container, .audio-preview-container { bottom: 48px; }
             .recording-state { bottom: 58px; }
             .media-image, .media-video { max-height: 130px; }
-            .audio-preview audio { height: 34px; }
+            .scroll-to-bottom { bottom: 58px; }
         }
         
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             .chat-footer { padding-bottom: max(5px, env(safe-area-inset-bottom)); }
             .chat-header { padding-top: max(8px, env(safe-area-inset-top)); }
-            .audio-preview-container { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
         }
     </style>
 </head>
@@ -620,7 +603,7 @@
                 {% if other_user.is_online %}
                     <span class="online">● Online</span>
                 {% else %}
-                    Last seen: {{ other_user.last_seen|default("recently") }}
+                    Loading...
                 {% endif %}
             </div>
         </div>
@@ -638,6 +621,11 @@
         <div class="chat-box" id="chatBox"></div>
     </div>
     
+    <!-- Scroll to Bottom Button -->
+    <button id="scrollToBottomBtn" class="scroll-to-bottom" title="Go to bottom">
+        <i class="fas fa-arrow-down"></i>
+    </button>
+    
     <!-- File Preview Container -->
     <div id="filePreviewContainer" class="file-preview-container">
         <div class="file-preview">
@@ -649,7 +637,7 @@
         <button class="send-preview-btn" id="sendFileBtn"><i class="fas fa-paper-plane"></i></button>
     </div>
     
-    <!-- Audio Preview Container - Mobile Visible -->
+    <!-- Audio Preview Container -->
     <div id="audioPreviewContainer" class="audio-preview-container">
         <div class="audio-preview">
             <i class="fas fa-headphones" style="color:#075e54; font-size:1.2rem; flex-shrink:0;"></i>
@@ -700,36 +688,116 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // Time Format Functions
-    function formatIndianTime(timestamp) {
-        if (!timestamp) return '';
-        let date = new Date(timestamp);
-        if (isNaN(date.getTime())) return '';
-        return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
+    // ========== CORRECT TIMEZONE FUNCTIONS ==========
+    // Convert UTC timestamp to IST and format as 12-hour AM/PM
+    function convertUTCtoIST(utcTimestamp) {
+        if (!utcTimestamp) return null;
+        
+        // Create date object from UTC string
+        let date = new Date(utcTimestamp);
+        if (isNaN(date.getTime())) return null;
+        
+        // Convert to IST by adding 5 hours 30 minutes
+        // IST is UTC+5:30
+        let istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+        
+        return istDate;
     }
     
-    function formatMessageTime(timestamp) {
-        if (!timestamp) return '';
-        let date = new Date(timestamp);
-        if (isNaN(date.getTime())) return '';
-        const now = new Date();
-        const isToday = now.toDateString() === date.toDateString();
-        if (isToday) return formatIndianTime(date);
-        const day = date.getDate();
-        const month = date.toLocaleString('en-IN', { month: 'short' });
-        return `${day} ${month}, ${formatIndianTime(date)}`;
+    function formatIndianTime(utcTimestamp) {
+        if (!utcTimestamp) return '';
+        
+        let istDate = convertUTCtoIST(utcTimestamp);
+        if (!istDate) return '';
+        
+        let hours = istDate.getUTCHours();
+        let minutes = istDate.getUTCMinutes();
+        
+        // Format to 12-hour
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 12-hour format (0 becomes 12)
+        
+        let minutesStr = minutes.toString().padStart(2, '0');
+        
+        return `${hours}:${minutesStr} ${ampm}`;
     }
     
-    function formatLastSeen(timestamp) {
-        if (!timestamp) return 'recently';
-        let date = new Date(timestamp);
-        if (isNaN(date.getTime())) return 'recently';
-        const now = new Date();
-        const isToday = now.toDateString() === date.toDateString();
-        if (isToday) return `Last seen today at ${formatIndianTime(date)}`;
-        const day = date.getDate();
-        const month = date.toLocaleString('en-IN', { month: 'short' });
-        return `Last seen ${day} ${month} at ${formatIndianTime(date)}`;
+    function formatFullDateTime(utcTimestamp) {
+        if (!utcTimestamp) return '';
+        
+        let istDate = convertUTCtoIST(utcTimestamp);
+        if (!istDate) return '';
+        
+        let day = istDate.getUTCDate();
+        let month = istDate.getUTCMonth() + 1;
+        let year = istDate.getUTCFullYear();
+        let hours = istDate.getUTCHours();
+        let minutes = istDate.getUTCMinutes();
+        
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        let minutesStr = minutes.toString().padStart(2, '0');
+        
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        return `${day} ${monthNames[month-1]} ${year}, ${hours}:${minutesStr} ${ampm}`;
+    }
+    
+    function formatMessageTime(utcTimestamp) {
+        if (!utcTimestamp) return '';
+        
+        let istDate = convertUTCtoIST(utcTimestamp);
+        if (!istDate) return '';
+        
+        let now = new Date();
+        let nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+        
+        let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
+        let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
+        
+        let isToday = istDateOnly.getTime() === nowISTDateOnly.getTime();
+        
+        if (isToday) {
+            return formatIndianTime(utcTimestamp);
+        } else {
+            return formatFullDateTime(utcTimestamp);
+        }
+    }
+    
+    function formatLastSeen(utcTimestamp) {
+        if (!utcTimestamp) return 'recently';
+        
+        let istDate = convertUTCtoIST(utcTimestamp);
+        if (!istDate) return 'recently';
+        
+        let now = new Date();
+        let nowIST = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+        
+        let istDateOnly = new Date(istDate.getUTCFullYear(), istDate.getUTCMonth(), istDate.getUTCDate());
+        let nowISTDateOnly = new Date(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate());
+        
+        let diffDays = Math.floor((nowISTDateOnly - istDateOnly) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) {
+            return `Last seen today at ${formatIndianTime(utcTimestamp)}`;
+        } else if (diffDays === 1) {
+            return `Last seen yesterday at ${formatIndianTime(utcTimestamp)}`;
+        } else {
+            return `Last seen on ${formatFullDateTime(utcTimestamp)}`;
+        }
+    }
+    
+    // Update online status with correct time
+    function updateOnlineStatus(isOnline, lastSeenUtc) {
+        const statusDiv = document.getElementById('onlineStatus');
+        if (isOnline) {
+            statusDiv.innerHTML = '<span class="online">● Online</span>';
+        } else {
+            const lastSeenText = formatLastSeen(lastSeenUtc);
+            statusDiv.innerHTML = lastSeenText;
+        }
     }
     
     // DOM Elements
@@ -760,6 +828,7 @@
     const cancelAudioBtn = document.getElementById('cancelAudioBtn');
     const sendAudioBtn = document.getElementById('sendAudioBtn');
     const recordingState = document.getElementById('recordingState');
+    const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
     
     const currentUserId = "{{ current_user.id }}";
     const otherUserId = "{{ other_user.id }}";
@@ -776,22 +845,38 @@
     let pendingFile = null;
     let pendingAudioBlob = null;
     let mediaStream = null;
+    let initialLoadDone = false;
     
-    // Update Online Status
-    function updateOnlineStatus(isOnline, lastSeen) {
-        const statusDiv = document.getElementById('onlineStatus');
-        if (isOnline) {
-            statusDiv.innerHTML = '<span class="online">● Online</span>';
-        } else {
-            statusDiv.innerHTML = formatLastSeen(lastSeen);
-        }
-    }
-    
+    // Set initial status from server
     {% if other_user.is_online %}
         updateOnlineStatus(true, null);
     {% else %}
         updateOnlineStatus(false, "{{ other_user.last_seen }}");
     {% endif %}
+    
+    // Scroll to bottom function
+    function scrollToBottom(behavior = 'smooth') {
+        chatBox.scrollTo({
+            top: chatBox.scrollHeight,
+            behavior: behavior
+        });
+    }
+    
+    // Show/hide scroll to bottom button
+    function checkScrollPosition() {
+        const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
+        if (isNearBottom) {
+            scrollToBottomBtn.style.display = 'none';
+        } else {
+            scrollToBottomBtn.style.display = 'flex';
+        }
+    }
+    
+    scrollToBottomBtn.addEventListener('click', () => {
+        scrollToBottom('smooth');
+    });
+    
+    chatBox.addEventListener('scroll', checkScrollPosition);
     
     function clearMessageSelection() {
         document.querySelectorAll('.message.selected').forEach(msg => msg.classList.remove('selected'));
@@ -841,7 +926,6 @@
     document.querySelector('.close-modal').onclick = () => imageModal.style.display = 'none';
     imageModal.onclick = (e) => { if (e.target === imageModal) imageModal.style.display = 'none'; };
     
-    function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
     function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
     
     function createMessageElement(msg, isMe, isPending = false, tempId = null) {
@@ -954,7 +1038,7 @@
         
         const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
         chatBox.appendChild(pendingDiv);
-        scrollToBottom();
+        scrollToBottom('smooth');
         
         socket.emit('send_message', { 
             receiver_id: otherUserId, 
@@ -997,7 +1081,7 @@
         
         const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
         chatBox.appendChild(pendingDiv);
-        scrollToBottom();
+        scrollToBottom('smooth');
         
         const formData = new FormData();
         formData.append('audio', pendingAudioBlob, 'voice.wav');
@@ -1040,7 +1124,7 @@
         
         const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
         chatBox.appendChild(pendingDiv);
-        scrollToBottom();
+        scrollToBottom('smooth');
         
         const formData = new FormData();
         formData.append('file', pendingFile);
@@ -1097,7 +1181,7 @@
     
     sendFileBtn.onclick = sendFile;
     
-    // Audio Recording with Preview (Fixed Stop Button)
+    // Audio Recording with Preview
     function stopRecordingAndPreview() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
@@ -1112,18 +1196,15 @@
     }
     
     micBtn.onclick = async () => {
-        // If currently recording, stop and show preview
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             stopRecordingAndPreview();
             return;
         }
         
-        // If there's a pending audio preview, cancel it first
         if (pendingAudioBlob) {
             cancelAudioBtn.click();
         }
         
-        // Start new recording
         try {
             mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(mediaStream);
@@ -1140,10 +1221,8 @@
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     const audioURL = URL.createObjectURL(audioBlob);
                     
-                    // Show preview
                     previewAudio.src = audioURL;
                     audioPreviewContainer.style.display = 'flex';
-                    
                     pendingAudioBlob = audioBlob;
                 }
                 audioChunks = [];
@@ -1153,7 +1232,6 @@
             recordingState.style.display = 'flex';
             micBtn.innerHTML = '<i class="fas fa-stop"></i>';
             
-            // Auto stop after 60 seconds
             setTimeout(() => {
                 if (mediaRecorder && mediaRecorder.state === 'recording') {
                     stopRecordingAndPreview();
@@ -1166,7 +1244,6 @@
         }
     };
     
-    // Cancel audio preview
     cancelAudioBtn.onclick = () => {
         if (pendingAudioBlob) {
             URL.revokeObjectURL(previewAudio.src);
@@ -1174,13 +1251,11 @@
         }
         audioPreviewContainer.style.display = 'none';
         previewAudio.src = '';
-        // Reset mic button if needed
         if (mediaRecorder && mediaRecorder.state !== 'recording') {
             micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
         }
     };
     
-    // Send audio manually
     sendAudioBtn.onclick = sendAudio;
     
     function addLoadMoreButton() {
@@ -1216,7 +1291,7 @@
                 offset += older.length;
                 hasMoreMessages = older.length === 20;
                 addLoadMoreButton();
-                setTimeout(() => { chatBox.scrollTop = scrollPos; }, 50);
+                chatBox.scrollTop = scrollPos;
             } else { hasMoreMessages = false; addLoadMoreButton(); }
         } catch(e) { console.error(e); }
         isLoadingMore = false;
@@ -1225,7 +1300,7 @@
     function appendMessage(msg, isMe) {
         const div = createMessageElement(msg, isMe, false);
         chatBox.appendChild(div);
-        scrollToBottom();
+        scrollToBottom('smooth');
     }
     
     function loadInitialMessages() {
@@ -1235,7 +1310,10 @@
                 const isMe = msg.sender_id === currentUserId;
                 chatBox.appendChild(createMessageElement(msg, isMe, false));
             });
-            scrollToBottom();
+            setTimeout(() => {
+                scrollToBottom('auto');
+                initialLoadDone = true;
+            }, 100);
         }
         addLoadMoreButton();
     }
@@ -1369,6 +1447,7 @@
     sendReadReceipt();
     chatBox.addEventListener('scroll', () => {
         if (chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 100) sendReadReceipt();
+        checkScrollPosition();
     });
     
     sendBtn.onclick = sendTextMessage;
