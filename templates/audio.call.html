@@ -189,18 +189,19 @@
             position: fixed;
             bottom: 10px;
             left: 10px;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             color: #0f0;
             font-family: monospace;
             font-size: 10px;
             padding: 8px 12px;
             border-radius: 8px;
             z-index: 1000;
-            max-width: 350px;
-            max-height: 200px;
+            max-width: 400px;
+            max-height: 250px;
             overflow-y: auto;
-            display: none;
+            display: block;
             backdrop-filter: blur(5px);
+            border: 1px solid #0f0;
         }
         .volume-meter {
             position: absolute;
@@ -219,6 +220,21 @@
             background: linear-gradient(90deg, #34d399, #10b981);
             transition: width 0.05s;
         }
+        .quality-badge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 1000;
+        }
+        .quality-excellent { color: #34d399; }
+        .quality-good { color: #60a5fa; }
+        .quality-poor { color: #fbbf24; }
+        .quality-bad { color: #f87171; }
         @media (max-width: 550px) {
             .call-card { padding: 1.5rem; border-radius: 40px; }
             .avatar-ring { width: 90px; height: 90px; }
@@ -228,6 +244,7 @@
             .ctrl-btn { width: 50px; height: 50px; font-size: 1.3rem; }
             .end-btn { width: 65px; height: 65px; font-size: 1.6rem; }
             .debug-panel { font-size: 8px; max-width: 250px; max-height: 150px; }
+            .quality-badge { font-size: 9px; }
         }
     </style>
 </head>
@@ -267,115 +284,314 @@
     </div>
     
     <div id="toastMsg" class="toast-msg"></div>
-    <div id="debugPanel" class="debug-panel"></div>
+    <div id="debugPanel" class="debug-panel">
+        <div style="color:#fff; border-bottom:1px solid #333; margin-bottom:5px;">🔍 WebRTC Debug Console</div>
+    </div>
+    <div id="qualityBadge" class="quality-badge quality-good">📡 Checking...</div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // ==================== WEBRTC FIXES APPLIED ====================
+        // ==================== ULTIMATE WEBRTC SOLUTION ====================
+        // Version: 5.0.0 - Complete All-in-One Solution
         
-        // Fix 1: Enhanced RTCPeerConnection with better ICE handling
-        const OriginalRTCPeerConnection = window.RTCPeerConnection;
-        
-        class FixedRTCPeerConnection extends OriginalRTCPeerConnection {
-            constructor(config) {
-                const enhancedConfig = {
-                    ...config,
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun3.l.google.com:19302' },
-                        { urls: 'stun:stun4.l.google.com:19302' },
-                        { urls: 'stun:stun.stunprotocol.org:3478' },
-                        { urls: 'stun:stun.voipbuster.com' },
-                        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-                        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
-                    ],
-                    iceCandidatePoolSize: 10,
-                    bundlePolicy: 'max-bundle',
-                    rtcpMuxPolicy: 'require'
-                };
-                super(enhancedConfig);
-                this._pendingCandidates = [];
-                this._connectionStartTime = Date.now();
-                
-                // Auto timeout recovery
-                this._iceTimeout = setTimeout(() => {
-                    if (this.iceConnectionState === 'checking') {
-                        console.log('[Fix] ICE timeout - restarting');
-                        this.restartIce();
-                    }
-                }, 15000);
-            }
+        (function() {
+            'use strict';
             
-            async restartIce() {
-                try {
-                    const offer = await this.createOffer({ iceRestart: true });
-                    await this.setLocalDescription(offer);
-                    return offer;
-                } catch(e) {
-                    console.error('[Fix] ICE restart failed:', e);
+            // ========== CONFIGURATION ==========
+            const ULTIMATE_CONFIG = {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302', priority: 1 },
+                    { urls: 'stun:stun1.l.google.com:19302', priority: 1 },
+                    { urls: 'stun:stun2.l.google.com:19302', priority: 1 },
+                    { urls: 'stun:stun3.l.google.com:19302', priority: 1 },
+                    { urls: 'stun:stun4.l.google.com:19302', priority: 1 },
+                    { urls: 'stun:stun.stunprotocol.org:3478', priority: 2 },
+                    { urls: 'stun:stun.voipbuster.com', priority: 2 },
+                    { urls: 'stun:stun.ekiga.net', priority: 2 },
+                    { urls: 'stun:stun.ideasip.com', priority: 2 },
+                    { urls: 'stun:stun.iptel.org', priority: 2 },
+                    { urls: 'stun:stun.rixtelecom.se', priority: 2 },
+                    { urls: 'stun:stun.schlund.de', priority: 2 },
+                    { urls: 'stun:stunserver.org', priority: 2 },
+                    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject', priority: 3 },
+                    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject', priority: 3 },
+                    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject', priority: 3 }
+                ],
+                timings: {
+                    iceTimeout: 8000,
+                    connectionTimeout: 15000,
+                    answerTimeout: 20000,
+                    reconnectDelay: 2000,
+                    maxReconnectAttempts: 5
+                }
+            };
+            
+            // ========== FIX 1: Enhanced RTCPeerConnection ==========
+            const OriginalRTCPeerConnection = window.RTCPeerConnection;
+            
+            class FixedRTCPeerConnection extends OriginalRTCPeerConnection {
+                constructor(config) {
+                    const flatIceServers = ULTIMATE_CONFIG.iceServers.map(s => ({
+                        urls: s.urls,
+                        username: s.username,
+                        credential: s.credential
+                    }));
+                    
+                    const enhancedConfig = {
+                        ...config,
+                        iceServers: flatIceServers,
+                        iceCandidatePoolSize: 10,
+                        bundlePolicy: 'max-bundle',
+                        rtcpMuxPolicy: 'require',
+                        iceTransportPolicy: 'all'
+                    };
+                    super(enhancedConfig);
+                    this._pendingCandidates = [];
+                    this._connectionStartTime = Date.now();
+                    this._reconnectAttempts = 0;
+                    
+                    this._iceTimeout = setTimeout(() => {
+                        if (this.iceConnectionState === 'checking') {
+                            console.log('[Ultimate] ICE timeout - restarting');
+                            this.restartIce();
+                        }
+                    }, ULTIMATE_CONFIG.timings.iceTimeout);
+                }
+                
+                async restartIce() {
+                    try {
+                        const offer = await this.createOffer({ iceRestart: true });
+                        await this.setLocalDescription(offer);
+                        console.log('[Ultimate] ICE restart initiated');
+                        return offer;
+                    } catch(e) {
+                        console.error('[Ultimate] ICE restart failed:', e);
+                    }
+                }
+                
+                close() {
+                    if (this._iceTimeout) clearTimeout(this._iceTimeout);
+                    super.close();
                 }
             }
             
-            close() {
-                if (this._iceTimeout) clearTimeout(this._iceTimeout);
-                super.close();
-            }
-        }
-        
-        window.RTCPeerConnection = FixedRTCPeerConnection;
-        
-        // Fix 2: Enhanced addIceCandidate with queuing
-        const originalAddIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
-        RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
-            if (!candidate) return Promise.resolve();
+            window.RTCPeerConnection = FixedRTCPeerConnection;
             
-            if (!this.remoteDescription && candidate.candidate) {
-                console.log('[Fix] Queuing ICE candidate (remote desc not ready)');
-                this._pendingCandidates = this._pendingCandidates || [];
-                this._pendingCandidates.push(candidate);
-                return Promise.resolve();
+            // ========== FIX 2: Enhanced addIceCandidate with Queuing ==========
+            const originalAddIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
+            RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
+                if (!candidate) return Promise.resolve();
+                
+                if (!this.remoteDescription && candidate.candidate) {
+                    console.log('[Ultimate] Queuing ICE candidate');
+                    this._pendingCandidates = this._pendingCandidates || [];
+                    this._pendingCandidates.push(candidate);
+                    return Promise.resolve();
+                }
+                
+                return originalAddIceCandidate.call(this, candidate).catch(e => {
+                    if (!e.message.includes('already')) {
+                        console.warn('[Ultimate] ICE error:', e.message);
+                    }
+                });
+            };
+            
+            // ========== FIX 3: Enhanced setRemoteDescription ==========
+            const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
+            RTCPeerConnection.prototype.setRemoteDescription = async function(desc) {
+                const result = await originalSetRemoteDescription.call(this, desc);
+                
+                if (this._pendingCandidates && this._pendingCandidates.length > 0) {
+                    console.log(`[Ultimate] Processing ${this._pendingCandidates.length} queued ICE candidates`);
+                    for (const candidate of this._pendingCandidates) {
+                        try {
+                            await originalAddIceCandidate.call(this, candidate);
+                        } catch(e) {}
+                    }
+                    this._pendingCandidates = [];
+                }
+                
+                return result;
+            };
+            
+            // ========== FIX 4: Enhanced getUserMedia with Fallback ==========
+            const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
+            navigator.mediaDevices.getUserMedia = async function(constraints) {
+                try {
+                    return await originalGetUserMedia.call(this, constraints);
+                } catch(err) {
+                    console.log('[Ultimate] getUserMedia failed, fallback:', err.message);
+                    if (err.name === 'NotAllowedError') throw err;
+                    return await originalGetUserMedia.call(this, { audio: true });
+                }
+            };
+            
+            // ========== FIX 5: Connection Monitor ==========
+            class ConnectionMonitor {
+                constructor() {
+                    this.rtt = [];
+                    this.packetLoss = 0;
+                    this.quality = 'good';
+                    this.interval = null;
+                }
+                
+                start() {
+                    this.interval = setInterval(() => this.checkNetwork(), 3000);
+                    if ('connection' in navigator) {
+                        navigator.connection.addEventListener('change', () => this.updateQuality());
+                    }
+                }
+                
+                checkNetwork() {
+                    if ('connection' in navigator) {
+                        this.updateQuality();
+                    }
+                }
+                
+                updateQuality() {
+                    const conn = navigator.connection;
+                    if (conn) {
+                        const type = conn.effectiveType;
+                        const qualities = { '4g': 'excellent', '3g': 'good', '2g': 'poor', 'slow-2g': 'bad' };
+                        this.quality = qualities[type] || 'good';
+                        
+                        const badge = document.getElementById('qualityBadge');
+                        if (badge) {
+                            badge.className = `quality-badge quality-${this.quality}`;
+                            badge.innerHTML = `📡 ${this.quality.toUpperCase()} | ${type || 'unknown'}`;
+                        }
+                    }
+                }
+                
+                updateStats(stats) {
+                    if (stats.rtt) {
+                        this.rtt.push(stats.rtt);
+                        if (this.rtt.length > 10) this.rtt.shift();
+                    }
+                    if (stats.packetsLost !== undefined) {
+                        this.packetLoss = stats.packetsLost;
+                    }
+                }
+                
+                getAvgRtt() {
+                    if (this.rtt.length === 0) return null;
+                    return Math.round(this.rtt.reduce((a,b) => a+b, 0) / this.rtt.length);
+                }
+                
+                stop() {
+                    if (this.interval) clearInterval(this.interval);
+                }
             }
             
-            return originalAddIceCandidate.call(this, candidate).catch(e => {
-                if (!e.message.includes('already')) {
-                    console.warn('[Fix] ICE candidate error:', e.message);
+            // ========== FIX 6: Health Checker ==========
+            class HealthChecker {
+                static async run() {
+                    const results = {
+                        browser: this.checkBrowser(),
+                        microphone: await this.checkMicrophone(),
+                        network: this.checkNetwork(),
+                        webRTC: this.checkWebRTC()
+                    };
+                    results.overall = this.calculateOverall(results);
+                    return results;
+                }
+                
+                static checkBrowser() {
+                    const ua = navigator.userAgent;
+                    const isChrome = /Chrome/.test(ua) && !/Edg/.test(ua);
+                    const isFirefox = /Firefox/.test(ua);
+                    const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+                    return {
+                        name: isChrome ? 'Chrome' : isFirefox ? 'Firefox' : isSafari ? 'Safari' : 'Other',
+                        supported: isChrome || isFirefox || isSafari
+                    };
+                }
+                
+                static async checkMicrophone() {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        const hasMic = stream.getAudioTracks().length > 0;
+                        stream.getTracks().forEach(t => t.stop());
+                        return { available: hasMic };
+                    } catch(err) {
+                        return { available: false, error: err.message };
+                    }
+                }
+                
+                static checkNetwork() {
+                    return { online: navigator.onLine, type: navigator.connection?.effectiveType || 'unknown' };
+                }
+                
+                static checkWebRTC() {
+                    return { supported: !!window.RTCPeerConnection };
+                }
+                
+                static calculateOverall(results) {
+                    let score = 0;
+                    if (results.webRTC.supported) score += 30;
+                    if (results.microphone.available) score += 30;
+                    if (results.network.online) score += 20;
+                    if (results.browser.supported) score += 20;
+                    return score >= 80 ? 'excellent' : score >= 60 ? 'good' : score >= 40 ? 'poor' : 'bad';
+                }
+            }
+            
+            // ========== FIX 7: Auto-Fix Module ==========
+            class AutoFix {
+                constructor() {
+                    this.active = true;
+                    this.interval = null;
+                }
+                
+                start() {
+                    this.interval = setInterval(() => this.runChecks(), 10000);
+                }
+                
+                async runChecks() {
+                    if (!this.active) return;
+                    
+                    if (window.peerConnection) {
+                        const state = window.peerConnection.iceConnectionState;
+                        if (state === 'failed') {
+                            console.log('[AutoFix] ICE failed, attempting restart');
+                            if (window.peerConnection.restartIce) {
+                                await window.peerConnection.restartIce();
+                            }
+                        }
+                    }
+                    
+                    if (window.localStream) {
+                        const audioTrack = window.localStream.getAudioTracks()[0];
+                        if (audioTrack && !audioTrack.enabled && window.isCallActive) {
+                            console.log('[AutoFix] Audio track disabled, re-enabling');
+                            audioTrack.enabled = true;
+                        }
+                    }
+                }
+                
+                stop() {
+                    if (this.interval) clearInterval(this.interval);
+                }
+            }
+            
+            // Export to global
+            window.UltimateWebRTC = {
+                ConnectionMonitor,
+                HealthChecker,
+                AutoFix,
+                config: ULTIMATE_CONFIG
+            };
+            
+            console.log('🚀 Ultimate WebRTC Solution Loaded!');
+            
+            // Run health check on load
+            HealthChecker.run().then(results => {
+                console.log('[Health]', results);
+                if (results.overall === 'bad') {
+                    console.warn('[Health] Poor connection quality detected');
                 }
             });
-        };
-        
-        // Fix 3: Enhanced setRemoteDescription to process queued candidates
-        const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
-        RTCPeerConnection.prototype.setRemoteDescription = async function(desc) {
-            const result = await originalSetRemoteDescription.call(this, desc);
-            
-            if (this._pendingCandidates && this._pendingCandidates.length > 0) {
-                console.log(`[Fix] Processing ${this._pendingCandidates.length} queued ICE candidates`);
-                for (const candidate of this._pendingCandidates) {
-                    try {
-                        await originalAddIceCandidate.call(this, candidate);
-                    } catch(e) {}
-                }
-                this._pendingCandidates = [];
-            }
-            
-            return result;
-        };
-        
-        // Fix 4: Enhanced getUserMedia with fallback
-        const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
-        navigator.mediaDevices.getUserMedia = async function(constraints) {
-            try {
-                return await originalGetUserMedia.call(this, constraints);
-            } catch(err) {
-                console.log('[Fix] getUserMedia failed, trying fallback:', err.message);
-                if (err.name === 'NotAllowedError') throw err;
-                return await originalGetUserMedia.call(this, { audio: true });
-            }
-        };
-        
-        console.log('[WebRTC] All fixes applied!');
+        })();
         
         // ==================== MAIN APPLICATION ====================
         
@@ -391,6 +607,7 @@
             reconnection: true,
             reconnectionAttempts: 10,
             reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
             timeout: 20000
         });
 
@@ -440,16 +657,26 @@
         let audioContext = null;
         let volumeInterval = null;
         let answerReceived = false;
+        let monitor = null;
+        let autoFix = null;
+        let statsInterval = null;
         
         // Debug logging
-        function debugLog(msg) {
+        function debugLog(msg, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
+            const colors = { info: '#0f0', warn: '#ff0', error: '#f00', debug: '#888' };
             console.log(`[${timestamp}] ${msg}`);
             if (debugPanel) {
-                debugPanel.style.display = 'block';
-                debugPanel.innerHTML += `<div>${timestamp}: ${msg}</div>`;
-                while (debugPanel.children.length > 15) {
-                    debugPanel.removeChild(debugPanel.children[0]);
+                const div = document.createElement('div');
+                div.style.color = colors[type] || '#0f0';
+                div.style.fontSize = '10px';
+                div.style.fontFamily = 'monospace';
+                div.style.borderBottom = '1px solid #333';
+                div.style.padding = '2px 0';
+                div.textContent = `${timestamp}: ${msg}`;
+                debugPanel.appendChild(div);
+                while (debugPanel.children.length > 50) {
+                    debugPanel.removeChild(debugPanel.children[1]);
                 }
                 debugPanel.scrollTop = debugPanel.scrollHeight;
             }
@@ -461,25 +688,29 @@
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
             
-            const source = audioContext.createMediaStreamSource(stream);
-            const analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            source.connect(analyser);
-            
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-            
-            if (volumeInterval) clearInterval(volumeInterval);
-            volumeInterval = setInterval(() => {
-                if (!isCallActive) return;
-                analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-                let percent = Math.min(100, (sum / dataArray.length / 255) * 100);
-                if (volumeLevel) volumeLevel.style.width = percent + '%';
-            }, 100);
-            
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
+            try {
+                const source = audioContext.createMediaStreamSource(stream);
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                if (volumeInterval) clearInterval(volumeInterval);
+                volumeInterval = setInterval(() => {
+                    if (!isCallActive) return;
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                    let percent = Math.min(100, (sum / dataArray.length / 255) * 100);
+                    if (volumeLevel) volumeLevel.style.width = percent + '%';
+                }, 100);
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            } catch(e) {
+                debugLog('Volume meter error: ' + e.message, 'error');
             }
         }
         
@@ -547,7 +778,7 @@
                 };
                 ringPattern();
                 ringtoneContext.resume();
-            } catch(e) { debugLog('Ringtone error: ' + e.message); }
+            } catch(e) { debugLog('Ringtone error: ' + e.message, 'warn'); }
         }
         
         function stopRingtone() { 
@@ -555,6 +786,48 @@
                 try { ringtoneContext.close(); } catch(e) {}
                 ringtoneContext = null; 
             } 
+        }
+
+        // Get connection stats
+        async function getConnectionStats() {
+            if (!peerConnection || !isCallActive) return null;
+            try {
+                const stats = await peerConnection.getStats();
+                let result = { rtt: null, packetsLost: 0, jitter: null };
+                stats.forEach(report => {
+                    if (report.type === 'candidate-pair' && report.nominated && report.currentRoundTripTime) {
+                        result.rtt = Math.round(report.currentRoundTripTime * 1000);
+                    }
+                    if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+                        result.packetsLost = report.packetsLost || 0;
+                        result.jitter = Math.round((report.jitter || 0) * 1000);
+                    }
+                });
+                return result;
+            } catch(e) {
+                return null;
+            }
+        }
+        
+        // Start stats monitoring
+        function startStatsMonitoring() {
+            if (statsInterval) clearInterval(statsInterval);
+            statsInterval = setInterval(async () => {
+                if (!isCallActive) return;
+                const stats = await getConnectionStats();
+                if (stats && monitor) {
+                    monitor.updateStats(stats);
+                    if (stats.rtt) {
+                        const badge = document.getElementById('qualityBadge');
+                        if (badge && stats.rtt) {
+                            const existingText = badge.innerHTML;
+                            if (!existingText.includes(`${stats.rtt}ms`)) {
+                                badge.innerHTML = `${existingText.split('|')[0]} | ${stats.rtt}ms`;
+                            }
+                        }
+                    }
+                }
+            }, 3000);
         }
 
         // Create PeerConnection
@@ -578,7 +851,7 @@
                 debugLog(`Received remote ${event.track.kind} track`);
                 if (event.streams && event.streams[0]) {
                     remoteAudio.srcObject = event.streams[0];
-                    remoteAudio.play().catch(e => debugLog('Autoplay error: ' + e.message));
+                    remoteAudio.play().catch(e => debugLog('Autoplay error: ' + e.message, 'warn'));
                     avatarRing.classList.add('active-ring');
                 }
             };
@@ -601,6 +874,7 @@
                     if (callTimeout) clearTimeout(callTimeout);
                     avatarRing.classList.add('active-ring');
                     showToast('Call connected!', 1500);
+                    startStatsMonitoring();
                 } 
                 else if (state === 'failed') {
                     callStatusDiv.innerText = 'Connection failed ❌';
@@ -616,6 +890,10 @@
                 }
             };
             
+            peerConnection.onconnectionstatechange = () => {
+                debugLog(`Connection state: ${peerConnection.connectionState}`);
+            };
+            
             return peerConnection;
         }
 
@@ -628,6 +906,7 @@
             
             if (volumeInterval) clearInterval(volumeInterval);
             if (callTimeout) clearTimeout(callTimeout);
+            if (statsInterval) clearInterval(statsInterval);
             
             if (localStream && localStream.getTracks) {
                 localStream.getTracks().forEach(track => track.stop());
@@ -694,7 +973,7 @@
                 
                 callTimeout = setTimeout(() => {
                     if (!isCallActive && !answerReceived) {
-                        debugLog('Call timeout - no answer');
+                        debugLog('Call timeout - no answer', 'warn');
                         endCallWithMessage('No answer ⏰');
                     }
                 }, 35000);
@@ -710,17 +989,17 @@
                 });
                 
                 socket.once('call_rejected', () => { 
-                    debugLog('Call rejected');
+                    debugLog('Call rejected', 'warn');
                     endCallWithMessage('Call rejected ❌'); 
                 });
                 
                 socket.once('call_timeout', () => { 
-                    debugLog('Call timeout event');
+                    debugLog('Call timeout event', 'warn');
                     endCallWithMessage('No answer ⏰'); 
                 });
                 
             } catch (err) {
-                debugLog('Error: ' + err.message);
+                debugLog('Error: ' + err.message, 'error');
                 endCallWithMessage('Microphone access denied');
             }
         }
@@ -755,7 +1034,7 @@
                 debugLog('Answer sent');
                 
             } catch (err) {
-                debugLog('Accept error: ' + err.message);
+                debugLog('Accept error: ' + err.message, 'error');
                 endCallWithMessage('Failed to accept call');
             }
         }
@@ -811,8 +1090,12 @@
         });
         
         socket.on('disconnect', () => {
-            debugLog('Socket disconnected');
+            debugLog('Socket disconnected', 'warn');
             if (isCallActive) endCallWithMessage('Connection lost');
+        });
+        
+        socket.on('connect_error', (err) => {
+            debugLog('Socket error: ' + err.message, 'error');
         });
         
         socket.on('incoming_call', (data) => {
@@ -849,7 +1132,7 @@
                     await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
                     debugLog('ICE candidate added');
                 } catch (e) { 
-                    debugLog('ICE candidate error: ' + e.message);
+                    debugLog('ICE candidate error: ' + e.message, 'warn');
                 }
             }
         });
@@ -860,17 +1143,17 @@
         });
         
         socket.on('call_rejected', () => {
-            debugLog('Call rejected by remote');
+            debugLog('Call rejected by remote', 'warn');
             endCallWithMessage('Call rejected');
         });
         
         socket.on('call_timeout', () => {
-            debugLog('Call timeout from server');
+            debugLog('Call timeout from server', 'warn');
             endCallWithMessage('No answer');
         });
         
         socket.on('call_error', (err) => {
-            debugLog('Call error: ' + err.message);
+            debugLog('Call error: ' + err.message, 'error');
             endCallWithMessage(err.message || 'Call error');
         });
 
@@ -880,6 +1163,18 @@
                 audioContext.resume();
             }
         });
+
+        // Initialize monitors
+        monitor = new UltimateWebRTC.ConnectionMonitor();
+        monitor.start();
+        
+        autoFix = new UltimateWebRTC.AutoFix();
+        autoFix.start();
+        
+        // Make available globally for auto-fix
+        window.peerConnection = () => peerConnection;
+        window.localStream = () => localStream;
+        window.isCallActive = () => isCallActive;
 
         // Start call
         if (pendingCallData) {
@@ -901,6 +1196,8 @@
         else {
             callStatusDiv.innerText = 'Waiting for call... 📞';
         }
+        
+        debugLog('Application initialized', 'info');
     </script>
 </body>
 </html>
