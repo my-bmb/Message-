@@ -17,7 +17,6 @@
             flex-direction: column;
             overflow: hidden;
         }
-        /* Status Bar */
         .status-bar {
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(10px);
@@ -51,7 +50,6 @@
         .connection-badge.connected { background: #2ecc71; }
         .connection-badge.failed { background: #e11d48; }
         
-        /* Video Container - Full screen area */
         .video-container {
             position: relative;
             flex: 1;
@@ -59,7 +57,6 @@
             overflow: hidden;
         }
         
-        /* Large Box - Full screen fit */
         .video-box.large {
             position: absolute;
             top: 0;
@@ -78,7 +75,6 @@
             object-fit: cover;
         }
         
-        /* Small Box - Draggable, 9:16 aspect ratio, default top-right */
         .video-box.small {
             position: absolute;
             width: 170px;
@@ -97,9 +93,7 @@
             left: auto;
             bottom: auto;
         }
-        .video-box.small:active {
-            cursor: grabbing;
-        }
+        .video-box.small:active { cursor: grabbing; }
         .video-box.small.dragging {
             opacity: 0.9;
             box-shadow: 0 12px 25px rgba(0,0,0,0.5);
@@ -111,7 +105,6 @@
             object-fit: cover;
         }
         
-        /* Responsive small box size */
         @media (max-width: 768px) {
             .video-box.small { width: 130px; top: 15px; right: 15px; }
         }
@@ -134,7 +127,6 @@
             pointer-events: none;
         }
         
-        /* Swap Button on small box */
         .swap-btn {
             position: absolute;
             top: 8px;
@@ -161,7 +153,6 @@
             opacity: 1;
         }
         
-        /* Large box swap button - shows on hover */
         .video-box.large .swap-btn {
             position: absolute;
             top: 12px;
@@ -208,7 +199,6 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Controls - Separate Buttons */
         .controls-wrapper {
             position: fixed;
             bottom: 0;
@@ -276,7 +266,6 @@
             background: #be123c;
         }
         
-        /* Incoming Popup */
         .incoming-popup {
             position: fixed;
             bottom: 85px;
@@ -327,6 +316,25 @@
             white-space: nowrap;
             pointer-events: none;
         }
+        
+        /* Audio level meter */
+        .audio-level {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 40px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            z-index: 15;
+        }
+        .audio-level-fill {
+            height: 100%;
+            width: 0%;
+            background: #2ecc71;
+            transition: width 0.05s;
+        }
     </style>
 </head>
 <body>
@@ -339,20 +347,24 @@
     </div>
 
     <div class="video-container" id="videoContainer">
-        <!-- Large Box (Remote User - Full Screen Fit) -->
         <div id="remoteBox" class="video-box large">
             <video id="remoteVideo" autoplay playsinline></video>
             <div class="user-label"><i class="fas fa-user"></i> {{ other_user.username }}</div>
+            <div class="audio-level" id="remoteAudioLevel">
+                <div class="audio-level-fill" id="remoteAudioFill"></div>
+            </div>
             <button class="swap-btn" id="swapToRemoteBtn" title="Swap with your video"><i class="fas fa-exchange-alt"></i></button>
             <div id="remoteConnectingOverlay" class="connecting-overlay" style="display: none;">
                 <div class="spinner-ring"></div>
             </div>
         </div>
         
-        <!-- Small Box (Local User - Draggable, 9:16, Top Right Corner) -->
         <div id="localBox" class="video-box small">
             <video id="localVideo" autoplay muted playsinline></video>
             <div class="user-label"><i class="fas fa-user"></i> You</div>
+            <div class="audio-level" id="localAudioLevel">
+                <div class="audio-level-fill" id="localAudioFill"></div>
+            </div>
             <button class="swap-btn" id="swapToLocalBtn" title="Swap with remote video"><i class="fas fa-exchange-alt"></i></button>
             <div id="localConnectingOverlay" class="connecting-overlay" style="display: none;">
                 <div class="spinner-ring"></div>
@@ -360,7 +372,6 @@
         </div>
     </div>
 
-    <!-- Controls -->
     <div class="controls-wrapper">
         <div class="controls">
             <button class="control-btn" id="muteBtn" title="Mute"><i class="fas fa-microphone"></i></button>
@@ -411,6 +422,8 @@
         const swapToRemoteBtn = document.getElementById('swapToRemoteBtn');
         const swapToLocalBtn = document.getElementById('swapToLocalBtn');
         const videoContainer = document.getElementById('videoContainer');
+        const localAudioFill = document.getElementById('localAudioFill');
+        const remoteAudioFill = document.getElementById('remoteAudioFill');
 
         // ========== STATE ==========
         let peerConnection = null;
@@ -425,8 +438,12 @@
         let callTimeoutId = null;
         let isCaller = new URLSearchParams(window.location.search).get('role') !== 'receiver';
         let pendingOfferData = null;
+        let audioContext = null;
+        let localAnalyser = null;
+        let remoteAnalyser = null;
+        let animationId = null;
         
-        // Drag state for small box
+        // Drag state
         let isDragging = false;
         let dragStartX, dragStartY;
         let boxStartLeft, boxStartTop;
@@ -441,7 +458,59 @@
             } catch(e) {}
         }
 
-        // ========== DRAG FUNCTIONALITY for small box ==========
+        // ========== AUDIO LEVEL METER ==========
+        function setupAudioMeter(stream, isLocal) {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            const source = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            
+            if (isLocal) {
+                localAnalyser = analyser;
+            } else {
+                remoteAnalyser = analyser;
+            }
+            
+            if (!animationId) {
+                updateAudioLevels();
+            }
+        }
+        
+        function updateAudioLevels() {
+            animationId = requestAnimationFrame(updateAudioLevels);
+            
+            if (localAnalyser) {
+                const dataArray = new Uint8Array(localAnalyser.frequencyBinCount);
+                localAnalyser.getByteFrequencyData(dataArray);
+                let average = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    average += dataArray[i];
+                }
+                average = average / dataArray.length;
+                const level = Math.min(100, (average / 255) * 100);
+                localAudioFill.style.width = level + '%';
+                localAudioFill.style.backgroundColor = level > 50 ? '#e11d48' : '#2ecc71';
+            }
+            
+            if (remoteAnalyser) {
+                const dataArray = new Uint8Array(remoteAnalyser.frequencyBinCount);
+                remoteAnalyser.getByteFrequencyData(dataArray);
+                let average = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    average += dataArray[i];
+                }
+                average = average / dataArray.length;
+                const level = Math.min(100, (average / 255) * 100);
+                remoteAudioFill.style.width = level + '%';
+                remoteAudioFill.style.backgroundColor = level > 50 ? '#e11d48' : '#2ecc71';
+            }
+        }
+
+        // ========== DRAG FUNCTIONALITY ==========
         function initDrag() {
             const smallBox = localBox;
             
@@ -516,16 +585,14 @@
             smallBox.addEventListener('touchstart', startDrag, { passive: false });
         }
 
-        // ========== SWAP FUNCTION - Fixed ==========
+        // ========== SWAP FUNCTION ==========
         function swapContainers() {
             console.log('Swap button clicked');
             
-            // Swap video streams
             const tempStream = localVideo.srcObject;
             localVideo.srcObject = remoteVideo.srcObject;
             remoteVideo.srcObject = tempStream;
             
-            // Swap labels
             const localLabel = localBox.querySelector('.user-label');
             const remoteLabel = remoteBox.querySelector('.user-label');
             const localText = localLabel.innerHTML;
@@ -533,41 +600,34 @@
             localLabel.innerHTML = remoteText;
             remoteLabel.innerHTML = localText;
             
-            // Swap classes: large <-> small
             if (localBox.classList.contains('small')) {
-                // Local is small, Remote is large -> Local becomes large, Remote becomes small
                 localBox.classList.remove('small');
                 localBox.classList.add('large');
                 remoteBox.classList.remove('large');
                 remoteBox.classList.add('small');
                 
-                // Reset position for new small box (remote) - top-right corner
                 remoteBox.style.left = '';
                 remoteBox.style.top = '';
                 remoteBox.style.right = '20px';
                 remoteBox.style.bottom = 'auto';
                 remoteBox.style.top = '20px';
                 
-                // Reset local large box position
                 localBox.style.left = '';
                 localBox.style.top = '';
                 localBox.style.right = '';
                 localBox.style.bottom = '';
             } else {
-                // Local is large, Remote is small -> Local becomes small, Remote becomes large
                 localBox.classList.remove('large');
                 localBox.classList.add('small');
                 remoteBox.classList.remove('small');
                 remoteBox.classList.add('large');
                 
-                // Reset position for new small box (local) - top-right corner
                 localBox.style.left = '';
                 localBox.style.top = '';
                 localBox.style.right = '20px';
                 localBox.style.top = '20px';
                 localBox.style.bottom = 'auto';
                 
-                // Reset remote large box position
                 remoteBox.style.left = '';
                 remoteBox.style.top = '';
                 remoteBox.style.right = '';
@@ -587,16 +647,24 @@
             timeout: 8000
         });
 
+        // Improved ICE servers with TURN
         const iceServers = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
                 { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun.cloudflare.com:3478' }
+                { urls: 'stun:stun.cloudflare.com:3478' },
+                { urls: 'stun:stun.voipbuster.com' },
+                // Public TURN servers for better connectivity
+                { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+                { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+                { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
             ],
-            iceCandidatePoolSize: 0,
-            iceTransportPolicy: 'all'
+            iceCandidatePoolSize: 10,
+            iceTransportPolicy: 'all',
+            bundlePolicy: 'max-bundle',
+            rtcpMuxPolicy: 'require'
         };
 
         function showToast(msg, duration = 1500) {
@@ -676,30 +744,43 @@
                 try { peerConnection.close(); } catch(e) {}
                 peerConnection = null;
             }
+            
             peerConnection = new RTCPeerConnection(iceServers);
+            
             if (localStream) {
                 localStream.getTracks().forEach(track => {
                     if (track) peerConnection.addTrack(track, localStream);
                 });
             }
+            
             peerConnection.ontrack = (event) => {
+                console.log('Got remote track:', event.track.kind);
                 if (event.streams && event.streams[0]) {
                     remoteStream = event.streams[0];
                     remoteVideo.srcObject = remoteStream;
                     remoteVideo.play().catch(e => console.log);
                     remoteConnectingOverlay.style.display = 'none';
+                    
+                    // Setup audio meter for remote stream
+                    if (remoteStream.getAudioTracks().length > 0) {
+                        setupAudioMeter(remoteStream, false);
+                    }
+                    
                     if (!callStartTime && isCallActive) startTimer();
                     updateConnectionStatus('Connected');
                     showToast('Video connected!', 1000);
                 }
             };
+            
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
                     socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
                 }
             };
+            
             peerConnection.oniceconnectionstatechange = () => {
                 const state = peerConnection.iceConnectionState;
+                console.log('ICE state:', state);
                 if (state === 'connected' || state === 'completed') {
                     remoteConnectingOverlay.style.display = 'none';
                     updateConnectionStatus('Connected');
@@ -716,6 +797,14 @@
                     showToast('Network issue', 1000);
                 }
             };
+            
+            peerConnection.onconnectionstatechange = () => {
+                console.log('Connection state:', peerConnection.connectionState);
+                if (peerConnection.connectionState === 'failed') {
+                    endCallInternal(true);
+                }
+            };
+            
             return peerConnection;
         }
 
@@ -723,6 +812,17 @@
             if (callTimeoutId) clearTimeout(callTimeoutId);
             stopTimer();
             isCallActive = false;
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            if (audioContext) {
+                audioContext.close().catch(e => {});
+                audioContext = null;
+            }
+            
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
                 localStream = null;
@@ -746,26 +846,48 @@
         async function initiateCall() {
             updateConnectionStatus('Starting...');
             localConnectingOverlay.style.display = 'flex';
+            
             try {
+                // Better video constraints for performance
                 localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+                    video: { 
+                        width: { ideal: 640, max: 1280 }, 
+                        height: { ideal: 480, max: 720 }, 
+                        frameRate: { ideal: 24, max: 30 }
+                    },
+                    audio: { 
+                        echoCancellation: true, 
+                        noiseSuppression: true, 
+                        autoGainControl: true,
+                        sampleRate: 48000
+                    } 
                 });
+                
                 localVideo.srcObject = localStream;
                 localConnectingOverlay.style.display = 'none';
+                
+                // Setup audio meter for local stream
+                setupAudioMeter(localStream, true);
+                
                 const pc = await createPeerConnection();
-                const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true, iceRestart: false });
+                const offer = await pc.createOffer({ 
+                    offerToReceiveVideo: true, 
+                    offerToReceiveAudio: true, 
+                    iceRestart: false 
+                });
                 await pc.setLocalDescription(offer);
                 socket.emit('call_user', { target_id: otherUserId, call_type: callType, offer: pc.localDescription, caller_name: currentUserName });
                 updateConnectionStatus('Ringing...');
                 isCallActive = true;
+                
                 callTimeoutId = setTimeout(() => {
                     if (peerConnection && peerConnection.iceConnectionState !== 'connected' && peerConnection.iceConnectionState !== 'completed') {
                         endCallInternal(true);
                         showToast('No answer', 1500);
                         setTimeout(() => { window.location.href = chatRedirectUrl; }, 1200);
                     }
-                }, 25000);
+                }, 30000);
+                
                 socket.once('call_answered', async (data) => {
                     if (callTimeoutId) clearTimeout(callTimeoutId);
                     if (pc && pc.signalingState === 'have-local-offer') {
@@ -775,12 +897,14 @@
                         remoteConnectingOverlay.style.display = 'none';
                     }
                 });
+                
                 socket.once('call_rejected', () => {
                     if (callTimeoutId) clearTimeout(callTimeoutId);
                     endCallInternal(true);
                     showToast('Call rejected', 1000);
                     setTimeout(() => { window.location.href = chatRedirectUrl; }, 1000);
                 });
+                
                 socket.once('call_timeout', () => {
                     if (callTimeoutId) clearTimeout(callTimeoutId);
                     endCallInternal(true);
@@ -791,6 +915,7 @@
                 localConnectingOverlay.style.display = 'none';
                 let msg = 'Camera/Mic access denied';
                 if (err.name === 'NotFoundError') msg = 'No camera/mic found';
+                if (err.name === 'NotAllowedError') msg = 'Please allow camera and microphone access';
                 endCallInternal(true);
                 showToast(msg, 2000);
                 setTimeout(() => { window.location.href = chatRedirectUrl; }, 1500);
@@ -803,10 +928,17 @@
             updateConnectionStatus('Accepting...');
             remoteConnectingOverlay.style.display = 'flex';
             localConnectingOverlay.style.display = 'flex';
+            
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24 } },
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+                });
                 localVideo.srcObject = localStream;
                 localConnectingOverlay.style.display = 'none';
+                
+                setupAudioMeter(localStream, true);
+                
                 const pc = await createPeerConnection();
                 await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
                 const answer = await pc.createAnswer();
@@ -833,14 +965,18 @@
             localStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
             muteBtn.classList.toggle('active', isMuted);
             muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+            showToast(isMuted ? 'Muted' : 'Unmuted', 800);
         }
+        
         function toggleVideo() {
             if (!localStream) return;
             isVideoOff = !isVideoOff;
             localStream.getVideoTracks().forEach(t => t.enabled = !isVideoOff);
             videoToggleBtn.classList.toggle('active', isVideoOff);
             videoToggleBtn.innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
+            showToast(isVideoOff ? 'Video off' : 'Video on', 800);
         }
+        
         async function switchCamera() {
             if (!localStream) return;
             const videoTrack = localStream.getVideoTracks()[0];
@@ -850,7 +986,10 @@
             const currentMode = videoTrack.getSettings().facingMode;
             const newMode = currentMode === 'user' ? 'environment' : 'user';
             try {
-                const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: newMode } }, audio: true });
+                const newStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: { exact: newMode }, width: { ideal: 640 }, height: { ideal: 480 } }, 
+                    audio: true 
+                });
                 const newVideoTrack = newStream.getVideoTracks()[0];
                 const oldVideoTrack = localStream.getVideoTracks()[0];
                 localStream.removeTrack(oldVideoTrack);
@@ -864,6 +1003,7 @@
                 showToast('Camera switched');
             } catch(e) { showToast('Switch failed'); }
         }
+        
         function toggleFullscreen() {
             const container = document.querySelector('.video-container');
             if (!document.fullscreenElement) container.requestFullscreen().catch(e=>{});
@@ -876,7 +1016,6 @@
         fullscreenBtn.onclick = toggleFullscreen;
         endCallBtn.onclick = endCallAndRedirect;
         
-        // Fix swap buttons - remove old listeners and add new ones
         if (swapToRemoteBtn) {
             swapToRemoteBtn.removeEventListener('click', swapContainers);
             swapToRemoteBtn.addEventListener('click', swapContainers);
@@ -897,6 +1036,7 @@
                 updateConnectionStatus('Waiting');
             }
         });
+        
         socket.on('incoming_call', (data) => {
             if (data.caller_id === otherUserId) {
                 callerNameSpan.innerText = data.caller_name || 'User';
@@ -912,6 +1052,7 @@
                 };
             }
         });
+        
         socket.on('call_answered', async (data) => {
             if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -919,33 +1060,39 @@
                 updateConnectionStatus('Connected');
             }
         });
+        
         socket.on('ice_candidate', async (data) => {
             if (peerConnection && data.candidate) {
-                try { await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {}
+                try { 
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate)); 
+                } catch(e) { console.log('ICE candidate error:', e); }
             }
         });
+        
         socket.on('call_ended', () => {
             if (isCallActive) showToast('Call ended', 1000);
             endCallInternal(false);
             setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
         });
+        
         socket.on('call_rejected', () => {
             showToast('Call rejected', 1000);
             endCallInternal(false);
             setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
         });
+        
         socket.on('call_timeout', () => {
             showToast('Call timeout', 1000);
             endCallInternal(false);
             setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
         });
+        
         socket.on('call_error', (err) => {
             showToast(err.message || 'Call error', 1500);
             endCallInternal(false);
             setTimeout(() => { window.location.href = chatRedirectUrl; }, 1000);
         });
 
-        // Initialize drag
         initDrag();
         
         if (pendingOfferData) {
