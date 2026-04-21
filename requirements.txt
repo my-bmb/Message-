@@ -1,7 +1,9 @@
-Flask
+wFlask
 Flask-SocketIO
 Flask-Login
 python-socketio
+gevent
+gevent-websocket
 gunicorn
 Werkzeug
 supabase
