@@ -9,3 +9,4 @@ supabase
 python-dotenv
 pytz
 Pillow
+eventlet
