@@ -118,6 +118,30 @@
             to { transform: rotate(360deg); }
         }
         
+        /* Toast notification for call ended */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
         /* Prevent FOUC */
         .hide-until-ready {
             visibility: hidden;
@@ -191,6 +215,17 @@
         let socket = null;
         let isLoggingOut = false;
         
+        // Helper function to show toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
         // Initialize socket ONLY after authentication
         function initSocket() {
             if (socket && socket.connected) {
@@ -256,6 +291,21 @@
                 }
             });
             
+            // ✅ Call ended event handler - prevents duplicate handling
+            let lastCallEndTime = 0;
+            socket.on('call_ended', (data) => {
+                const now = Date.now();
+                // Prevent duplicate call_ended events within 500ms
+                if (now - lastCallEndTime < 500) {
+                    console.log('⚠️ Duplicate call_ended ignored');
+                    return;
+                }
+                lastCallEndTime = now;
+                console.log('📞 Call ended event received', data);
+                // Optional: Show notification to user
+                showToast('Call has ended');
+            });
+            
             return socket;
         }
         
@@ -291,14 +341,20 @@
             
             // Send logout request to server (fire and forget)
             try {
-                await fetch('/logout', {
+                const response = await fetch('/logout', {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
-                console.log('✅ Logout request sent');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Logout successful:', data);
+                } else {
+                    console.error('❌ Logout failed with status:', response.status);
+                }
             } catch (err) {
                 console.error('❌ Logout fetch error:', err);
             }
