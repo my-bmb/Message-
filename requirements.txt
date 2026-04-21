@@ -2,8 +2,8 @@ Flask
 Flask-SocketIO
 Flask-Login
 python-socketio
-eventlet
-gunicorn
+gevent
+gevent-websocket
 Werkzeug
 supabase
 python-dotenv
