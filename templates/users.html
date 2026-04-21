@@ -78,6 +78,7 @@
             border-radius: 30px;
             padding: 5px 15px;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         .logout-btn:hover {
             background: rgba(255,255,255,0.3);
@@ -93,7 +94,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             display: none;
             justify-content: center;
             align-items: center;
@@ -115,6 +116,14 @@
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        
+        /* Prevent FOUC */
+        .hide-until-ready {
+            visibility: hidden;
+        }
+        .ready {
+            visibility: visible;
         }
     </style>
 </head>
@@ -178,24 +187,41 @@
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
+        // CRITICAL: Socket with NO auto-reconnect
         let socket = null;
+        let isLoggingOut = false;
         
+        // Initialize socket ONLY after authentication
         function initSocket() {
+            if (socket && socket.connected) {
+                return socket;
+            }
+            
+            // CRITICAL: Disable auto-reconnect completely
             socket = io({
-                transports: ['websocket', 'polling'],
-                reconnection: true,
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000
+                autoConnect: false,      // Don't auto connect
+                reconnection: false,     // Disable auto reconnect
+                reconnectionAttempts: 0, // No reconnection attempts
+                transports: ['websocket', 'polling']
             });
             
             socket.on('connect', function() {
-                console.log('Socket connected');
+                if (!isLoggingOut) {
+                    console.log('✅ Socket connected');
+                }
             });
             
             socket.on('disconnect', function() {
-                console.log('Socket disconnected');
+                if (!isLoggingOut) {
+                    console.log('❌ Socket disconnected');
+                }
             });
             
+            socket.on('connect_error', function(error) {
+                console.log('❌ Socket connection error:', error);
+            });
+            
+            // Socket event handlers
             socket.on('user_status', (data) => {
                 const statusDiv = document.getElementById(`status-${data.user_id}`);
                 if (!statusDiv) return;
@@ -233,9 +259,12 @@
             return socket;
         }
         
-        // SIMPLIFIED LOGOUT FUNCTION - Direct redirect without waiting for response
+        // FINAL LOGOUT FUNCTION - NO AUTO RECONNECT
         async function logoutUser() {
-            console.log('Logout initiated');
+            if (isLoggingOut) return; // Prevent multiple logout attempts
+            
+            isLoggingOut = true;
+            console.log('🚪 Logout initiated - Will NOT reconnect');
             
             // Show loading overlay
             const loadingOverlay = document.getElementById('logoutLoading');
@@ -243,70 +272,59 @@
                 loadingOverlay.classList.add('active');
             }
             
-            // Disconnect socket immediately
-            if (socket && socket.connected) {
-                socket.disconnect();
+            // CRITICAL: Stop socket completely before logout
+            if (socket) {
+                socket.off();           // Remove all event listeners
+                socket.disconnect();    // Disconnect socket
+                socket = null;          // Clear socket reference
+                console.log('🔌 Socket fully disconnected and cleared');
             }
             
+            // Clear all storage immediately
             try {
-                // Send logout request (don't wait for response)
-                fetch('/logout', {
+                sessionStorage.clear();
+                localStorage.clear();
+                console.log('🗑️ Storage cleared');
+            } catch(e) {
+                console.warn('Could not clear storage:', e);
+            }
+            
+            // Send logout request to server (fire and forget)
+            try {
+                await fetch('/logout', {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json'
                     }
-                }).catch(err => console.error('Fetch error:', err));
-                
-                // Clear storage
-                try {
-                    sessionStorage.clear();
-                    localStorage.clear();
-                } catch(e) {
-                    console.warn('Could not clear storage:', e);
-                }
-                
-                // Small delay to ensure server processes logout
-                setTimeout(function() {
-                    // FORCE REDIRECT to login page
-                    window.location.href = "/login";
-                }, 100);
-                
+                });
+                console.log('✅ Logout request sent');
             } catch (err) {
-                console.error("Logout error:", err);
-                // Still redirect even if error
-                setTimeout(function() {
-                    window.location.href = "/login";
-                }, 100);
+                console.error('❌ Logout fetch error:', err);
             }
+            
+            // FORCE HARD REDIRECT - Use replace to prevent back button issues
+            // Small delay to ensure server processes logout
+            setTimeout(function() {
+                console.log('🔄 Redirecting to login page...');
+                window.location.replace('/login');
+            }, 50);
         }
         
-        // Alternative: Simple GET logout (if POST doesn't work)
-        function logoutUserSimple() {
-            console.log('Logout initiated (simple)');
-            
-            // Show loading
-            const loadingOverlay = document.getElementById('logoutLoading');
-            if (loadingOverlay) {
-                loadingOverlay.classList.add('active');
-            }
-            
-            // Disconnect socket
-            if (socket && socket.connected) {
-                socket.disconnect();
-            }
-            
-            // Clear storage
-            sessionStorage.clear();
-            localStorage.clear();
-            
-            // Direct redirect to logout URL
-            window.location.href = "/logout?simple=true";
-        }
-        
+        // Connect socket only after page load AND user is authenticated
         document.addEventListener('DOMContentLoaded', function() {
-            window.socket = initSocket();
+            // Check if user is authenticated (from server-rendered template)
+            const currentUserId = "{{ current_user.id }}";
             
+            if (currentUserId && currentUserId !== "" && !isLoggingOut) {
+                console.log('🔌 User authenticated, connecting socket...');
+                window.socket = initSocket();
+                window.socket.connect();
+            } else {
+                console.log('⚠️ User not authenticated, socket not connected');
+            }
+            
+            // Search filter
             const searchInput = document.getElementById('searchInput');
             const userItems = document.querySelectorAll('.list-group-item');
             if (searchInput) {
@@ -319,6 +337,7 @@
                 });
             }
             
+            // Online first sorting
             const usersContainer = document.getElementById('usersList');
             const items = Array.from(userItems);
             if (items.length > 0) {
@@ -332,6 +351,7 @@
                 items.forEach(item => usersContainer.appendChild(item));
             }
             
+            // Click on card redirects to chat (except call icons)
             document.querySelectorAll('.list-group-item').forEach(card => {
                 const userId = card.getAttribute('data-user-id');
                 const chatUrl = `/chat/${userId}`;
@@ -345,8 +365,10 @@
             });
         });
         
+        // Prevent accidental page refresh from reconnecting
         window.addEventListener('beforeunload', function() {
             if (socket && socket.connected) {
+                socket.off();
                 socket.disconnect();
             }
         });
