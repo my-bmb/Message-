@@ -185,6 +185,23 @@
             display: none;
             white-space: nowrap;
         }
+        .debug-panel {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.85);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            z-index: 1000;
+            max-width: 350px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
         .volume-meter {
             position: absolute;
             bottom: -10px;
@@ -210,6 +227,7 @@
             .timer { font-size: 2rem; }
             .ctrl-btn { width: 50px; height: 50px; font-size: 1.3rem; }
             .end-btn { width: 65px; height: 65px; font-size: 1.6rem; }
+            .debug-panel { font-size: 8px; max-width: 250px; max-height: 150px; }
         }
     </style>
 </head>
@@ -249,133 +267,115 @@
     </div>
     
     <div id="toastMsg" class="toast-msg"></div>
+    <div id="debugPanel" class="debug-panel"></div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // ==================== SILENT WEBRTC FIXES (Customer ko kuch nahi dikhega) ====================
+        // ==================== WEBRTC FIXES APPLIED ====================
         
-        (function() {
-            'use strict';
-            
-            // Silent logger - only in console, not visible to customer
-            function silentLog(msg, type = 'info') {
-                const timestamp = new Date().toLocaleTimeString();
-                if (type === 'error') {
-                    console.error(`[WebRTC] ${timestamp} - ${msg}`);
-                } else if (type === 'warn') {
-                    console.warn(`[WebRTC] ${timestamp} - ${msg}`);
-                } else {
-                    console.log(`[WebRTC] ${timestamp} - ${msg}`);
-                }
+        // Fix 1: Enhanced RTCPeerConnection with better ICE handling
+        const OriginalRTCPeerConnection = window.RTCPeerConnection;
+        
+        class FixedRTCPeerConnection extends OriginalRTCPeerConnection {
+            constructor(config) {
+                const enhancedConfig = {
+                    ...config,
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' },
+                        { urls: 'stun:stun.stunprotocol.org:3478' },
+                        { urls: 'stun:stun.voipbuster.com' },
+                        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+                        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
+                    ],
+                    iceCandidatePoolSize: 10,
+                    bundlePolicy: 'max-bundle',
+                    rtcpMuxPolicy: 'require'
+                };
+                super(enhancedConfig);
+                this._pendingCandidates = [];
+                this._connectionStartTime = Date.now();
+                
+                // Auto timeout recovery
+                this._iceTimeout = setTimeout(() => {
+                    if (this.iceConnectionState === 'checking') {
+                        console.log('[Fix] ICE timeout - restarting');
+                        this.restartIce();
+                    }
+                }, 15000);
             }
             
-            // Enhanced ICE Servers (more reliable)
-            const ICE_SERVERS = [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
-                { urls: 'stun:stun.stunprotocol.org:3478' },
-                { urls: 'stun:stun.voipbuster.com' },
-                { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-                { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
-            ];
-            
-            // Fix 1: Enhanced RTCPeerConnection
-            const OriginalRTCPeerConnection = window.RTCPeerConnection;
-            
-            class FixedRTCPeerConnection extends OriginalRTCPeerConnection {
-                constructor(config) {
-                    const enhancedConfig = {
-                        ...config,
-                        iceServers: ICE_SERVERS,
-                        iceCandidatePoolSize: 10,
-                        bundlePolicy: 'max-bundle',
-                        rtcpMuxPolicy: 'require'
-                    };
-                    super(enhancedConfig);
-                    this._pendingCandidates = [];
-                    
-                    // Silent auto-recovery
-                    this._iceTimeout = setTimeout(() => {
-                        if (this.iceConnectionState === 'checking') {
-                            silentLog('ICE timeout - auto restarting', 'warn');
-                            this.restartIce();
-                        }
-                    }, 10000);
-                }
-                
-                async restartIce() {
-                    try {
-                        const offer = await this.createOffer({ iceRestart: true });
-                        await this.setLocalDescription(offer);
-                        silentLog('ICE restart initiated');
-                        return offer;
-                    } catch(e) {
-                        silentLog('ICE restart failed: ' + e.message, 'error');
-                    }
-                }
-                
-                close() {
-                    if (this._iceTimeout) clearTimeout(this._iceTimeout);
-                    super.close();
-                }
-            }
-            
-            window.RTCPeerConnection = FixedRTCPeerConnection;
-            
-            // Fix 2: Enhanced addIceCandidate with queuing
-            const originalAddIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
-            RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
-                if (!candidate) return Promise.resolve();
-                
-                if (!this.remoteDescription && candidate.candidate) {
-                    silentLog('Queuing ICE candidate (remote description not ready)');
-                    this._pendingCandidates = this._pendingCandidates || [];
-                    this._pendingCandidates.push(candidate);
-                    return Promise.resolve();
-                }
-                
-                return originalAddIceCandidate.call(this, candidate).catch(e => {
-                    if (!e.message.includes('already')) {
-                        silentLog('ICE candidate error: ' + e.message, 'warn');
-                    }
-                });
-            };
-            
-            // Fix 3: Enhanced setRemoteDescription
-            const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
-            RTCPeerConnection.prototype.setRemoteDescription = async function(desc) {
-                const result = await originalSetRemoteDescription.call(this, desc);
-                
-                if (this._pendingCandidates && this._pendingCandidates.length > 0) {
-                    silentLog(`Processing ${this._pendingCandidates.length} queued ICE candidates`);
-                    for (const candidate of this._pendingCandidates) {
-                        try {
-                            await originalAddIceCandidate.call(this, candidate);
-                        } catch(e) {}
-                    }
-                    this._pendingCandidates = [];
-                }
-                
-                return result;
-            };
-            
-            // Fix 4: Enhanced getUserMedia with fallback
-            const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
-            navigator.mediaDevices.getUserMedia = async function(constraints) {
+            async restartIce() {
                 try {
-                    return await originalGetUserMedia.call(this, constraints);
-                } catch(err) {
-                    silentLog('getUserMedia failed, using fallback: ' + err.message, 'warn');
-                    if (err.name === 'NotAllowedError') throw err;
-                    return await originalGetUserMedia.call(this, { audio: true });
+                    const offer = await this.createOffer({ iceRestart: true });
+                    await this.setLocalDescription(offer);
+                    return offer;
+                } catch(e) {
+                    console.error('[Fix] ICE restart failed:', e);
                 }
-            };
+            }
             
-            silentLog('WebRTC fixes applied successfully');
-        })();
+            close() {
+                if (this._iceTimeout) clearTimeout(this._iceTimeout);
+                super.close();
+            }
+        }
+        
+        window.RTCPeerConnection = FixedRTCPeerConnection;
+        
+        // Fix 2: Enhanced addIceCandidate with queuing
+        const originalAddIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
+        RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
+            if (!candidate) return Promise.resolve();
+            
+            if (!this.remoteDescription && candidate.candidate) {
+                console.log('[Fix] Queuing ICE candidate (remote desc not ready)');
+                this._pendingCandidates = this._pendingCandidates || [];
+                this._pendingCandidates.push(candidate);
+                return Promise.resolve();
+            }
+            
+            return originalAddIceCandidate.call(this, candidate).catch(e => {
+                if (!e.message.includes('already')) {
+                    console.warn('[Fix] ICE candidate error:', e.message);
+                }
+            });
+        };
+        
+        // Fix 3: Enhanced setRemoteDescription to process queued candidates
+        const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
+        RTCPeerConnection.prototype.setRemoteDescription = async function(desc) {
+            const result = await originalSetRemoteDescription.call(this, desc);
+            
+            if (this._pendingCandidates && this._pendingCandidates.length > 0) {
+                console.log(`[Fix] Processing ${this._pendingCandidates.length} queued ICE candidates`);
+                for (const candidate of this._pendingCandidates) {
+                    try {
+                        await originalAddIceCandidate.call(this, candidate);
+                    } catch(e) {}
+                }
+                this._pendingCandidates = [];
+            }
+            
+            return result;
+        };
+        
+        // Fix 4: Enhanced getUserMedia with fallback
+        const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
+        navigator.mediaDevices.getUserMedia = async function(constraints) {
+            try {
+                return await originalGetUserMedia.call(this, constraints);
+            } catch(err) {
+                console.log('[Fix] getUserMedia failed, trying fallback:', err.message);
+                if (err.name === 'NotAllowedError') throw err;
+                return await originalGetUserMedia.call(this, { audio: true });
+            }
+        };
+        
+        console.log('[WebRTC] All fixes applied!');
         
         // ==================== MAIN APPLICATION ====================
         
@@ -406,6 +406,7 @@
                 pendingCallData = JSON.parse(pendingOfferJson);
                 sessionStorage.removeItem('pendingOffer');
                 isCaller = false;
+                console.log('📦 Found pending call');
             } catch(e) {}
         }
 
@@ -424,6 +425,7 @@
         const toastMsg = document.getElementById('toastMsg');
         const avatarRing = document.getElementById('avatarRing');
         const volumeLevel = document.getElementById('volumeLevel');
+        const debugPanel = document.getElementById('debugPanel');
 
         // State
         let peerConnection = null;
@@ -439,34 +441,46 @@
         let volumeInterval = null;
         let answerReceived = false;
         
-        // Volume meter (silent, only visual)
+        // Debug logging
+        function debugLog(msg) {
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] ${msg}`);
+            if (debugPanel) {
+                debugPanel.style.display = 'block';
+                debugPanel.innerHTML += `<div>${timestamp}: ${msg}</div>`;
+                while (debugPanel.children.length > 15) {
+                    debugPanel.removeChild(debugPanel.children[0]);
+                }
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+        }
+        
+        // Volume meter
         function setupVolumeMeter(stream) {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
             
-            try {
-                const source = audioContext.createMediaStreamSource(stream);
-                const analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                source.connect(analyser);
-                
-                const dataArray = new Uint8Array(analyser.frequencyBinCount);
-                
-                if (volumeInterval) clearInterval(volumeInterval);
-                volumeInterval = setInterval(() => {
-                    if (!isCallActive) return;
-                    analyser.getByteFrequencyData(dataArray);
-                    let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-                    let percent = Math.min(100, (sum / dataArray.length / 255) * 100);
-                    if (volumeLevel) volumeLevel.style.width = percent + '%';
-                }, 100);
-                
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
-                }
-            } catch(e) {}
+            const source = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            
+            if (volumeInterval) clearInterval(volumeInterval);
+            volumeInterval = setInterval(() => {
+                if (!isCallActive) return;
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                let percent = Math.min(100, (sum / dataArray.length / 255) * 100);
+                if (volumeLevel) volumeLevel.style.width = percent + '%';
+            }, 100);
+            
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
         }
         
         function showToast(msg, duration = 2500) {
@@ -476,6 +490,7 @@
         }
 
         function redirectToChat() {
+            debugLog('Redirecting to chat');
             window.location.href = chatUrl;
         }
 
@@ -532,7 +547,7 @@
                 };
                 ringPattern();
                 ringtoneContext.resume();
-            } catch(e) {}
+            } catch(e) { debugLog('Ringtone error: ' + e.message); }
         }
         
         function stopRingtone() { 
@@ -550,29 +565,34 @@
             }
             
             peerConnection = new RTCPeerConnection();
+            debugLog('PeerConnection created');
             
             if (localStream && localStream.getTracks) {
                 localStream.getTracks().forEach(track => {
                     peerConnection.addTrack(track, localStream);
+                    debugLog(`Added ${track.kind} track`);
                 });
             }
             
             peerConnection.ontrack = (event) => {
+                debugLog(`Received remote ${event.track.kind} track`);
                 if (event.streams && event.streams[0]) {
                     remoteAudio.srcObject = event.streams[0];
-                    remoteAudio.play().catch(() => {});
+                    remoteAudio.play().catch(e => debugLog('Autoplay error: ' + e.message));
                     avatarRing.classList.add('active-ring');
                 }
             };
             
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
+                    debugLog('Sending ICE candidate');
                     socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
                 }
             };
             
             peerConnection.oniceconnectionstatechange = () => {
                 const state = peerConnection.iceConnectionState;
+                debugLog(`ICE state: ${state}`);
                 
                 if (state === 'connected' || state === 'completed') {
                     callStatusDiv.innerText = 'Connected ✅';
@@ -601,6 +621,7 @@
 
         // End call
         function endCallInternal(notifyServer = true) {
+            debugLog('Ending call, notifyServer: ' + notifyServer);
             stopTimer();
             isCallActive = false;
             answerReceived = false;
@@ -646,6 +667,7 @@
 
         // Initiate call
         async function initiateCall() {
+            debugLog('Initiating call to: ' + otherUserId);
             endCallInternal(false);
             callStatusDiv.innerText = 'Starting call... 🚀';
             
@@ -653,11 +675,13 @@
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
                 });
+                debugLog('Microphone ready');
                 setupVolumeMeter(localStream);
                 
                 const pc = await createPeerConnection();
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
+                debugLog('Offer created');
                 
                 socket.emit('call_user', { 
                     target_id: otherUserId, 
@@ -670,36 +694,40 @@
                 
                 callTimeout = setTimeout(() => {
                     if (!isCallActive && !answerReceived) {
+                        debugLog('Call timeout - no answer');
                         endCallWithMessage('No answer ⏰');
                     }
                 }, 35000);
                 
                 socket.once('call_answered', async (data) => {
+                    debugLog('Received answer from remote');
                     answerReceived = true;
                     if (callTimeout) clearTimeout(callTimeout);
                     if (pc && pc.signalingState === 'have-local-offer') {
                         await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                        debugLog('Remote description set');
                     }
                 });
                 
                 socket.once('call_rejected', () => { 
+                    debugLog('Call rejected');
                     endCallWithMessage('Call rejected ❌'); 
                 });
                 
                 socket.once('call_timeout', () => { 
+                    debugLog('Call timeout event');
                     endCallWithMessage('No answer ⏰'); 
                 });
                 
             } catch (err) {
-                let errorMsg = 'Microphone access denied';
-                if (err.name === 'NotAllowedError') errorMsg = 'Please allow microphone access';
-                if (err.name === 'NotFoundError') errorMsg = 'No microphone found';
-                endCallWithMessage(errorMsg);
+                debugLog('Error: ' + err.message);
+                endCallWithMessage('Microphone access denied');
             }
         }
 
         // Accept call
         async function acceptIncomingCall(callerId, offerSdp) {
+            debugLog('Accepting call from: ' + callerId);
             stopRingtone();
             incomingPopup.style.display = 'none';
             callStatusDiv.innerText = 'Connecting... 🔄';
@@ -708,20 +736,26 @@
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
                 });
+                debugLog('Microphone ready');
                 setupVolumeMeter(localStream);
                 
                 const pc = await createPeerConnection();
                 await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+                debugLog('Remote description set');
+                
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
+                debugLog('Answer created');
                 
                 socket.emit('answer_call', { 
                     caller_id: callerId, 
                     answer: pc.localDescription, 
                     call_type: callType 
                 });
+                debugLog('Answer sent');
                 
             } catch (err) {
+                debugLog('Accept error: ' + err.message);
                 endCallWithMessage('Failed to accept call');
             }
         }
@@ -767,6 +801,9 @@
 
         // Socket events
         socket.on('connect', () => {
+            debugLog('Socket connected: ' + socket.id);
+            showToast('Connected to server', 1000);
+            
             if (pendingCallData && !isCallActive) {
                 acceptIncomingCall(pendingCallData.callerId, pendingCallData.offer);
                 pendingCallData = null;
@@ -774,10 +811,13 @@
         });
         
         socket.on('disconnect', () => {
+            debugLog('Socket disconnected');
             if (isCallActive) endCallWithMessage('Connection lost');
         });
         
         socket.on('incoming_call', (data) => {
+            debugLog('Incoming call from: ' + data.caller_id);
+            
             if (data.caller_id === otherUserId) {
                 callerNameSpan.innerText = data.caller_name || 'User';
                 incomingPopup.style.display = 'flex';
@@ -797,6 +837,7 @@
         });
         
         socket.on('call_answered', async (data) => {
+            debugLog('Call answered event');
             if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
             }
@@ -806,23 +847,30 @@
             if (peerConnection && data.candidate) {
                 try {
                     await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                } catch (e) {}
+                    debugLog('ICE candidate added');
+                } catch (e) { 
+                    debugLog('ICE candidate error: ' + e.message);
+                }
             }
         });
         
         socket.on('call_ended', () => {
+            debugLog('Remote ended call');
             endCallWithMessage('Call ended');
         });
         
         socket.on('call_rejected', () => {
+            debugLog('Call rejected by remote');
             endCallWithMessage('Call rejected');
         });
         
         socket.on('call_timeout', () => {
+            debugLog('Call timeout from server');
             endCallWithMessage('No answer');
         });
         
         socket.on('call_error', (err) => {
+            debugLog('Call error: ' + err.message);
             endCallWithMessage(err.message || 'Call error');
         });
 
