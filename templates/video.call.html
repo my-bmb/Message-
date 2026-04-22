@@ -394,8 +394,7 @@
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // ==================== MULTIPLE FREE TURN SERVERS FOR VIDEO ====================
-        // सभी TURN servers FREE हैं, बिना किसी external key के
+        // ==================== MULTIPLE FREE TURN SERVERS ====================
         
         (function() {
             'use strict';
@@ -407,9 +406,9 @@
                 else console.log(`[VideoCall] ${timestamp} - ${msg}`);
             }
             
-            // ========== MULTIPLE FREE TURN SERVERS ==========
-            // 6 अलग-अलग FREE TURN servers (सब बिना signup के)
+            // FREE ICE Servers - No external keys required
             const ICE_SERVERS = [
+                // STUN servers
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
@@ -419,30 +418,22 @@
                 { urls: 'stun:stun.stunprotocol.org:3478' },
                 { urls: 'stun:stun.voipbuster.com' },
                 { urls: 'stun:stun.ekiga.net' },
+                { urls: 'stun:stun.ideasip.com' },
+                { urls: 'stun:stun.iptel.org' },
+                { urls: 'stun:stun.rixtelecom.se' },
+                { urls: 'stun:stun.schlund.de' },
+                { urls: 'stun:stunserver.org' },
                 
-                // TURN Server 1: Metered.ca (50GB/month free)
+                // FREE TURN Servers
                 { 
                     urls: [
                         'turn:openrelay.metered.ca:80?transport=tcp',
-                        'turn:openrelay.metered.ca:443?transport=tcp'
+                        'turn:openrelay.metered.ca:443?transport=tcp',
+                        'turn:openrelay.metered.ca:80?transport=udp'
                     ],
                     username: 'openrelayproject',
                     credential: 'openrelayproject'
                 },
-                
-                // TURN Server 2: Homeway (बिना username/password)
-                { 
-                    urls: [
-                        'turn:webrtc.homeway.io:3478?transport=udp',
-                        'turn:webrtc.homeway.io:53?transport=udp',
-                        'turn:webrtc.homeway.io:3478?transport=tcp',
-                        'turns:webrtc.homeway.io:443?transport=tcp'
-                    ],
-                    username: '',
-                    credential: ''
-                },
-                
-                // TURN Server 3: Turnix.io (5GB/month free)
                 {
                     urls: [
                         'turn:free.turnix.io:3478?transport=udp',
@@ -451,28 +442,24 @@
                     username: 'free',
                     credential: 'free'
                 },
-                
-                // TURN Server 4: AnyFirewall
                 {
                     urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
                     username: 'anyfirewall',
                     credential: 'anyfirewall'
                 },
-                
-                // TURN Server 5: Nexstorm
                 {
                     urls: 'turn:turn.nexstorm.net:3478?transport=udp',
                     username: 'nexstorm',
                     credential: 'nexstorm'
                 },
-                
-                // TURN Server 6: Freeturn
                 {
                     urls: 'turn:freeturn.net:3478?transport=udp',
                     username: 'freeturn',
                     credential: 'freeturn'
                 }
             ];
+            
+            silentLog(`ICE servers loaded`);
             
             // Enhanced RTCPeerConnection
             const OriginalRTCPeerConnection = window.RTCPeerConnection;
@@ -493,7 +480,7 @@
                     
                     this._iceTimeout = setTimeout(() => {
                         if (this.iceConnectionState === 'checking') {
-                            silentLog('⚠️ ICE timeout - auto restarting', 'warn');
+                            silentLog('ICE timeout - restarting');
                             this.restartIce();
                         }
                     }, 15000);
@@ -501,18 +488,16 @@
                 
                 async restartIce() {
                     if (this._iceRestartAttempts >= 2) {
-                        silentLog('❌ ICE restart max attempts reached', 'warn');
                         return;
                     }
                     this._iceRestartAttempts++;
                     
                     try {
-                        silentLog(`🔄 ICE restart attempt ${this._iceRestartAttempts}`);
                         const offer = await this.createOffer({ iceRestart: true });
                         await this.setLocalDescription(offer);
                         return offer;
                     } catch(e) {
-                        silentLog('❌ ICE restart failed: ' + e.message, 'error');
+                        silentLog('ICE restart failed');
                     }
                 }
                 
@@ -530,7 +515,6 @@
                 if (!candidate) return Promise.resolve();
                 
                 if (!this.remoteDescription && candidate.candidate) {
-                    silentLog('📦 Queuing ICE candidate');
                     this._pendingCandidates = this._pendingCandidates || [];
                     this._pendingCandidates.push(candidate);
                     return Promise.resolve();
@@ -538,7 +522,7 @@
                 
                 return originalAddIceCandidate.call(this, candidate).catch(e => {
                     if (!e.message.includes('already') && !e.message.includes('Duplicate')) {
-                        silentLog('⚠️ ICE candidate error: ' + e.message, 'warn');
+                        // Silent fail
                     }
                 });
             };
@@ -549,7 +533,6 @@
                 const result = await originalSetRemoteDescription.call(this, desc);
                 
                 if (this._pendingCandidates && this._pendingCandidates.length > 0) {
-                    silentLog(`📦 Processing ${this._pendingCandidates.length} queued ICE candidates`);
                     for (const candidate of this._pendingCandidates) {
                         try {
                             await originalAddIceCandidate.call(this, candidate);
@@ -567,10 +550,14 @@
                 try {
                     return await originalGetUserMedia.call(this, constraints);
                 } catch(err) {
-                    silentLog('getUserMedia failed: ' + err.message, 'warn');
-                    if (err.name === 'NotAllowedError') throw err;
-                    const fallbackConstraints = { video: true, audio: true };
-                    return await originalGetUserMedia.call(this, fallbackConstraints);
+                    if (err.name === 'NotAllowedError') {
+                        throw new Error('PERMISSION_DENIED');
+                    } else if (err.name === 'NotFoundError') {
+                        throw new Error('NO_DEVICE');
+                    } else {
+                        const fallbackConstraints = { video: true, audio: true };
+                        return await originalGetUserMedia.call(this, fallbackConstraints);
+                    }
                 }
             };
             
@@ -585,7 +572,6 @@
                         if (!this.videoReceived && videoElement) {
                             if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
                                 this.videoReceived = true;
-                                silentLog('✅ Video track active');
                                 if (onVideoReceived) onVideoReceived();
                             }
                         }
@@ -634,8 +620,6 @@
                     if (this.interval) clearInterval(this.interval);
                 }
             }
-            
-            silentLog('✅ Video WebRTC fixes applied with 6 FREE TURN servers!');
             
             window.VideoWebRTCFixes = {
                 VideoTrackMonitor,
@@ -737,7 +721,7 @@
         // Network detection
         async function detectNetworkQuality() {
             return new Promise((resolve) => {
-                debugLog('🔍 Detecting network quality for video...');
+                debugLog('Detecting network quality...');
                 
                 const pc = new RTCPeerConnection({ 
                     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
@@ -748,8 +732,7 @@
                 
                 const timeout = setTimeout(() => {
                     pc.close();
-                    debugLog('⚠️ Network detection timeout');
-                    networkBadge.innerHTML = '⚠️ Unknown Network';
+                    networkBadge.innerHTML = '⚠️ Unknown';
                     networkBadge.className = 'network-badge warning';
                     resolve('unknown');
                 }, 5000);
@@ -759,29 +742,29 @@
                         const candidateStr = e.candidate.candidate;
                         if (candidateStr.includes('relay')) {
                             hasRelay = true;
-                            debugLog('🔄 RELAY candidate - Network needs TURN');
+                            debugLog('RELAY candidate - Network needs TURN');
                         } else if (candidateStr.includes('srflx')) {
                             hasSrflx = true;
-                            debugLog('✅ SRFLX candidate - Good network');
+                            debugLog('SRFLX candidate - Good network');
                         }
                     } else {
                         clearTimeout(timeout);
                         
                         if (hasSrflx && !hasRelay) {
                             myNetworkQuality = 'good';
-                            networkBadge.innerHTML = '✅ Network: Good';
+                            networkBadge.innerHTML = '✅ Direct';
                             networkBadge.className = 'network-badge good';
-                            debugLog('✅ Network is GOOD');
+                            debugLog('Network is GOOD');
                         } else if (hasRelay) {
                             myNetworkQuality = 'needs_turn';
-                            networkBadge.innerHTML = '🔄 Network: Relay Mode';
+                            networkBadge.innerHTML = '🔄 Relay';
                             networkBadge.className = 'network-badge warning';
-                            debugLog('⚠️ Network needs TURN relay');
+                            debugLog('Network needs TURN relay');
                         } else {
                             myNetworkQuality = 'unknown';
-                            networkBadge.innerHTML = '⚠️ Network: Unknown';
+                            networkBadge.innerHTML = '⚠️ Unknown';
                             networkBadge.className = 'network-badge warning';
-                            debugLog('⚠️ Network detection incomplete');
+                            debugLog('Network detection incomplete');
                         }
                         
                         pc.close();
@@ -895,8 +878,14 @@
                 peerConnection = null;
             }
             
-            peerConnection = new RTCPeerConnection();
-            debugLog('PeerConnection created');
+            try {
+                peerConnection = new RTCPeerConnection();
+                debugLog('PeerConnection created');
+            } catch (err) {
+                debugLog('Failed to create PeerConnection: ' + err.message);
+                showToast('Failed to initialize call', 3000);
+                throw err;
+            }
             
             if (localStream) {
                 localStream.getTracks().forEach(track => {
@@ -928,16 +917,16 @@
                     if (event.candidate.candidate.includes('relay')) candidateType = 'TURN';
                     else if (event.candidate.candidate.includes('srflx')) candidateType = 'STUN';
                     else if (event.candidate.candidate.includes('host')) candidateType = 'HOST';
-                    debugLog(`📡 Sending ICE candidate (${candidateType})`);
+                    debugLog(`Sending ICE candidate (${candidateType})`);
                     socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
                 } else {
-                    debugLog('✅ ICE gathering complete');
+                    debugLog('ICE gathering complete');
                 }
             };
             
             peerConnection.oniceconnectionstatechange = () => {
                 const state = peerConnection.iceConnectionState;
-                debugLog(`🔌 ICE state: ${state}`);
+                debugLog(`ICE state: ${state}`);
                 
                 if (state === 'connected' || state === 'completed') {
                     remoteConnectingOverlay.style.display = 'none';
@@ -945,9 +934,9 @@
                     if (!callStartTime && isCallActive) startTimer();
                     
                     if (myNetworkQuality === 'good') {
-                        networkBadge.innerHTML = '✅ Connected (Direct)';
+                        networkBadge.innerHTML = '✅ Direct';
                     } else {
-                        networkBadge.innerHTML = '🔄 Connected (Relay)';
+                        networkBadge.innerHTML = '🔄 Relay';
                     }
                 } else if (state === 'checking') {
                     updateConnectionStatus('Connecting...');
@@ -955,11 +944,11 @@
                 } else if (state === 'failed') {
                     updateConnectionStatus('Failed', true);
                     showToast('Connection failed', 1500);
-                    debugLog('❌ ICE connection failed');
+                    debugLog('ICE connection failed');
                     endCallInternal(true);
                 } else if (state === 'disconnected') {
                     updateConnectionStatus('Unstable', true);
-                    debugLog('⚠️ ICE disconnected');
+                    debugLog('ICE disconnected');
                 }
             };
             
@@ -1022,6 +1011,7 @@
             localConnectingOverlay.style.display = 'flex';
             
             try {
+                debugLog('Requesting camera/microphone...');
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
@@ -1089,11 +1079,20 @@
             } catch (err) {
                 debugLog('Initiate error: ' + err.message);
                 localConnectingOverlay.style.display = 'none';
+                
                 let msg = 'Camera/Mic access denied';
-                if (err.name === 'NotFoundError') msg = 'No camera/mic found';
+                if (err.message.includes('PERMISSION_DENIED')) {
+                    msg = 'Please allow camera/microphone access';
+                } else if (err.message.includes('NO_DEVICE')) {
+                    msg = 'No camera or microphone found';
+                } else {
+                    msg = 'Cannot access camera/microphone';
+                }
+                
+                showToast(msg, 4000);
+                updateConnectionStatus('Camera Error', true);
+                setTimeout(() => { window.location.href = chatRedirectUrl; }, 3000);
                 endCallInternal(true);
-                showToast(msg, 2000);
-                setTimeout(() => { window.location.href = chatRedirectUrl; }, 1500);
             }
         }
 
@@ -1106,6 +1105,7 @@
             localConnectingOverlay.style.display = 'flex';
             
             try {
+                debugLog('Requesting camera/microphone...');
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
@@ -1145,9 +1145,15 @@
                 debugLog('Accept error: ' + err.message);
                 localConnectingOverlay.style.display = 'none';
                 remoteConnectingOverlay.style.display = 'none';
+                
+                let msg = 'Failed to start call';
+                if (err.message.includes('PERMISSION_DENIED')) {
+                    msg = 'Please allow camera/microphone access';
+                }
+                
+                showToast(msg, 4000);
                 endCallInternal(true);
-                showToast('Failed to start call', 1500);
-                setTimeout(() => { window.location.href = chatRedirectUrl; }, 1200);
+                setTimeout(() => { window.location.href = chatRedirectUrl; }, 2000);
             }
         }
 
@@ -1487,7 +1493,7 @@
             detectNetworkQuality();
         }
         
-        debugLog('Video call application initialized with 6 FREE TURN servers');
+        debugLog('Video call application initialized');
     </script>
 </body>
 </html>
