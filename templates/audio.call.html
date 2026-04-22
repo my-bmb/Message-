@@ -199,7 +199,6 @@
             max-width: 350px;
             max-height: 200px;
             overflow-y: auto;
-            display: none;
             backdrop-filter: blur(5px);
         }
         .volume-meter {
@@ -219,6 +218,40 @@
             background: linear-gradient(90deg, #34d399, #10b981);
             transition: width 0.05s;
         }
+        .turn-badge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.85);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 1000;
+            font-weight: bold;
+        }
+        .turn-badge.needs-turn { background: #e11d48; color: white; }
+        .turn-badge.stun-works { background: #10b981; color: white; }
+        .turn-badge.warning { background: #f59e0b; color: black; }
+        
+        .peer-turn-badge {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.85);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 1000;
+            font-weight: bold;
+        }
+        .peer-turn-badge.needs-turn { background: #e11d48; color: white; }
+        .peer-turn-badge.stun-works { background: #10b981; color: white; }
+        .peer-turn-badge.unknown { background: #6b7280; color: white; }
+        .peer-turn-badge.offline { background: #374151; color: #9ca3af; }
+        .peer-turn-badge.warning { background: #f59e0b; color: black; }
+        
         @media (max-width: 550px) {
             .call-card { padding: 1.5rem; border-radius: 40px; }
             .avatar-ring { width: 90px; height: 90px; }
@@ -228,6 +261,7 @@
             .ctrl-btn { width: 50px; height: 50px; font-size: 1.3rem; }
             .end-btn { width: 65px; height: 65px; font-size: 1.6rem; }
             .debug-panel { font-size: 8px; max-width: 250px; max-height: 150px; }
+            .turn-badge, .peer-turn-badge { font-size: 8px; padding: 4px 8px; }
         }
     </style>
 </head>
@@ -268,53 +302,242 @@
     
     <div id="toastMsg" class="toast-msg"></div>
     <div id="debugPanel" class="debug-panel"></div>
+    
+    <!-- My TURN Status (My Network) -->
+    <div id="turnBadge" class="turn-badge">🔍 Detecting...</div>
+    
+    <!-- Peer TURN Status (Other User's Network) -->
+    <div id="peerTurnBadge" class="peer-turn-badge unknown">👤 Other: Detecting...</div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // ==================== WEBRTC FIXES APPLIED ====================
+        // ==================== UPDATED: HOMEWAY TURN + SIGNALING TRACKING ====================
         
-        // Fix 1: Enhanced RTCPeerConnection with better ICE handling
+        // ========== IMPROVED ICE SERVERS WITH HOMEWAY TURN ==========
+        const ENHANCED_ICE_SERVERS = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' },
+            { urls: 'stun:stun.stunprotocol.org:3478' },
+            
+            // HOMEWAY TURN (FREE, NO REGISTRATION)
+            { 
+                urls: [
+                    'turn:webrtc.homeway.io:3478?transport=udp',
+                    'turn:webrtc.homeway.io:53?transport=udp',
+                    'turn:webrtc.homeway.io:3478?transport=tcp',
+                    'turns:webrtc.homeway.io:443?transport=tcp'
+                ],
+                username: '',
+                credential: ''
+            },
+            
+            // Backup: Metered.ca TURN
+            { 
+                urls: 'turn:openrelay.metered.ca:80?transport=tcp',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            { 
+                urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                username: 'openrelayproject',
+                credential: 'openrelayproject'
+            },
+            
+            // Backup: Free TURN server
+            {
+                urls: 'turn:free.turnix.io:3478',
+                username: 'free',
+                credential: 'free'
+            }
+        ];
+        
+        // ========== NETWORK TYPE DETECTION ==========
+        let myNetworkNeedsTURN = false;
+        let myDetectionComplete = false;
+        let peerNetworkNeedsTURN = null;
+        let peerUsername = "";
+        
+        // Signaling tracking variables
+        let signalingTimeout = null;
+        let hasReceiverResponded = false;
+        let signalingAttempts = 0;
+        
+        async function detectMyNetworkType() {
+            return new Promise((resolve) => {
+                debugLog('🔍 Detecting MY network type...');
+                const myBadge = document.getElementById('turnBadge');
+                
+                const pc = new RTCPeerConnection({ 
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
+                });
+                
+                let hasRelay = false;
+                let hasSrflx = false;
+                
+                const timeout = setTimeout(() => {
+                    pc.close();
+                    if (!myDetectionComplete) {
+                        debugLog('⚠️ Network detection timeout - assuming needs TURN');
+                        myNetworkNeedsTURN = true;
+                        myBadge.innerHTML = '⚠️ You: TURN Required';
+                        myBadge.className = 'turn-badge needs-turn';
+                        myDetectionComplete = true;
+                        resolve(true);
+                    }
+                }, 8000);
+                
+                pc.onicecandidate = (e) => {
+                    if (e.candidate) {
+                        const candidateStr = e.candidate.candidate;
+                        
+                        if (candidateStr.includes('relay')) {
+                            hasRelay = true;
+                            debugLog('🔄 RELAY candidate found - YOUR network REQUIRES TURN!');
+                        } else if (candidateStr.includes('srflx')) {
+                            hasSrflx = true;
+                            debugLog('✅ SRFLX candidate found - YOUR network: STUN works');
+                        }
+                    } else {
+                        clearTimeout(timeout);
+                        
+                        let result;
+                        
+                        if (hasRelay) {
+                            result = true;
+                            myBadge.innerHTML = '🔴 You: NEEDS TURN';
+                            myBadge.className = 'turn-badge needs-turn';
+                            debugLog('⚠️⚠️⚠️ YOUR NETWORK NEEDS TURN SERVER ⚠️⚠️⚠️');
+                            showToast('Your network requires TURN relay', 3000);
+                        } else if (hasSrflx) {
+                            result = false;
+                            myBadge.innerHTML = '🟢 You: STUN Works';
+                            myBadge.className = 'turn-badge stun-works';
+                            debugLog('✅✅✅ YOUR NETWORK: STUN works, TURN not needed ✅✅✅');
+                        } else {
+                            result = true;
+                            myBadge.innerHTML = '⚠️ You: Needs TURN';
+                            myBadge.className = 'turn-badge needs-turn';
+                            debugLog('⚠️ No STUN candidates - your network will need TURN');
+                        }
+                        
+                        myNetworkNeedsTURN = result;
+                        myDetectionComplete = true;
+                        pc.close();
+                        
+                        if (socket && socket.id) {
+                            socket.emit('network_status', {
+                                target_id: otherUserId,
+                                needsTurn: myNetworkNeedsTURN
+                            });
+                            debugLog(`📡 Sent my network status (needsTurn: ${myNetworkNeedsTURN}) to peer`);
+                        }
+                        
+                        resolve(result);
+                    }
+                };
+                
+                pc.createDataChannel('detection');
+                pc.createOffer()
+                    .then(offer => pc.setLocalDescription(offer))
+                    .catch(err => debugLog('Detection error: ' + err.message));
+            });
+        }
+        
+        // ========== SIGNALING STATUS CHECK ==========
+        function checkReceiverStatus() {
+            debugLog('🔍 Checking receiver status...');
+            const peerBadge = document.getElementById('peerTurnBadge');
+            peerBadge.innerHTML = `⏳ ${peerUsername}: Checking...`;
+            peerBadge.className = 'peer-turn-badge warning';
+            
+            // First check via backend if user is online
+            socket.emit('check_user_online', { user_id: otherUserId });
+            
+            // Then try to ping directly
+            setTimeout(() => {
+                if (!hasReceiverResponded && !answerReceived && !isCallActive) {
+                    debugLog('📡 Sending ping to receiver...');
+                    socket.emit('ping_receiver', { target_id: otherUserId });
+                }
+            }, 2000);
+            
+            // Set overall timeout
+            signalingTimeout = setTimeout(() => {
+                if (!hasReceiverResponded && !answerReceived && !isCallActive) {
+                    debugLog('❌ Signaling timeout - receiver not responding');
+                    peerBadge.innerHTML = `❌ ${peerUsername}: No response`;
+                    peerBadge.className = 'peer-turn-badge offline';
+                    callStatusDiv.innerText = `${peerUsername} is not responding`;
+                    showToast(`Cannot reach ${peerUsername}`, 3000);
+                    
+                    setTimeout(() => {
+                        if (!isCallActive) {
+                            endCallAndRedirect();
+                        }
+                    }, 5000);
+                }
+            }, 15000);
+        }
+        
+        // ========== ENHANCED RTCPeerConnection ==========
         const OriginalRTCPeerConnection = window.RTCPeerConnection;
         
         class FixedRTCPeerConnection extends OriginalRTCPeerConnection {
             constructor(config) {
                 const enhancedConfig = {
                     ...config,
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun3.l.google.com:19302' },
-                        { urls: 'stun:stun4.l.google.com:19302' },
-                        { urls: 'stun:stun.stunprotocol.org:3478' },
-                        { urls: 'stun:stun.voipbuster.com' },
-                        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-                        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
-                    ],
+                    iceServers: ENHANCED_ICE_SERVERS,
                     iceCandidatePoolSize: 10,
                     bundlePolicy: 'max-bundle',
-                    rtcpMuxPolicy: 'require'
+                    rtcpMuxPolicy: 'require',
+                    iceTransportPolicy: 'all'
                 };
                 super(enhancedConfig);
                 this._pendingCandidates = [];
+                this._iceRestartAttempts = 0;
                 this._connectionStartTime = Date.now();
                 
-                // Auto timeout recovery
+                this.onicegatheringstatechange = () => {
+                    debugLog(`ICE gathering state: ${this.iceGatheringState}`);
+                };
+                
                 this._iceTimeout = setTimeout(() => {
                     if (this.iceConnectionState === 'checking') {
-                        console.log('[Fix] ICE timeout - restarting');
+                        debugLog('⚠️ ICE timeout - attempting restart');
                         this.restartIce();
                     }
                 }, 15000);
             }
             
             async restartIce() {
+                if (this._iceRestartAttempts >= 2) {
+                    debugLog('❌ ICE restart max attempts reached');
+                    return;
+                }
+                this._iceRestartAttempts++;
+                
                 try {
+                    debugLog(`🔄 ICE restart attempt ${this._iceRestartAttempts}`);
                     const offer = await this.createOffer({ iceRestart: true });
                     await this.setLocalDescription(offer);
+                    
+                    if (typeof socket !== 'undefined' && otherUserId) {
+                        socket.emit('call_user', { 
+                            target_id: otherUserId, 
+                            call_type: callType, 
+                            offer: this.localDescription,
+                            caller_name: currentUserName,
+                            iceRestart: true,
+                            caller_needs_turn: myNetworkNeedsTURN
+                        });
+                    }
                     return offer;
                 } catch(e) {
-                    console.error('[Fix] ICE restart failed:', e);
+                    debugLog('❌ ICE restart failed: ' + e.message);
                 }
             }
             
@@ -326,36 +549,39 @@
         
         window.RTCPeerConnection = FixedRTCPeerConnection;
         
-        // Fix 2: Enhanced addIceCandidate with queuing
+        // ========== ENHANCED addIceCandidate ==========
         const originalAddIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
         RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
             if (!candidate) return Promise.resolve();
             
             if (!this.remoteDescription && candidate.candidate) {
-                console.log('[Fix] Queuing ICE candidate (remote desc not ready)');
+                debugLog('📦 Queuing ICE candidate (remote desc not ready)');
                 this._pendingCandidates = this._pendingCandidates || [];
                 this._pendingCandidates.push(candidate);
                 return Promise.resolve();
             }
             
             return originalAddIceCandidate.call(this, candidate).catch(e => {
-                if (!e.message.includes('already')) {
-                    console.warn('[Fix] ICE candidate error:', e.message);
+                if (!e.message.includes('already') && !e.message.includes('Duplicate')) {
+                    debugLog('⚠️ ICE candidate error: ' + e.message);
                 }
             });
         };
         
-        // Fix 3: Enhanced setRemoteDescription to process queued candidates
+        // ========== ENHANCED setRemoteDescription ==========
         const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
         RTCPeerConnection.prototype.setRemoteDescription = async function(desc) {
             const result = await originalSetRemoteDescription.call(this, desc);
             
             if (this._pendingCandidates && this._pendingCandidates.length > 0) {
-                console.log(`[Fix] Processing ${this._pendingCandidates.length} queued ICE candidates`);
+                debugLog(`📦 Processing ${this._pendingCandidates.length} queued ICE candidates`);
                 for (const candidate of this._pendingCandidates) {
                     try {
                         await originalAddIceCandidate.call(this, candidate);
-                    } catch(e) {}
+                        debugLog('✅ Queued candidate added');
+                    } catch(e) {
+                        debugLog('⚠️ Queued candidate error: ' + e.message);
+                    }
                 }
                 this._pendingCandidates = [];
             }
@@ -363,19 +589,26 @@
             return result;
         };
         
-        // Fix 4: Enhanced getUserMedia with fallback
+        // ========== ENHANCED getUserMedia ==========
         const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
         navigator.mediaDevices.getUserMedia = async function(constraints) {
             try {
+                debugLog('🎤 Requesting microphone');
                 return await originalGetUserMedia.call(this, constraints);
             } catch(err) {
-                console.log('[Fix] getUserMedia failed, trying fallback:', err.message);
-                if (err.name === 'NotAllowedError') throw err;
+                debugLog('⚠️ getUserMedia failed: ' + err.message);
+                
+                if (err.name === 'NotAllowedError') {
+                    showToast('Please allow microphone access', 3000);
+                    throw err;
+                }
+                
+                debugLog('🔄 Trying fallback constraints');
                 return await originalGetUserMedia.call(this, { audio: true });
             }
         };
         
-        console.log('[WebRTC] All fixes applied!');
+        console.log('[WebRTC] Updated with Homeway TURN and signaling tracking!');
         
         // ==================== MAIN APPLICATION ====================
         
@@ -383,33 +616,26 @@
         const currentUserId = "{{ current_user.id }}";
         const otherUserId = "{{ other_user.id }}";
         const currentUserName = "{{ current_user.username }}";
+        const peerUserName = "{{ other_user.username }}";
         const chatUrl = "{{ url_for('chat', user_id=other_user.id) }}";
         const callType = "audio";
+        
+        peerUsername = peerUserName;
         
         // Socket connection
         const socket = io({
             reconnection: true,
-            reconnectionAttempts: 10,
+            reconnectionAttempts: 15,
             reconnectionDelay: 1000,
-            timeout: 20000
+            reconnectionDelayMax: 5000,
+            timeout: 30000,
+            transports: ['websocket', 'polling']
         });
 
         // Check role
         const urlParams = new URLSearchParams(window.location.search);
         let isCaller = urlParams.get('role') !== 'receiver';
         
-        // Pending call
-        let pendingCallData = null;
-        const pendingOfferJson = sessionStorage.getItem('pendingOffer');
-        if (pendingOfferJson) {
-            try {
-                pendingCallData = JSON.parse(pendingOfferJson);
-                sessionStorage.removeItem('pendingOffer');
-                isCaller = false;
-                console.log('📦 Found pending call');
-            } catch(e) {}
-        }
-
         // DOM elements
         const remoteAudio = document.getElementById('remoteAudio');
         const callStatusDiv = document.getElementById('callStatus');
@@ -426,6 +652,8 @@
         const avatarRing = document.getElementById('avatarRing');
         const volumeLevel = document.getElementById('volumeLevel');
         const debugPanel = document.getElementById('debugPanel');
+        const turnBadge = document.getElementById('turnBadge');
+        const peerTurnBadge = document.getElementById('peerTurnBadge');
 
         // State
         let peerConnection = null;
@@ -441,14 +669,34 @@
         let volumeInterval = null;
         let answerReceived = false;
         
+        // Update peer badge display
+        function updatePeerBadge() {
+            const badge = document.getElementById('peerTurnBadge');
+            if (peerNetworkNeedsTURN === true) {
+                badge.innerHTML = `🔴 ${peerUserName}: NEEDS TURN`;
+                badge.className = 'peer-turn-badge needs-turn';
+                debugLog(`📊 Peer (${peerUserName}) network: NEEDS TURN`);
+                if (isCaller && isCallActive) {
+                    showToast(`⚠️ ${peerUserName}'s network requires TURN relay`, 3000);
+                }
+            } else if (peerNetworkNeedsTURN === false) {
+                badge.innerHTML = `🟢 ${peerUserName}: STUN Works`;
+                badge.className = 'peer-turn-badge stun-works';
+                debugLog(`📊 Peer (${peerUserName}) network: STUN works (no TURN needed)`);
+            } else {
+                badge.innerHTML = `⏳ ${peerUserName}: Detecting...`;
+                badge.className = 'peer-turn-badge unknown';
+            }
+        }
+        
         // Debug logging
         function debugLog(msg) {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] ${msg}`);
-            if (debugPanel) {
+            if (debugPanel && debugPanel.style.display !== 'none') {
                 debugPanel.style.display = 'block';
                 debugPanel.innerHTML += `<div>${timestamp}: ${msg}</div>`;
-                while (debugPanel.children.length > 15) {
+                while (debugPanel.children.length > 20) {
                     debugPanel.removeChild(debugPanel.children[0]);
                 }
                 debugPanel.scrollTop = debugPanel.scrollHeight;
@@ -585,14 +833,21 @@
             
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    debugLog('Sending ICE candidate');
+                    let candidateType = 'unknown';
+                    if (event.candidate.candidate.includes('relay')) candidateType = 'TURN';
+                    else if (event.candidate.candidate.includes('srflx')) candidateType = 'STUN';
+                    else if (event.candidate.candidate.includes('host')) candidateType = 'HOST';
+                    
+                    debugLog(`📡 Sending ICE candidate (${candidateType})`);
                     socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
+                } else {
+                    debugLog('✅ ICE gathering complete');
                 }
             };
             
             peerConnection.oniceconnectionstatechange = () => {
                 const state = peerConnection.iceConnectionState;
-                debugLog(`ICE state: ${state}`);
+                debugLog(`🔌 ICE state: ${state}`);
                 
                 if (state === 'connected' || state === 'completed') {
                     callStatusDiv.innerText = 'Connected ✅';
@@ -601,19 +856,36 @@
                     if (callTimeout) clearTimeout(callTimeout);
                     avatarRing.classList.add('active-ring');
                     showToast('Call connected!', 1500);
+                    
+                    if (myNetworkNeedsTURN) {
+                        turnBadge.innerHTML = '🔄 You: TURN Active';
+                    } else {
+                        turnBadge.innerHTML = '✅ You: STUN Active';
+                    }
                 } 
                 else if (state === 'failed') {
                     callStatusDiv.innerText = 'Connection failed ❌';
-                    showToast('Connection failed!', 2000);
-                    endCallInternal(false);
+                    showToast('Connection failed! Retrying...', 2000);
+                    debugLog('❌ ICE failed');
+                    
+                    if (peerConnection && peerConnection.restartIce) {
+                        peerConnection.restartIce();
+                    } else {
+                        endCallInternal(false);
+                    }
                 } 
                 else if (state === 'disconnected') {
                     callStatusDiv.innerText = 'Reconnecting... 🔄';
                     avatarRing.classList.remove('active-ring');
+                    debugLog('⚠️ ICE disconnected');
                 }
                 else if (state === 'checking') {
                     callStatusDiv.innerText = 'Connecting... 🔄';
                 }
+            };
+            
+            peerConnection.onconnectionstatechange = () => {
+                debugLog(`🔌 Connection state: ${peerConnection.connectionState}`);
             };
             
             return peerConnection;
@@ -626,6 +898,7 @@
             isCallActive = false;
             answerReceived = false;
             
+            if (signalingTimeout) clearTimeout(signalingTimeout);
             if (volumeInterval) clearInterval(volumeInterval);
             if (callTimeout) clearTimeout(callTimeout);
             
@@ -671,6 +944,15 @@
             endCallInternal(false);
             callStatusDiv.innerText = 'Starting call... 🚀';
             
+            if (!myDetectionComplete) {
+                debugLog('Waiting for my network detection...');
+                callStatusDiv.innerText = 'Detecting network... 🔍';
+                await detectMyNetworkType();
+            }
+            
+            // Start checking receiver status
+            checkReceiverStatus();
+            
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
@@ -679,7 +961,9 @@
                 setupVolumeMeter(localStream);
                 
                 const pc = await createPeerConnection();
-                const offer = await pc.createOffer();
+                const offer = await pc.createOffer({
+                    offerToReceiveAudio: true
+                });
                 await pc.setLocalDescription(offer);
                 debugLog('Offer created');
                 
@@ -687,7 +971,8 @@
                     target_id: otherUserId, 
                     call_type: callType, 
                     offer: pc.localDescription,
-                    caller_name: currentUserName
+                    caller_name: currentUserName,
+                    caller_needs_turn: myNetworkNeedsTURN
                 });
                 
                 callStatusDiv.innerText = 'Ringing... 🔔';
@@ -697,11 +982,13 @@
                         debugLog('Call timeout - no answer');
                         endCallWithMessage('No answer ⏰');
                     }
-                }, 35000);
+                }, 45000);
                 
                 socket.once('call_answered', async (data) => {
                     debugLog('Received answer from remote');
                     answerReceived = true;
+                    hasReceiverResponded = true;
+                    if (signalingTimeout) clearTimeout(signalingTimeout);
                     if (callTimeout) clearTimeout(callTimeout);
                     if (pc && pc.signalingState === 'have-local-offer') {
                         await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -726,11 +1013,31 @@
         }
 
         // Accept call
-        async function acceptIncomingCall(callerId, offerSdp) {
+        async function acceptIncomingCall(callerId, offerSdp, callerNeedsTurn = false) {
             debugLog('Accepting call from: ' + callerId);
+            
+            // Clear signaling timeout
+            if (signalingTimeout) clearTimeout(signalingTimeout);
+            hasReceiverResponded = true;
+            
+            // Show caller's TURN status on peer badge
+            if (callerNeedsTurn !== undefined) {
+                peerNetworkNeedsTURN = callerNeedsTurn;
+                updatePeerBadge();
+                if (callerNeedsTurn) {
+                    showToast(`⚠️ Caller's network requires TURN relay`, 3000);
+                }
+            }
+            
             stopRingtone();
             incomingPopup.style.display = 'none';
             callStatusDiv.innerText = 'Connecting... 🔄';
+            
+            if (!myDetectionComplete) {
+                debugLog('Waiting for my network detection...');
+                callStatusDiv.innerText = 'Detecting network... 🔍';
+                await detectMyNetworkType();
+            }
             
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ 
@@ -750,9 +1057,13 @@
                 socket.emit('answer_call', { 
                     caller_id: callerId, 
                     answer: pc.localDescription, 
-                    call_type: callType 
+                    call_type: callType,
+                    answerer_needs_turn: myNetworkNeedsTURN
                 });
                 debugLog('Answer sent');
+                
+                startTimer();
+                isCallActive = true;
                 
             } catch (err) {
                 debugLog('Accept error: ' + err.message);
@@ -800,13 +1111,12 @@
         endCallBtn.onclick = endCallAndRedirect;
 
         // Socket events
-        socket.on('connect', () => {
+        socket.on('connect', async () => {
             debugLog('Socket connected: ' + socket.id);
             showToast('Connected to server', 1000);
             
-            if (pendingCallData && !isCallActive) {
-                acceptIncomingCall(pendingCallData.callerId, pendingCallData.offer);
-                pendingCallData = null;
+            if (!myDetectionComplete) {
+                await detectMyNetworkType();
             }
         });
         
@@ -815,19 +1125,103 @@
             if (isCallActive) endCallWithMessage('Connection lost');
         });
         
+        // Receive peer's network status
+        socket.on('peer_network_status', (data) => {
+            debugLog(`📡 Received peer network status: needsTurn=${data.needsTurn} from ${data.user_id}`);
+            if (data.user_id === otherUserId) {
+                peerNetworkNeedsTURN = data.needsTurn;
+                updatePeerBadge();
+                
+                if (isCaller && data.needsTurn) {
+                    showToast(`⚠️ ${peerUserName} needs TURN relay - call may take a moment`, 4000);
+                }
+            }
+        });
+        
+        // User online status response
+        socket.on('user_online_status', (data) => {
+            if (data.user_id === otherUserId) {
+                debugLog(`📡 User status: online=${data.is_online}, socket=${data.has_active_socket}, canReceive=${data.can_receive_calls}`);
+                
+                if (!data.is_online) {
+                    peerTurnBadge.innerHTML = `⚫ ${peerUserName}: Offline`;
+                    peerTurnBadge.className = 'peer-turn-badge offline';
+                    callStatusDiv.innerText = `${peerUserName} is offline`;
+                    if (!isCallActive) {
+                        setTimeout(() => endCallAndRedirect(), 3000);
+                    }
+                } else if (!data.has_active_socket) {
+                    peerTurnBadge.innerHTML = `⚠️ ${peerUserName}: Not connected`;
+                    peerTurnBadge.className = 'peer-turn-badge warning';
+                    callStatusDiv.innerText = `${peerUserName} is not connected`;
+                } else {
+                    peerTurnBadge.innerHTML = `🟢 ${peerUserName}: Online`;
+                    peerTurnBadge.className = 'peer-turn-badge stun-works';
+                }
+            }
+        });
+        
+        // Ping/Pong events for signaling check
+        socket.on('call_ping', (data) => {
+            debugLog('📡 Received ping from caller');
+            socket.emit('call_pong', { target_id: data.from_id });
+        });
+        
+        socket.on('call_ping_timeout', (data) => {
+            if (data.user_id === otherUserId) {
+                debugLog('⚠️ Ping timeout - receiver not responding');
+                peerTurnBadge.innerHTML = `⚠️ ${peerUserName}: Not responding`;
+                peerTurnBadge.className = 'peer-turn-badge warning';
+            }
+        });
+        
+        socket.on('call_pong_received', (data) => {
+            if (data.user_id === otherUserId) {
+                debugLog('✅ Pong received - receiver is active!');
+                hasReceiverResponded = true;
+                peerTurnBadge.innerHTML = `🟢 ${peerUserName}: Active`;
+                peerTurnBadge.className = 'peer-turn-badge stun-works';
+                
+                if (signalingTimeout) {
+                    clearTimeout(signalingTimeout);
+                }
+            }
+        });
+        
         socket.on('incoming_call', (data) => {
-            debugLog('Incoming call from: ' + data.caller_id);
+            debugLog('📞 Incoming call from: ' + data.caller_id);
             
             if (data.caller_id === otherUserId) {
+                // Clear any pending signaling checks
+                if (signalingTimeout) clearTimeout(signalingTimeout);
+                hasReceiverResponded = true;
+                
+                // Show caller's TURN status immediately
+                if (data.caller_needs_turn !== undefined) {
+                    peerNetworkNeedsTURN = data.caller_needs_turn;
+                    updatePeerBadge();
+                }
+                
                 callerNameSpan.innerText = data.caller_name || 'User';
                 incomingPopup.style.display = 'flex';
                 playRingtone();
                 
-                acceptCallBtn.onclick = () => {
+                const newAcceptBtn = acceptCallBtn.cloneNode(true);
+                const newRejectBtn = rejectCallBtn.cloneNode(true);
+                acceptCallBtn.parentNode.replaceChild(newAcceptBtn, acceptCallBtn);
+                rejectCallBtn.parentNode.replaceChild(newRejectBtn, rejectCallBtn);
+                
+                const updatedAcceptBtn = document.getElementById('acceptCallBtn');
+                const updatedRejectBtn = document.getElementById('rejectCallBtn');
+                
+                updatedAcceptBtn.onclick = () => {
+                    debugLog('✅ Accepting call');
                     stopRingtone();
-                    acceptIncomingCall(data.caller_id, data.offer);
+                    acceptIncomingCall(data.caller_id, data.offer, data.caller_needs_turn);
+                    incomingPopup.style.display = 'none';
                 };
-                rejectCallBtn.onclick = () => {
+                updatedRejectBtn.onclick = () => {
+                    debugLog('❌ Rejecting call');
                     stopRingtone();
                     socket.emit('reject_call', { caller_id: data.caller_id });
                     endCallWithMessage('Call rejected');
@@ -838,8 +1232,21 @@
         
         socket.on('call_answered', async (data) => {
             debugLog('Call answered event');
+            
+            // Update peer's TURN status from answer
+            if (data.answerer_needs_turn !== undefined) {
+                peerNetworkNeedsTURN = data.answerer_needs_turn;
+                updatePeerBadge();
+                if (data.answerer_needs_turn) {
+                    showToast(`⚠️ ${peerUserName} needs TURN relay`, 3000);
+                }
+            }
+            
             if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                debugLog('Remote description set from answer');
+                startTimer();
+                isCallActive = true;
             }
         });
         
@@ -847,7 +1254,7 @@
             if (peerConnection && data.candidate) {
                 try {
                     await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                    debugLog('ICE candidate added');
+                    debugLog('ICE candidate added successfully');
                 } catch (e) { 
                     debugLog('ICE candidate error: ' + e.message);
                 }
@@ -882,24 +1289,18 @@
         });
 
         // Start call
-        if (pendingCallData) {
-            if (socket.connected) {
-                acceptIncomingCall(pendingCallData.callerId, pendingCallData.offer);
-                pendingCallData = null;
-            } else {
-                callStatusDiv.innerText = 'Connecting to server...';
-            }
-        } 
-        else if (isCaller) {
+        if (isCaller) {
             if (socket.connected) {
                 initiateCall();
             } else {
                 callStatusDiv.innerText = 'Connecting to server...';
                 socket.once('connect', () => initiateCall());
             }
-        } 
-        else {
+        } else {
             callStatusDiv.innerText = 'Waiting for call... 📞';
+            if (!myDetectionComplete) {
+                detectMyNetworkType();
+            }
         }
     </script>
 </body>
