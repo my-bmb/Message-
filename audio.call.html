@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Audio Call with {{ other_user.username }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1c, #03060c);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .call-card {
+            background: rgba(18, 22, 35, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 56px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 520px;
+            margin: 20px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .avatar-wrapper { text-align: center; margin-bottom: 1.5rem; position: relative; }
+        .avatar-ring {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #2a2f4b, #1a1f33);
+            border-radius: 60px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
+        }
+        .avatar-ring.active-ring {
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+            border-color: #34d399;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .avatar-ring i { font-size: 3.8rem; color: #cbd5e6; }
+        .user-name {
+            font-size: 1.9rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #ffffff, #b9c3e6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-top: 12px;
+        }
+        .call-status {
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: rgba(0,0,0,0.5);
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 40px;
+            margin-bottom: 16px;
+            color: #a0b3d9;
+        }
+        .timer {
+            font-family: monospace;
+            font-size: 2.8rem;
+            font-weight: 500;
+            letter-spacing: 3px;
+            background: linear-gradient(120deg, #eef2ff, #9aa9cf);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 28px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .ctrl-btn {
+            background: rgba(30,35,55,0.8);
+            backdrop-filter: blur(8px);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.6rem;
+            color: #eef2ff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .ctrl-btn:hover { transform: translateY(-3px); background: rgba(50,58,85,0.9); }
+        .ctrl-btn.active { background: #e11d48; color: white; }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        .end-btn {
+            border: none;
+            width: 80px;
+            height: 80px;
+            border-radius: 50px;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            background: #dc2626;
+            color: white;
+        }
+        .end-btn:hover { background: #b91c1c; transform: scale(1.05); }
+        .incoming-popup {
+            position: fixed;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(25,30,45,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 60px;
+            padding: 14px 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.15);
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .incoming-popup span i { margin-right: 12px; color: #34d399; animation: ring 1s infinite; }
+        @keyframes ring {
+            0%, 100% { transform: rotate(0); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+        }
+        .incoming-popup button {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            margin: 0 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .incoming-popup button:hover { transform: scale(1.1); }
+        .accept-btn { color: #34d399; }
+        .reject-btn { color: #f87171; }
+        .toast-msg {
+            position: fixed;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            z-index: 2000;
+            display: none;
+            white-space: nowrap;
+        }
+        .volume-meter {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .volume-level {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #34d399, #10b981);
+            transition: width 0.05s;
+        }
+        .debug-panel {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.85);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            z-index: 1000;
+            max-width: 350px;
+            max-height: 200px;
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+            display: none;
+        }
+        .network-badge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-family: monospace;
+            z-index: 1000;
+        }
+        .network-badge.good { background: #10b981; color: white; }
+        .network-badge.warning { background: #f59e0b; color: black; }
+        .network-badge.bad { background: #e11d48; color: white; }
+        
+        @media (max-width: 550px) {
+            .call-card { padding: 1.5rem; border-radius: 40px; }
+            .avatar-ring { width: 90px; height: 90px; }
+            .avatar-ring i { font-size: 2.8rem; }
+            .user-name { font-size: 1.5rem; }
+            .timer { font-size: 2rem; }
+            .ctrl-btn { width: 50px; height: 50px; font-size: 1.3rem; }
+            .end-btn { width: 65px; height: 65px; font-size: 1.6rem; }
+            .debug-panel { font-size: 8px; max-width: 250px; max-height: 150px; }
+        }
+    </style>
+</head>
+<body>
+    <audio id="remoteAudio" autoplay style="display: none;"></audio>
+    
+    <div class="call-card">
+        <div class="avatar-wrapper">
+            <div class="avatar-ring" id="avatarRing">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="volume-meter">
+                <div class="volume-level" id="volumeLevel"></div>
+            </div>
+            <div class="user-name">{{ other_user.username }}</div>
+        </div>
+        <div style="text-align: center;">
+            <div class="call-status" id="callStatus">Initializing...</div>
+            <div class="timer" id="timer">00:00</div>
+        </div>
+        <div class="controls">
+            <button class="ctrl-btn" id="muteBtn" title="Mute"><i class="fas fa-microphone"></i></button>
+            <button class="ctrl-btn" id="speakerBtn" title="Speaker"><i class="fas fa-volume-up"></i></button>
+            <button class="ctrl-btn" id="holdBtn" title="Hold"><i class="fas fa-pause"></i></button>
+        </div>
+        <div class="action-buttons">
+            <button class="end-btn" id="endCallBtn"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+
+    <div id="incomingPopup" class="incoming-popup">
+        <span><i class="fas fa-phone-alt"></i> Incoming call from <strong id="callerName"></strong></span>
+        <div>
+            <button id="acceptCallBtn" class="accept-btn"><i class="fas fa-check-circle"></i></button>
+            <button id="rejectCallBtn" class="reject-btn"><i class="fas fa-times-circle"></i></button>
+        </div>
+    </div>
+    
+    <div id="toastMsg" class="toast-msg"></div>
+    <div id="debugPanel" class="debug-panel"></div>
+    <div id="networkBadge" class="network-badge">🔍 Detecting...</div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // ==================== MULTIPLE FREE TURN SERVERS ====================
+        // सभी TURN servers FREE हैं, बिना किसी external key के
+        // कोई signup नहीं, कोई credit card नहीं
+        
+        (function() {
+            'use strict';
+            
+            function silentLog(msg, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                if (type === 'error') console.error(`[WebRTC] ${timestamp} - ${msg}`);
+                else if (type === 'warn') console.warn(`[WebRTC] ${timestamp} - ${msg}`);
+                else console.log(`[WebRTC] ${timestamp} - ${msg}`);
+            }
+            
+            // ========== MULTIPLE FREE TURN SERVERS ==========
+            // 6 अलग-अलग FREE TURN servers (सब बिना signup के)
+            const ICE_SERVERS = [
+                // STUN servers (NAT traversal के लिए)
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:stun.cloudflare.com:3478' },
+                { urls: 'stun:stun.stunprotocol.org:3478' },
+                
+                // TURN Server 1: Metered.ca (50GB/month free)
+                { 
+                    urls: [
+                        'turn:openrelay.metered.ca:80?transport=tcp',
+                        'turn:openrelay.metered.ca:443?transport=tcp'
+                    ],
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                
+                // TURN Server 2: Homeway (बिना username/password, पूरी तरह FREE)
+                { 
+                    urls: [
+                        'turn:webrtc.homeway.io:3478?transport=udp',
+                        'turn:webrtc.homeway.io:53?transport=udp',
+                        'turn:webrtc.homeway.io:3478?transport=tcp',
+                        'turns:webrtc.homeway.io:443?transport=tcp'
+                    ],
+                    username: '',
+                    credential: ''
+                },
+                
+                // TURN Server 3: Turnix.io (5GB/month free)
+                {
+                    urls: [
+                        'turn:free.turnix.io:3478?transport=udp',
+                        'turn:free.turnix.io:3478?transport=tcp'
+                    ],
+                    username: 'free',
+                    credential: 'free'
+                },
+                
+                // TURN Server 4: AnyFirewall (बिना signup के)
+                {
+                    urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
+                    username: 'anyfirewall',
+                    credential: 'anyfirewall'
+                },
+                
+                // TURN Server 5: Nexstorm (बिना signup के)
+                {
+                    urls: 'turn:turn.nexstorm.net:3478?transport=udp',
+                    username: 'nexstorm',
+                    credential: 'nexstorm'
+                },
+                
+                // TURN Server 6: Freeturn (बिना signup के)
+                {
+                    urls: 'turn:freeturn.net:3478?transport=udp',
+                    username: 'freeturn',
+                    credential: 'freeturn'
+                }
+            ];
+            
+            // Fix 1: Enhanced RTCPeerConnection
+            const OriginalRTCPeerConnection = window.RTCPeerConnection;
+            
+            class FixedRTCPeerConnection extends OriginalRTCPeerConnection {
+                constructor(config) {
+                    const enhancedConfig = {
+                        ...config,
+                        iceServers: ICE_SERVERS,
+                        iceCandidatePoolSize: 10,
+                        bundlePolicy: 'max-bundle',
+                        rtcpMuxPolicy: 'require',
+                        iceTransportPolicy: 'all'  // पहले direct try करेगा, फिर TURN
+                    };
+                    super(enhancedConfig);
+                    this._pendingCandidates = [];
+                    
+                    // Auto timeout recovery
+                    this._iceTimeout = setTimeout(() => {
+                        if (this.iceConnectionState === 'checking') {
+                            silentLog('⚠️ ICE timeout - auto restarting', 'warn');
+                            this.restartIce();
+                        }
+                    }, 15000);
+                }
+                
+                async restartIce() {
+                    try {
+                        const offer = await this.createOffer({ iceRestart: true });
+                        await this.setLocalDescription(offer);
+                        silentLog('🔄 ICE restart initiated');
+                        return offer;
+                    } catch(e) {
+                        silentLog('❌ ICE restart failed: ' + e.message, 'error');
+                    }
+                }
+                
+                close() {
+                    if (this._iceTimeout) clearTimeout(this._iceTimeout);
+                    super.close();
+                }
+            }
+            
+            window.RTCPeerConnection = FixedRTCPeerConnection;
+            
+            // Fix 2: Enhanced addIceCandidate with queuing
+            const originalAddIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
+            RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
+                if (!candidate) return Promise.resolve();
+                
+                if (!this.remoteDescription && candidate.candidate) {
+                    silentLog('📦 Queuing ICE candidate (remote description not ready)');
+                    this._pendingCandidates = this._pendingCandidates || [];
+                    this._pendingCandidates.push(candidate);
+                    return Promise.resolve();
+                }
+                
+                return originalAddIceCandidate.call(this, candidate).catch(e => {
+                    if (!e.message.includes('already') && !e.message.includes('Duplicate')) {
+                        silentLog('⚠️ ICE candidate error: ' + e.message, 'warn');
+                    }
+                });
+            };
+            
+            // Fix 3: Enhanced setRemoteDescription with queue flushing
+            const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
+            RTCPeerConnection.prototype.setRemoteDescription = async function(desc) {
+                const result = await originalSetRemoteDescription.call(this, desc);
+                
+                if (this._pendingCandidates && this._pendingCandidates.length > 0) {
+                    silentLog(`📦 Processing ${this._pendingCandidates.length} queued ICE candidates`);
+                    for (const candidate of this._pendingCandidates) {
+                        try {
+                            await originalAddIceCandidate.call(this, candidate);
+                        } catch(e) {}
+                    }
+                    this._pendingCandidates = [];
+                }
+                
+                return result;
+            };
+            
+            // Fix 4: Enhanced getUserMedia with fallback
+            const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
+            navigator.mediaDevices.getUserMedia = async function(constraints) {
+                try {
+                    return await originalGetUserMedia.call(this, constraints);
+                } catch(err) {
+                    silentLog('🎤 getUserMedia failed: ' + err.message, 'warn');
+                    if (err.name === 'NotAllowedError') throw err;
+                    return await originalGetUserMedia.call(this, { audio: true });
+                }
+            };
+            
+            silentLog('✅ WebRTC fixes applied with 6 FREE TURN servers!');
+        })();
+        
+        // ==================== MAIN APPLICATION ====================
+        
+        // User info
+        const currentUserId = "{{ current_user.id }}";
+        const otherUserId = "{{ other_user.id }}";
+        const currentUserName = "{{ current_user.username }}";
+        const chatUrl = "{{ url_for('chat', user_id=other_user.id) }}";
+        const callType = "audio";
+        
+        // Socket connection
+        const socket = io({
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            timeout: 20000
+        });
+
+        // Check role
+        const urlParams = new URLSearchParams(window.location.search);
+        let isCaller = urlParams.get('role') !== 'receiver';
+        
+        // Pending call
+        let pendingCallData = null;
+        const pendingOfferJson = sessionStorage.getItem('pendingOffer');
+        if (pendingOfferJson) {
+            try {
+                pendingCallData = JSON.parse(pendingOfferJson);
+                sessionStorage.removeItem('pendingOffer');
+                isCaller = false;
+            } catch(e) {}
+        }
+
+        // DOM elements
+        const remoteAudio = document.getElementById('remoteAudio');
+        const callStatusDiv = document.getElementById('callStatus');
+        const timerDiv = document.getElementById('timer');
+        const muteBtn = document.getElementById('muteBtn');
+        const speakerBtn = document.getElementById('speakerBtn');
+        const holdBtn = document.getElementById('holdBtn');
+        const endCallBtn = document.getElementById('endCallBtn');
+        const incomingPopup = document.getElementById('incomingPopup');
+        const acceptCallBtn = document.getElementById('acceptCallBtn');
+        const rejectCallBtn = document.getElementById('rejectCallBtn');
+        const callerNameSpan = document.getElementById('callerName');
+        const toastMsg = document.getElementById('toastMsg');
+        const avatarRing = document.getElementById('avatarRing');
+        const volumeLevel = document.getElementById('volumeLevel');
+        const debugPanel = document.getElementById('debugPanel');
+        const networkBadge = document.getElementById('networkBadge');
+
+        // State
+        let peerConnection = null;
+        let localStream = null;
+        let callStartTime = null;
+        let timerInterval = null;
+        let isMuted = false;
+        let isOnHold = false;
+        let ringtoneContext = null;
+        let isCallActive = false;
+        let callTimeout = null;
+        let audioContext = null;
+        let volumeInterval = null;
+        let answerReceived = false;
+        let myNetworkQuality = 'unknown';
+        
+        // Debug logging
+        function debugLog(msg) {
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] ${msg}`);
+            if (debugPanel && debugPanel.style.display !== 'none') {
+                debugPanel.style.display = 'block';
+                debugPanel.innerHTML += `<div>${timestamp}: ${msg}</div>`;
+                while (debugPanel.children.length > 15) {
+                    debugPanel.removeChild(debugPanel.children[0]);
+                }
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+        }
+        
+        // Network detection
+        async function detectNetworkQuality() {
+            return new Promise((resolve) => {
+                debugLog('🔍 Detecting network quality...');
+                
+                const pc = new RTCPeerConnection({ 
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
+                });
+                
+                let hasRelay = false;
+                let hasSrflx = false;
+                
+                const timeout = setTimeout(() => {
+                    pc.close();
+                    debugLog('⚠️ Network detection timeout');
+                    networkBadge.innerHTML = '⚠️ Unknown Network';
+                    networkBadge.className = 'network-badge warning';
+                    resolve('unknown');
+                }, 5000);
+                
+                pc.onicecandidate = (e) => {
+                    if (e.candidate) {
+                        const candidateStr = e.candidate.candidate;
+                        if (candidateStr.includes('relay')) {
+                            hasRelay = true;
+                            debugLog('🔄 RELAY candidate - Network needs TURN');
+                        } else if (candidateStr.includes('srflx')) {
+                            hasSrflx = true;
+                            debugLog('✅ SRFLX candidate - Good network');
+                        }
+                    } else {
+                        clearTimeout(timeout);
+                        
+                        if (hasSrflx && !hasRelay) {
+                            myNetworkQuality = 'good';
+                            networkBadge.innerHTML = '✅ Network: Good';
+                            networkBadge.className = 'network-badge good';
+                            debugLog('✅ Network is GOOD - Direct connection possible');
+                        } else if (hasRelay) {
+                            myNetworkQuality = 'needs_turn';
+                            networkBadge.innerHTML = '🔄 Network: Relay Mode';
+                            networkBadge.className = 'network-badge warning';
+                            debugLog('⚠️ Network needs TURN relay');
+                        } else {
+                            myNetworkQuality = 'unknown';
+                            networkBadge.innerHTML = '⚠️ Network: Unknown';
+                            networkBadge.className = 'network-badge warning';
+                            debugLog('⚠️ Network detection incomplete');
+                        }
+                        
+                        pc.close();
+                        resolve(myNetworkQuality);
+                    }
+                };
+                
+                pc.createDataChannel('detection');
+                pc.createOffer()
+                    .then(offer => pc.setLocalDescription(offer))
+                    .catch(err => debugLog('Detection error: ' + err.message));
+            });
+        }
+        
+        // Volume meter
+        function setupVolumeMeter(stream) {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            try {
+                const source = audioContext.createMediaStreamSource(stream);
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                if (volumeInterval) clearInterval(volumeInterval);
+                volumeInterval = setInterval(() => {
+                    if (!isCallActive) return;
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                    let percent = Math.min(100, (sum / dataArray.length / 255) * 100);
+                    if (volumeLevel) volumeLevel.style.width = percent + '%';
+                }, 100);
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            } catch(e) {}
+        }
+        
+        function showToast(msg, duration = 2500) {
+            toastMsg.innerText = msg;
+            toastMsg.style.display = 'block';
+            setTimeout(() => { toastMsg.style.display = 'none'; }, duration);
+        }
+
+        function redirectToChat() {
+            window.location.href = chatUrl;
+        }
+
+        function updateTimer() {
+            if (!callStartTime) return;
+            const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            timerDiv.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        }
+        
+        function startTimer() { 
+            callStartTime = Date.now(); 
+            if (timerInterval) clearInterval(timerInterval); 
+            timerInterval = setInterval(updateTimer, 1000); 
+        }
+        
+        function stopTimer() { 
+            if (timerInterval) clearInterval(timerInterval); 
+            timerInterval = null; 
+            callStartTime = null; 
+            timerDiv.innerText = '00:00'; 
+        }
+
+        function playRingtone() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+                if (ringtoneContext) ringtoneContext.close();
+                ringtoneContext = new AudioContextClass();
+                const gainNode = ringtoneContext.createGain();
+                gainNode.gain.value = 0.15;
+                gainNode.connect(ringtoneContext.destination);
+                const playTone = (freq, duration) => new Promise(resolve => {
+                    const osc = ringtoneContext.createOscillator();
+                    osc.frequency.value = freq;
+                    osc.type = 'sine';
+                    osc.connect(gainNode);
+                    osc.start();
+                    setTimeout(() => { osc.stop(); resolve(); }, duration);
+                });
+                const ringPattern = async () => {
+                    if (!ringtoneContext) return;
+                    if (ringtoneContext.state === 'suspended') await ringtoneContext.resume();
+                    await playTone(440, 400);
+                    await new Promise(r => setTimeout(r, 200));
+                    if (!ringtoneContext) return;
+                    await playTone(440, 400);
+                    await new Promise(r => setTimeout(r, 200));
+                    if (!ringtoneContext) return;
+                    await playTone(440, 400);
+                    await new Promise(r => setTimeout(r, 800));
+                    if (ringtoneContext) ringPattern();
+                };
+                ringPattern();
+                ringtoneContext.resume();
+            } catch(e) {}
+        }
+        
+        function stopRingtone() { 
+            if (ringtoneContext) { 
+                try { ringtoneContext.close(); } catch(e) {}
+                ringtoneContext = null; 
+            } 
+        }
+
+        // Create PeerConnection
+        async function createPeerConnection() {
+            if (peerConnection) {
+                try { peerConnection.close(); } catch(e) {}
+                peerConnection = null;
+            }
+            
+            peerConnection = new RTCPeerConnection();
+            debugLog('PeerConnection created');
+            
+            if (localStream && localStream.getTracks) {
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                    debugLog(`Added ${track.kind} track`);
+                });
+            }
+            
+            peerConnection.ontrack = (event) => {
+                debugLog(`Received remote ${event.track.kind} track`);
+                if (event.streams && event.streams[0]) {
+                    remoteAudio.srcObject = event.streams[0];
+                    remoteAudio.play().catch(() => {});
+                    avatarRing.classList.add('active-ring');
+                }
+            };
+            
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    let candidateType = 'unknown';
+                    if (event.candidate.candidate.includes('relay')) candidateType = 'TURN';
+                    else if (event.candidate.candidate.includes('srflx')) candidateType = 'STUN';
+                    else if (event.candidate.candidate.includes('host')) candidateType = 'HOST';
+                    debugLog(`📡 Sending ICE candidate (${candidateType})`);
+                    socket.emit('ice_candidate', { target_id: otherUserId, candidate: event.candidate });
+                } else {
+                    debugLog('✅ ICE gathering complete');
+                }
+            };
+            
+            peerConnection.oniceconnectionstatechange = () => {
+                const state = peerConnection.iceConnectionState;
+                debugLog(`🔌 ICE state: ${state}`);
+                
+                if (state === 'connected' || state === 'completed') {
+                    callStatusDiv.innerText = 'Connected ✅';
+                    if (!callStartTime) startTimer();
+                    isCallActive = true;
+                    if (callTimeout) clearTimeout(callTimeout);
+                    avatarRing.classList.add('active-ring');
+                    showToast('Call connected!', 1500);
+                    
+                    if (myNetworkQuality === 'good') {
+                        networkBadge.innerHTML = '✅ Connected (Direct)';
+                    } else {
+                        networkBadge.innerHTML = '🔄 Connected (Relay)';
+                    }
+                } 
+                else if (state === 'failed') {
+                    callStatusDiv.innerText = 'Connection failed ❌';
+                    showToast('Connection failed!', 2000);
+                    debugLog('❌ ICE connection failed');
+                    endCallInternal(false);
+                } 
+                else if (state === 'disconnected') {
+                    callStatusDiv.innerText = 'Reconnecting... 🔄';
+                    avatarRing.classList.remove('active-ring');
+                    debugLog('⚠️ ICE disconnected');
+                }
+                else if (state === 'checking') {
+                    callStatusDiv.innerText = 'Connecting... 🔄';
+                    debugLog('🔌 ICE checking...');
+                }
+            };
+            
+            return peerConnection;
+        }
+
+        // End call
+        function endCallInternal(notifyServer = true) {
+            debugLog('Ending call, notifyServer: ' + notifyServer);
+            stopTimer();
+            isCallActive = false;
+            answerReceived = false;
+            
+            if (volumeInterval) clearInterval(volumeInterval);
+            if (callTimeout) clearTimeout(callTimeout);
+            
+            if (localStream && localStream.getTracks) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            if (peerConnection) {
+                try { peerConnection.close(); } catch(e) {}
+                peerConnection = null;
+            }
+            
+            if (notifyServer) {
+                socket.emit('end_call', { target_id: otherUserId });
+            }
+            
+            stopRingtone();
+            
+            isMuted = false;
+            isOnHold = false;
+            muteBtn.classList.remove('active');
+            muteBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            holdBtn.classList.remove('active');
+            holdBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            avatarRing.classList.remove('active-ring');
+            
+            callStatusDiv.innerText = 'Call ended 📞';
+            networkBadge.innerHTML = '📞 Call ended';
+            
+            if (remoteAudio.srcObject) {
+                remoteAudio.srcObject = null;
+            }
+        }
+
+        function endCallAndRedirect() {
+            endCallInternal(true);
+            redirectToChat();
+        }
+
+        // Initiate call
+        async function initiateCall() {
+            debugLog('Initiating call to: ' + otherUserId);
+            endCallInternal(false);
+            callStatusDiv.innerText = 'Starting call... 🚀';
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+                });
+                debugLog('✅ Microphone ready');
+                setupVolumeMeter(localStream);
+                
+                const pc = await createPeerConnection();
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                debugLog('📞 Offer created');
+                
+                socket.emit('call_user', { 
+                    target_id: otherUserId, 
+                    call_type: callType, 
+                    offer: pc.localDescription,
+                    caller_name: currentUserName
+                });
+                
+                callStatusDiv.innerText = 'Ringing... 🔔';
+                
+                callTimeout = setTimeout(() => {
+                    if (!isCallActive && !answerReceived) {
+                        debugLog('⏰ Call timeout - no answer');
+                        endCallWithMessage('No answer ⏰');
+                    }
+                }, 35000);
+                
+                socket.once('call_answered', async (data) => {
+                    debugLog('📞 Received answer from remote');
+                    answerReceived = true;
+                    if (callTimeout) clearTimeout(callTimeout);
+                    if (pc && pc.signalingState === 'have-local-offer') {
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                        debugLog('✅ Remote description set');
+                    }
+                });
+                
+                socket.once('call_rejected', () => { 
+                    debugLog('❌ Call rejected');
+                    endCallWithMessage('Call rejected ❌'); 
+                });
+                
+                socket.once('call_timeout', () => { 
+                    debugLog('⏰ Call timeout event');
+                    endCallWithMessage('No answer ⏰'); 
+                });
+                
+            } catch (err) {
+                debugLog('❌ Error: ' + err.message);
+                let errorMsg = 'Microphone access denied';
+                if (err.name === 'NotAllowedError') errorMsg = 'Please allow microphone access';
+                if (err.name === 'NotFoundError') errorMsg = 'No microphone found';
+                endCallWithMessage(errorMsg);
+            }
+        }
+
+        // Accept call
+        async function acceptIncomingCall(callerId, offerSdp) {
+            debugLog('📞 Accepting call from: ' + callerId);
+            stopRingtone();
+            incomingPopup.style.display = 'none';
+            callStatusDiv.innerText = 'Connecting... 🔄';
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+                });
+                debugLog('✅ Microphone ready');
+                setupVolumeMeter(localStream);
+                
+                const pc = await createPeerConnection();
+                await pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+                debugLog('✅ Remote description set');
+                
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                debugLog('📞 Answer created');
+                
+                socket.emit('answer_call', { 
+                    caller_id: callerId, 
+                    answer: pc.localDescription, 
+                    call_type: callType 
+                });
+                debugLog('✅ Answer sent');
+                
+            } catch (err) {
+                debugLog('❌ Accept error: ' + err.message);
+                endCallWithMessage('Failed to accept call');
+            }
+        }
+
+        function endCallWithMessage(reason = '') {
+            if (reason) {
+                callStatusDiv.innerText = reason;
+                showToast(reason, 1500);
+            }
+            endCallInternal(true);
+        }
+
+        // UI Controls
+        function toggleMute() {
+            if (!localStream || !isCallActive) { showToast('No active call'); return; }
+            isMuted = !isMuted;
+            if (localStream.getAudioTracks()[0]) {
+                localStream.getAudioTracks()[0].enabled = !isMuted;
+            }
+            muteBtn.classList.toggle('active', isMuted);
+            muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+            showToast(isMuted ? 'Muted 🔇' : 'Unmuted 🎤', 1000);
+        }
+        
+        function toggleSpeaker() { showToast('Adjust system volume 🔊', 1000); }
+        
+        function toggleHold() {
+            if (!localStream || !isCallActive) { showToast('No active call'); return; }
+            isOnHold = !isOnHold;
+            if (localStream.getAudioTracks()[0]) {
+                localStream.getAudioTracks()[0].enabled = !isOnHold;
+            }
+            holdBtn.classList.toggle('active', isOnHold);
+            holdBtn.innerHTML = isOnHold ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+            callStatusDiv.innerText = isOnHold ? 'Call on hold ⏸️' : (peerConnection?.iceConnectionState === 'connected' ? 'Connected ✅' : 'Connecting...');
+            showToast(isOnHold ? 'Call on hold' : 'Resumed', 1000);
+        }
+
+        muteBtn.onclick = toggleMute;
+        speakerBtn.onclick = toggleSpeaker;
+        holdBtn.onclick = toggleHold;
+        endCallBtn.onclick = endCallAndRedirect;
+        
+        // Double click on network badge to show debug panel
+        networkBadge.addEventListener('dblclick', () => {
+            if (debugPanel.style.display === 'none' || debugPanel.style.display === '') {
+                debugPanel.style.display = 'block';
+                debugLog('Debug panel opened');
+                showToast('Debug panel opened', 1000);
+            } else {
+                debugPanel.style.display = 'none';
+                showToast('Debug panel closed', 1000);
+            }
+        });
+
+        // Socket events
+        socket.on('connect', async () => {
+            debugLog('🔌 Socket connected: ' + socket.id);
+            showToast('Connected to server', 1000);
+            
+            await detectNetworkQuality();
+            
+            if (pendingCallData && !isCallActive) {
+                acceptIncomingCall(pendingCallData.callerId, pendingCallData.offer);
+                pendingCallData = null;
+            }
+        });
+        
+        socket.on('disconnect', () => {
+            debugLog('🔌 Socket disconnected');
+            if (isCallActive) endCallWithMessage('Connection lost');
+        });
+        
+        socket.on('incoming_call', (data) => {
+            debugLog('📞 Incoming call from: ' + data.caller_id);
+            
+            if (data.caller_id === otherUserId) {
+                callerNameSpan.innerText = data.caller_name || 'User';
+                incomingPopup.style.display = 'flex';
+                playRingtone();
+                
+                acceptCallBtn.onclick = () => {
+                    debugLog('✅ Accepting call');
+                    stopRingtone();
+                    acceptIncomingCall(data.caller_id, data.offer);
+                };
+                rejectCallBtn.onclick = () => {
+                    debugLog('❌ Rejecting call');
+                    stopRingtone();
+                    socket.emit('reject_call', { caller_id: data.caller_id });
+                    endCallWithMessage('Call rejected');
+                    incomingPopup.style.display = 'none';
+                };
+            }
+        });
+        
+        socket.on('call_answered', async (data) => {
+            debugLog('📞 Call answered event');
+            if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                debugLog('✅ Remote description set from answer');
+            }
+        });
+        
+        socket.on('ice_candidate', async (data) => {
+            if (peerConnection && data.candidate) {
+                try {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    debugLog('✅ ICE candidate added');
+                } catch (e) { 
+                    debugLog('⚠️ ICE candidate error: ' + e.message);
+                }
+            }
+        });
+        
+        socket.on('call_ended', () => {
+            debugLog('📞 Remote ended call');
+            endCallWithMessage('Call ended');
+        });
+        
+        socket.on('call_rejected', () => {
+            debugLog('❌ Call rejected by remote');
+            endCallWithMessage('Call rejected');
+        });
+        
+        socket.on('call_timeout', () => {
+            debugLog('⏰ Call timeout from server');
+            endCallWithMessage('No answer');
+        });
+        
+        socket.on('call_error', (err) => {
+            debugLog('❌ Call error: ' + err.message);
+            endCallWithMessage(err.message || 'Call error');
+        });
+
+        // Resume audio on user interaction
+        document.body.addEventListener('click', () => {
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        });
+
+        // Start call
+        if (pendingCallData) {
+            if (socket.connected) {
+                acceptIncomingCall(pendingCallData.callerId, pendingCallData.offer);
+                pendingCallData = null;
+            } else {
+                callStatusDiv.innerText = 'Connecting to server...';
+            }
+        } 
+        else if (isCaller) {
+            if (socket.connected) {
+                initiateCall();
+            } else {
+                callStatusDiv.innerText = 'Connecting to server...';
+                socket.once('connect', () => initiateCall());
+            }
+        } 
+        else {
+            callStatusDiv.innerText = 'Waiting for call... 📞';
+            detectNetworkQuality();
+        }
+        
+        debugLog('Audio call application initialized with 6 FREE TURN servers');
+    </script>
+</body>
+</html>
