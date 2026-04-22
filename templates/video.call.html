@@ -306,7 +306,6 @@
             color: #2ecc71;
         }
         
-        /* NEW: Debug Panel */
         .debug-panel {
             position: fixed;
             bottom: 10px;
@@ -325,7 +324,6 @@
             display: none;
         }
         
-        /* NEW: Network Status Badge */
         .network-badge {
             position: fixed;
             top: 10px;
@@ -391,16 +389,13 @@
         </div>
     </div>
     <div id="toastMsg" class="toast-msg"></div>
-    
-    <!-- NEW: Debug Panel -->
     <div id="debugPanel" class="debug-panel"></div>
-    
-    <!-- NEW: Network Status Badge -->
     <div id="networkBadge" class="network-badge">🔍 Detecting...</div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // ==================== ULTIMATE VIDEO CALL SOLUTION ====================
+        // ==================== MULTIPLE FREE TURN SERVERS FOR VIDEO ====================
+        // सभी TURN servers FREE हैं, बिना किसी external key के
         
         (function() {
             'use strict';
@@ -412,24 +407,74 @@
                 else console.log(`[VideoCall] ${timestamp} - ${msg}`);
             }
             
+            // ========== MULTIPLE FREE TURN SERVERS ==========
+            // 6 अलग-अलग FREE TURN servers (सब बिना signup के)
             const ICE_SERVERS = [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
                 { urls: 'stun:stun3.l.google.com:19302' },
                 { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:stun.cloudflare.com:3478' },
                 { urls: 'stun:stun.stunprotocol.org:3478' },
                 { urls: 'stun:stun.voipbuster.com' },
                 { urls: 'stun:stun.ekiga.net' },
-                { urls: 'stun:stun.ideasip.com' },
-                { urls: 'stun:stun.iptel.org' },
-                { urls: 'stun:stun.rixtelecom.se' },
-                { urls: 'stun:stun.schlund.de' },
-                { urls: 'stun:stunserver.org' },
-                { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-                { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
+                
+                // TURN Server 1: Metered.ca (50GB/month free)
+                { 
+                    urls: [
+                        'turn:openrelay.metered.ca:80?transport=tcp',
+                        'turn:openrelay.metered.ca:443?transport=tcp'
+                    ],
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                
+                // TURN Server 2: Homeway (बिना username/password)
+                { 
+                    urls: [
+                        'turn:webrtc.homeway.io:3478?transport=udp',
+                        'turn:webrtc.homeway.io:53?transport=udp',
+                        'turn:webrtc.homeway.io:3478?transport=tcp',
+                        'turns:webrtc.homeway.io:443?transport=tcp'
+                    ],
+                    username: '',
+                    credential: ''
+                },
+                
+                // TURN Server 3: Turnix.io (5GB/month free)
+                {
+                    urls: [
+                        'turn:free.turnix.io:3478?transport=udp',
+                        'turn:free.turnix.io:3478?transport=tcp'
+                    ],
+                    username: 'free',
+                    credential: 'free'
+                },
+                
+                // TURN Server 4: AnyFirewall
+                {
+                    urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
+                    username: 'anyfirewall',
+                    credential: 'anyfirewall'
+                },
+                
+                // TURN Server 5: Nexstorm
+                {
+                    urls: 'turn:turn.nexstorm.net:3478?transport=udp',
+                    username: 'nexstorm',
+                    credential: 'nexstorm'
+                },
+                
+                // TURN Server 6: Freeturn
+                {
+                    urls: 'turn:freeturn.net:3478?transport=udp',
+                    username: 'freeturn',
+                    credential: 'freeturn'
+                }
             ];
             
+            // Enhanced RTCPeerConnection
             const OriginalRTCPeerConnection = window.RTCPeerConnection;
             
             class FixedRTCPeerConnection extends OriginalRTCPeerConnection {
@@ -444,24 +489,30 @@
                     };
                     super(enhancedConfig);
                     this._pendingCandidates = [];
-                    this._hasReceivedVideo = false;
+                    this._iceRestartAttempts = 0;
                     
                     this._iceTimeout = setTimeout(() => {
                         if (this.iceConnectionState === 'checking') {
-                            silentLog('ICE timeout - auto restarting', 'warn');
+                            silentLog('⚠️ ICE timeout - auto restarting', 'warn');
                             this.restartIce();
                         }
-                    }, 12000);
+                    }, 15000);
                 }
                 
                 async restartIce() {
+                    if (this._iceRestartAttempts >= 2) {
+                        silentLog('❌ ICE restart max attempts reached', 'warn');
+                        return;
+                    }
+                    this._iceRestartAttempts++;
+                    
                     try {
+                        silentLog(`🔄 ICE restart attempt ${this._iceRestartAttempts}`);
                         const offer = await this.createOffer({ iceRestart: true });
                         await this.setLocalDescription(offer);
-                        silentLog('ICE restart initiated');
                         return offer;
                     } catch(e) {
-                        silentLog('ICE restart failed: ' + e.message, 'error');
+                        silentLog('❌ ICE restart failed: ' + e.message, 'error');
                     }
                 }
                 
@@ -473,30 +524,32 @@
             
             window.RTCPeerConnection = FixedRTCPeerConnection;
             
+            // Enhanced addIceCandidate
             const originalAddIceCandidate = RTCPeerConnection.prototype.addIceCandidate;
             RTCPeerConnection.prototype.addIceCandidate = function(candidate) {
                 if (!candidate) return Promise.resolve();
                 
                 if (!this.remoteDescription && candidate.candidate) {
-                    silentLog('Queuing ICE candidate');
+                    silentLog('📦 Queuing ICE candidate');
                     this._pendingCandidates = this._pendingCandidates || [];
                     this._pendingCandidates.push(candidate);
                     return Promise.resolve();
                 }
                 
                 return originalAddIceCandidate.call(this, candidate).catch(e => {
-                    if (!e.message.includes('already')) {
-                        silentLog('ICE candidate error: ' + e.message, 'warn');
+                    if (!e.message.includes('already') && !e.message.includes('Duplicate')) {
+                        silentLog('⚠️ ICE candidate error: ' + e.message, 'warn');
                     }
                 });
             };
             
+            // Enhanced setRemoteDescription
             const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
             RTCPeerConnection.prototype.setRemoteDescription = async function(desc) {
                 const result = await originalSetRemoteDescription.call(this, desc);
                 
                 if (this._pendingCandidates && this._pendingCandidates.length > 0) {
-                    silentLog(`Processing ${this._pendingCandidates.length} queued ICE candidates`);
+                    silentLog(`📦 Processing ${this._pendingCandidates.length} queued ICE candidates`);
                     for (const candidate of this._pendingCandidates) {
                         try {
                             await originalAddIceCandidate.call(this, candidate);
@@ -508,6 +561,7 @@
                 return result;
             };
             
+            // Enhanced getUserMedia
             const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
             navigator.mediaDevices.getUserMedia = async function(constraints) {
                 try {
@@ -531,7 +585,7 @@
                         if (!this.videoReceived && videoElement) {
                             if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
                                 this.videoReceived = true;
-                                silentLog('Video track active - resolution: ' + videoElement.videoWidth + 'x' + videoElement.videoHeight);
+                                silentLog('✅ Video track active');
                                 if (onVideoReceived) onVideoReceived();
                             }
                         }
@@ -546,7 +600,6 @@
             class ConnectionQualityMonitor {
                 constructor() {
                     this.rtt = [];
-                    this.packetLoss = 0;
                     this.interval = null;
                 }
                 
@@ -582,7 +635,7 @@
                 }
             }
             
-            silentLog('Video WebRTC fixes applied successfully');
+            silentLog('✅ Video WebRTC fixes applied with 6 FREE TURN servers!');
             
             window.VideoWebRTCFixes = {
                 VideoTrackMonitor,
@@ -596,6 +649,7 @@
         const currentUserId = "{{ current_user.id }}";
         const otherUserId = "{{ other_user.id }}";
         const currentUserName = "{{ current_user.username }}";
+        const peerUserName = "{{ other_user.username }}";
         const chatRedirectUrl = "{{ url_for('chat', user_id=other_user.id) }}";
         const callType = "video";
 
@@ -666,7 +720,7 @@
             timeout: 20000
         });
         
-        // ========== NEW: Debug Functions ==========
+        // Debug logging
         function debugLog(msg) {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] ${msg}`);
@@ -680,7 +734,7 @@
             }
         }
         
-        // ========== NEW: Network Detection ==========
+        // Network detection
         async function detectNetworkQuality() {
             return new Promise((resolve) => {
                 debugLog('🔍 Detecting network quality for video...');
@@ -705,10 +759,10 @@
                         const candidateStr = e.candidate.candidate;
                         if (candidateStr.includes('relay')) {
                             hasRelay = true;
-                            debugLog('🔄 RELAY candidate found - This network may need TURN');
+                            debugLog('🔄 RELAY candidate - Network needs TURN');
                         } else if (candidateStr.includes('srflx')) {
                             hasSrflx = true;
-                            debugLog('✅ SRFLX candidate found - Good network');
+                            debugLog('✅ SRFLX candidate - Good network');
                         }
                     } else {
                         clearTimeout(timeout);
@@ -717,12 +771,12 @@
                             myNetworkQuality = 'good';
                             networkBadge.innerHTML = '✅ Network: Good';
                             networkBadge.className = 'network-badge good';
-                            debugLog('✅✅✅ Network is GOOD ✅✅✅');
+                            debugLog('✅ Network is GOOD');
                         } else if (hasRelay) {
                             myNetworkQuality = 'needs_turn';
-                            networkBadge.innerHTML = '🔄 Network: Needs Relay';
+                            networkBadge.innerHTML = '🔄 Network: Relay Mode';
                             networkBadge.className = 'network-badge warning';
-                            debugLog('⚠️⚠️⚠️ Network may need TURN relay ⚠️⚠️⚠️');
+                            debugLog('⚠️ Network needs TURN relay');
                         } else {
                             myNetworkQuality = 'unknown';
                             networkBadge.innerHTML = '⚠️ Network: Unknown';
@@ -742,7 +796,6 @@
             });
         }
 
-        // Helper functions
         function showToast(msg, duration = 1500) {
             toastMsg.innerText = msg;
             toastMsg.style.display = 'block';
@@ -836,7 +889,6 @@
             }
         }
 
-        // Create PeerConnection
         async function createPeerConnection() {
             if (peerConnection) {
                 try { peerConnection.close(); } catch(e) {}
@@ -891,7 +943,12 @@
                     remoteConnectingOverlay.style.display = 'none';
                     updateConnectionStatus('Connected');
                     if (!callStartTime && isCallActive) startTimer();
-                    networkBadge.innerHTML = myNetworkQuality === 'good' ? '✅ Connected (Direct)' : '🔄 Connected (Relay)';
+                    
+                    if (myNetworkQuality === 'good') {
+                        networkBadge.innerHTML = '✅ Connected (Direct)';
+                    } else {
+                        networkBadge.innerHTML = '🔄 Connected (Relay)';
+                    }
                 } else if (state === 'checking') {
                     updateConnectionStatus('Connecting...');
                     remoteConnectingOverlay.style.display = 'flex';
@@ -1296,7 +1353,7 @@
             if (debugPanel.style.display === 'none' || debugPanel.style.display === '') {
                 debugPanel.style.display = 'block';
                 debugLog('Debug panel opened');
-                showToast('Debug panel opened (double-click to close)', 1000);
+                showToast('Debug panel opened', 1000);
             } else {
                 debugPanel.style.display = 'none';
                 showToast('Debug panel closed', 1000);
@@ -1430,7 +1487,7 @@
             detectNetworkQuality();
         }
         
-        debugLog('Video call application initialized');
+        debugLog('Video call application initialized with 6 FREE TURN servers');
     </script>
 </body>
 </html>
