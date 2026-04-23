@@ -3,21 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>FlirtyBee - Nearby Users</title>
+    <title>FlirtyBee - Nearby</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 8px;
+            padding: 10px;
             padding-bottom: 70px;
         }
 
@@ -30,7 +25,6 @@
             flex-wrap: wrap;
             gap: 6px;
         }
-
         .app-title {
             display: flex;
             align-items: center;
@@ -43,12 +37,7 @@
             font-weight: bold;
             font-size: 0.9rem;
         }
-
-        .header-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
+        .header-buttons { display: flex; gap: 5px; }
         .header-btn {
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(10px);
@@ -58,27 +47,19 @@
             padding: 5px 10px;
             font-size: 0.7rem;
             cursor: pointer;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 3px;
             text-decoration: none;
         }
-
-        .header-btn:active {
-            transform: scale(0.95);
-        }
-
+        .header-btn:active { transform: scale(0.95); }
         .profile-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             border: none;
         }
 
         /* Search */
-        .search-container {
-            margin-bottom: 8px;
-        }
-
+        .search-container { margin-bottom: 8px; }
         .search-input {
             width: 100%;
             padding: 8px 12px;
@@ -89,25 +70,13 @@
             outline: none;
         }
 
-        /* Distance Filters */
+        /* Filters */
         .filters-container {
             margin-bottom: 10px;
             overflow-x: auto;
             white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
         }
-
-        .filters-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .filter-buttons {
-            display: inline-flex;
-            gap: 5px;
-            padding: 0 2px;
-        }
-
+        .filter-buttons { display: inline-flex; gap: 5px; }
         .filter-btn {
             background: rgba(255,255,255,0.9);
             border: none;
@@ -116,37 +85,76 @@
             font-size: 11px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
         }
+        .filter-btn.active { background: #075e54; color: white; }
 
-        .filter-btn.active {
-            background: #075e54;
-            color: white;
-        }
-
-        /* User Grid - 3 Columns on Mobile */
+        /* User Grid - FIXED 3 COLUMNS */
         .users-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
         }
+        
+        @media (min-width: 600px) {
+            .users-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        }
+        @media (min-width: 900px) {
+            .users-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        }
+        @media (min-width: 1200px) {
+            .users-grid { grid-template-columns: repeat(5, 1fr); gap: 12px; }
+        }
 
-        /* User Card - 3:4 Ratio using aspect-ratio */
+        /* User Card */
         .user-card {
             background: white;
             border-radius: 14px;
             overflow: hidden;
-            cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             position: relative;
-            aspect-ratio: 3 / 4;
             display: flex;
             flex-direction: column;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .user-card:active { transform: scale(0.97); }
+
+        /* ONLINE USER CARD - BLINKING BORDER */
+        .user-card.online-card {
+            border: 2px solid #28a745;
+            animation: blinkBorder 1.2s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
         }
 
-        .user-card:active {
-            transform: scale(0.97);
+        @keyframes blinkBorder {
+            0% {
+                border-color: #28a745;
+                box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+            }
+            50% {
+                border-color: #ffd700;
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            }
+            100% {
+                border-color: #28a745;
+                box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+            }
+        }
+
+        /* Pulse effect on online card */
+        .user-card.online-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #28a745, #ffd700, #28a745);
+            border-radius: 14px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .online-indicator {
@@ -159,76 +167,78 @@
             background: #28a745;
             border: 2px solid white;
             z-index: 2;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .online-indicator.offline { 
+            background: #9e9e9e; 
+            animation: none;
         }
 
-        .online-indicator.offline {
-            background: #9e9e9e;
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
         }
 
+        /* Profile Picture - SQUARE */
         .user-avatar {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 12px 0 8px 0;
+            padding: 12px;
             text-align: center;
             flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-
-        .profile-pic-small {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+        .user-avatar:active { opacity: 0.7; }
+        
+        .profile-pic-square {
+            width: 100%;
+            aspect-ratio: 1 / 1;
             object-fit: cover;
             border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            background: white;
+            display: block;
         }
-
         .user-avatar i {
             font-size: 50px;
             color: white;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .user-card-info {
-            padding: 6px 6px 8px 6px;
+            padding: 8px 6px 10px 6px;
             text-align: center;
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
         }
 
         .user-card-name {
             font-weight: 700;
-            font-size: 11px;
+            font-size: 12px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
             color: #333;
         }
-
-        .age-text {
-            font-size: 9px;
-            color: #667eea;
-        }
-
+        .age-text { font-size: 9px; color: #667eea; }
         .status-badge {
             font-size: 8px;
-            padding: 1px 4px;
+            padding: 2px 5px;
             border-radius: 20px;
             display: inline-block;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
-
-        .status-online {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-offline {
-            background: #e9ecef;
-            color: #6c757d;
-        }
-
+        .status-online { background: #d4edda; color: #155724; }
+        .status-offline { background: #e9ecef; color: #6c757d; }
         .distance-badge {
-            font-size: 8px;
+            font-size: 9px;
             padding: 2px 4px;
             border-radius: 20px;
             display: inline-flex;
@@ -238,47 +248,48 @@
             margin-bottom: 6px;
             width: 100%;
         }
+        .distance-known { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .distance-unknown { background: #6c757d; color: white; }
+        .distance-warning { background: #ff9800; color: white; }
 
-        .distance-known {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-        }
-
-        .distance-unknown {
-            background: #6c757d;
-            color: white;
-        }
-
-        .distance-warning {
-            background: #ff9800;
-            color: white;
-        }
-
-        /* View Profile Button - Compact */
-        .view-profile-btn {
+        /* Action Buttons - 4 buttons row */
+        .action-buttons {
             display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            gap: 3px;
+            padding: 6px 3px 3px 3px;
+            border-top: 1px solid #eee;
+            margin-top: 4px;
+            flex-wrap: nowrap;
+        }
+        .action-btn {
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
-            padding: 6px 8px;
-            margin-top: 4px;
-            border-radius: 25px;
+            gap: 2px;
+            padding: 4px 0;
+            border-radius: 8px;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 9px;
+            font-size: 8px;
             transition: all 0.2s;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            width: 100%;
+            background: rgba(7, 94, 84, 0.1);
+            color: #075e54;
+            flex: 1;
+            min-width: 0;
         }
-
-        .view-profile-btn:active {
-            transform: scale(0.97);
+        .action-btn:active {
+            background: rgba(7, 94, 84, 0.25);
+            transform: scale(0.96);
         }
+        .action-btn i { font-size: 12px; }
+        .action-btn span { font-size: 7px; font-weight: 500; }
 
-        .view-profile-btn i {
-            font-size: 10px;
+        @media (max-width: 400px) {
+            .action-btn i { font-size: 11px; }
+            .action-btn span { font-size: 6px; }
         }
 
         .unread-badge {
@@ -288,7 +299,7 @@
             background: #dc3545;
             color: white;
             border-radius: 20px;
-            padding: 1px 4px;
+            padding: 2px 4px;
             font-size: 7px;
             font-weight: bold;
             min-width: 14px;
@@ -298,7 +309,7 @@
 
         .empty-state {
             text-align: center;
-            padding: 30px 15px;
+            padding: 40px 20px;
             color: white;
             grid-column: span 3;
         }
@@ -313,20 +324,8 @@
             justify-content: space-between;
             gap: 8px;
         }
-
-        .location-prompt-text {
-            font-size: 11px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .location-prompt-text i {
-            color: #ff9800;
-            font-size: 12px;
-        }
-
+        .location-prompt-text { font-size: 11px; color: #333; display: flex; align-items: center; gap: 5px; }
+        .location-prompt-text i { color: #ff9800; font-size: 12px; }
         .enable-location-btn {
             background: #075e54;
             color: white;
@@ -351,68 +350,8 @@
             white-space: nowrap;
         }
 
-        .hide-mobile {
-            display: none;
-        }
-        
-        @media (min-width: 450px) {
-            .hide-mobile {
-                display: inline;
-            }
-            .profile-pic-small {
-                width: 65px;
-                height: 65px;
-            }
-            .user-card-name {
-                font-size: 12px;
-            }
-            .view-profile-btn {
-                padding: 7px 10px;
-                font-size: 10px;
-            }
-        }
-
-        /* Tablet */
-        @media (min-width: 600px) {
-            .users-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-            }
-            .profile-pic-small {
-                width: 70px;
-                height: 70px;
-            }
-            .user-avatar {
-                padding: 16px 0 10px 0;
-            }
-            .view-profile-btn {
-                padding: 8px 12px;
-                font-size: 11px;
-            }
-            .view-profile-btn i {
-                font-size: 12px;
-            }
-        }
-
-        /* Desktop */
-        @media (min-width: 900px) {
-            .users-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-            .profile-pic-small {
-                width: 80px;
-                height: 80px;
-            }
-            .user-card-name {
-                font-size: 13px;
-            }
-        }
-
-        @media (min-width: 1200px) {
-            .users-grid {
-                grid-template-columns: repeat(6, 1fr);
-            }
-        }
+        .hide-mobile { display: none; }
+        @media (min-width: 450px) { .hide-mobile { display: inline; } }
     </style>
 </head>
 <body>
@@ -461,18 +400,21 @@
 
     <div class="users-grid" id="usersGrid">
         {% for user in users %}
-        <div class="user-card" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-distance="{{ user.distance_km or 999 }}" data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}">
+        <div class="user-card {% if user.is_online %}online-card{% endif %}" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-distance="{{ user.distance_km or 999 }}" data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}">
             <div class="online-indicator {% if user.is_online %}online{% else %}offline{% endif %}"></div>
             {% if unread_counts.get(user.id) %}
             <div class="unread-badge">{{ unread_counts[user.id] }}</div>
             {% endif %}
-            <div class="user-avatar">
+            
+            <!-- Profile Picture - SQUARE - Click = View Profile -->
+            <div class="user-avatar" onclick="event.stopPropagation(); window.location.href='{{ url_for('view_user_profile', user_id=user.id) }}'">
                 {% if user.profile_pic %}
-                <img src="{{ user.profile_pic }}" class="profile-pic-small">
+                <img src="{{ user.profile_pic }}" class="profile-pic-square">
                 {% else %}
                 <i class="fas fa-user-circle"></i>
                 {% endif %}
             </div>
+            
             <div class="user-card-info">
                 <div>
                     <div class="user-card-name">
@@ -482,11 +424,7 @@
                         {% endif %}
                     </div>
                     <div class="status-badge {% if user.is_online %}status-online{% else %}status-offline{% endif %}">
-                        {% if user.is_online %}
-                            ● Online
-                        {% else %}
-                            ⚫ Offline
-                        {% endif %}
+                        {% if user.is_online %}● Online{% else %}⚫ Offline{% endif %}
                     </div>
                     
                     {% if user.distance_display and user.distance_display != 'Unknown' %}
@@ -499,22 +437,36 @@
                         </div>
                     {% else %}
                         <div class="distance-badge distance-unknown">
-                            <i class="fas fa-question-circle"></i> Unknown
+                            <i class="fas fa-question-circle"></i> ?
                         </div>
                     {% endif %}
                 </div>
                 
-                <!-- View Profile Button -->
-                <a href="{{ url_for('view_user_profile', user_id=user.id) }}" class="view-profile-btn" onclick="event.stopPropagation();">
-                    <i class="fas fa-user-circle"></i> View Profile
-                </a>
+                <!-- 4 Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{{ url_for('view_user_profile', user_id=user.id) }}" class="action-btn" title="Profile" onclick="event.stopPropagation();">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="{{ url_for('chat', user_id=user.id) }}" class="action-btn" title="Chat" onclick="event.stopPropagation();">
+                        <i class="fas fa-comment"></i>
+                        <span>Chat</span>
+                    </a>
+                    <a href="{{ url_for('audio_call', user_id=user.id) }}" class="action-btn" title="Call" onclick="event.stopPropagation();">
+                        <i class="fas fa-phone"></i>
+                        <span>Call</span>
+                    </a>
+                    <a href="{{ url_for('video_call', user_id=user.id) }}" class="action-btn" title="Video" onclick="event.stopPropagation();">
+                        <i class="fas fa-video"></i>
+                        <span>Video</span>
+                    </a>
+                </div>
             </div>
         </div>
         {% else %}
         <div class="empty-state">
             <i class="fas fa-users fa-3x"></i>
             <p style="margin-top: 10px;">No other users found nearby</p>
-            <small>Try increasing distance filter</small>
         </div>
         {% endfor %}
     </div>
@@ -597,14 +549,27 @@
                 if (card) {
                     const indicator = card.querySelector('.online-indicator');
                     const statusBadge = card.querySelector('.status-badge');
+                    
                     if (data.is_online) {
+                        // Add online class to card for border blink
+                        card.classList.add('online-card');
                         indicator.classList.remove('offline');
                         indicator.classList.add('online');
-                        if (statusBadge) statusBadge.innerHTML = '● Online';
+                        if (statusBadge) {
+                            statusBadge.classList.remove('status-offline');
+                            statusBadge.classList.add('status-online');
+                            statusBadge.innerHTML = '● Online';
+                        }
                     } else {
+                        // Remove online class from card
+                        card.classList.remove('online-card');
                         indicator.classList.remove('online');
                         indicator.classList.add('offline');
-                        if (statusBadge) statusBadge.innerHTML = '⚫ Offline';
+                        if (statusBadge) {
+                            statusBadge.classList.remove('status-online');
+                            statusBadge.classList.add('status-offline');
+                            statusBadge.innerHTML = '⚫ Offline';
+                        }
                     }
                 }
             });
@@ -637,7 +602,7 @@
                             db.innerHTML = `<i class="fas fa-exclamation-triangle"></i> No GPS`;
                             db.className = 'distance-badge distance-warning';
                         } else {
-                            db.innerHTML = `<i class="fas fa-question-circle"></i> Unknown`;
+                            db.innerHTML = `<i class="fas fa-question-circle"></i> ?`;
                             db.className = 'distance-badge distance-unknown';
                         }
                     }
@@ -723,10 +688,12 @@
             
             sortUsersByDistance();
             
+            // Card click = Chat (except avatar and buttons)
             document.querySelectorAll('.user-card').forEach(card => {
                 const userId = card.getAttribute('data-user-id');
                 card.addEventListener('click', (e) => {
-                    if (e.target.closest('.view-profile-btn')) return;
+                    if (e.target.closest('.user-avatar')) return;
+                    if (e.target.closest('.action-buttons')) return;
                     window.location.href = `/chat/${userId}`;
                 });
             });
