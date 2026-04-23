@@ -118,7 +118,7 @@
             color: white;
         }
 
-        /* User Grid - 3 Columns, Reduced Gap */
+        /* User Grid - 3 Columns */
         .users-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -143,7 +143,6 @@
             transform: scale(0.97);
         }
 
-        /* Online indicator */
         .online-indicator {
             position: absolute;
             top: 6px;
@@ -160,7 +159,6 @@
             background: #9e9e9e;
         }
 
-        /* Avatar - Compact */
         .user-avatar {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             padding: 14px 0 6px 0;
@@ -173,7 +171,6 @@
             color: white;
         }
 
-        /* User Info - Compact */
         .user-card-info {
             padding: 8px 6px 10px 6px;
             text-align: center;
@@ -193,7 +190,6 @@
             color: #333;
         }
 
-        /* Status Badge - Compact */
         .status-badge {
             font-size: 8px;
             padding: 2px 5px;
@@ -212,7 +208,6 @@
             color: #6c757d;
         }
 
-        /* Distance Badge - Compact */
         .distance-badge {
             font-size: 9px;
             padding: 3px 6px;
@@ -240,7 +235,6 @@
             color: white;
         }
 
-        /* Call Icons - Compact */
         .call-icons {
             display: flex;
             justify-content: center;
@@ -261,7 +255,6 @@
             background: rgba(7,94,84,0.1);
         }
 
-        /* Unread Badge */
         .unread-badge {
             position: absolute;
             top: -3px;
@@ -277,7 +270,6 @@
             z-index: 3;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 40px 20px;
@@ -285,7 +277,6 @@
             grid-column: span 3;
         }
 
-        /* Location Prompt */
         .location-prompt {
             background: rgba(255,255,255,0.95);
             border-radius: 14px;
@@ -320,40 +311,6 @@
             cursor: pointer;
         }
 
-        /* Loading Overlays */
-        .logout-loading, .location-loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            color: white;
-            flex-direction: column;
-        }
-
-        .logout-loading.active, .location-loading.active {
-            display: flex;
-        }
-
-        .spinner {
-            width: 35px;
-            height: 35px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         .toast-notification {
             position: fixed;
             bottom: 20px;
@@ -368,69 +325,29 @@
             white-space: nowrap;
         }
 
-        /* Desktop View - More columns */
-        @media (min-width: 500px) {
-            .users-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-            }
-        }
-
+        /* Desktop View */
         @media (min-width: 768px) {
-            body {
-                padding: 15px;
-            }
-            .users-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-            }
-            .empty-state {
-                grid-column: span 4;
-            }
+            body { padding: 15px; }
+            .users-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+            .empty-state { grid-column: span 4; }
         }
 
         @media (min-width: 1024px) {
-            .users-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-            .empty-state {
-                grid-column: span 5;
-            }
+            .users-grid { grid-template-columns: repeat(5, 1fr); }
+            .empty-state { grid-column: span 5; }
         }
 
         @media (min-width: 1300px) {
-            .users-grid {
-                grid-template-columns: repeat(6, 1fr);
-            }
-            .empty-state {
-                grid-column: span 6;
-            }
+            .users-grid { grid-template-columns: repeat(6, 1fr); }
+            .empty-state { grid-column: span 6; }
         }
 
-        .hide-mobile {
-            display: none;
-        }
-
-        @media (min-width: 500px) {
-            .hide-mobile {
-                display: inline;
-            }
-        }
+        .hide-mobile { display: none; }
+        @media (min-width: 500px) { .hide-mobile { display: inline; } }
     </style>
 </head>
 <body>
-    <!-- Loading Overlays -->
-    <div class="logout-loading" id="logoutLoading">
-        <div class="spinner"></div>
-        <div>Logging out...</div>
-    </div>
-    
-    <div class="location-loading" id="locationLoading">
-        <div class="spinner"></div>
-        <div>Getting your location...</div>
-    </div>
-
-    <!-- Main Content -->
+    <!-- Main Content - No Loading Overlays -->
     <div class="app-header">
         <div class="app-title">
             <i class="fas fa-map-marker-alt"></i>
@@ -495,7 +412,6 @@
                         {% endif %}
                     </div>
                     
-                    <!-- Smart Distance Display -->
                     {% if user.distance_display and user.distance_display != 'Unknown' %}
                         <div class="distance-badge distance-known">
                             <i class="fas fa-location-dot"></i> {{ user.distance_display }}
@@ -547,11 +463,6 @@
             setTimeout(() => toast.remove(), 2500);
         }
         
-        function showLocationLoading(show) {
-            const loader = document.getElementById('locationLoading');
-            if (loader) loader.classList.toggle('active', show);
-        }
-        
         function getCurrentLocation() {
             return new Promise((resolve, reject) => {
                 if (!navigator.geolocation) {
@@ -567,7 +478,6 @@
         }
         
         async function refreshLocation() {
-            showLocationLoading(true);
             try {
                 const location = await getCurrentLocation();
                 currentLocation = location;
@@ -584,8 +494,6 @@
                 if (error.code === 1) showToast('Allow location access');
                 else showToast('Unable to get location');
                 window.location.href = `/users`;
-            } finally {
-                showLocationLoading(false);
             }
         }
         
@@ -689,10 +597,9 @@
         async function logoutUser() {
             if (isLoggingOut) return;
             isLoggingOut = true;
-            document.getElementById('logoutLoading').classList.add('active');
             if (socket) { socket.off(); socket.disconnect(); socket = null; }
             try { sessionStorage.clear(); localStorage.clear(); } catch(e) {}
-            try { await fetch('/logout', { method: 'POST' }); } catch(e) {}
+            await fetch('/logout', { method: 'POST' });
             window.location.replace('/login');
         }
         
@@ -704,9 +611,35 @@
             window.socket.connect();
             
             const prompt = document.getElementById('locationPrompt');
-            if (!hasLocation && !isLoggingOut) refreshLocation();
-            else if (hasLocation) {
-                currentLocation = { lat: parseFloat(urlParams.get('lat')), lng: parseFloat(urlParams.get('lng')) };
+            
+            if (!hasLocation && !isLoggingOut) {
+                // Silently get location without showing any popup
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            await fetch('/update_location', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ lat, lng })
+                            });
+                            window.location.href = `/users?lat=${lat}&lng=${lng}`;
+                        },
+                        (error) => {
+                            console.log('Location error:', error);
+                            if (prompt) prompt.style.display = 'flex';
+                        },
+                        { enableHighAccuracy: true, timeout: 5000 }
+                    );
+                } else {
+                    if (prompt) prompt.style.display = 'flex';
+                }
+            } else if (hasLocation) {
+                currentLocation = {
+                    lat: parseFloat(urlParams.get('lat')),
+                    lng: parseFloat(urlParams.get('lng'))
+                };
                 if (prompt) prompt.style.display = 'none';
             }
             
