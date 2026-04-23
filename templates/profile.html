@@ -12,7 +12,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 20px;
+            padding: 12px;
         }
         .profile-container { max-width: 1200px; margin: 0 auto; }
         .profile-card {
@@ -23,29 +23,29 @@
         }
         .profile-cover {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 200px;
+            height: 160px;
             position: relative;
         }
         .profile-picture-container {
             position: absolute;
-            bottom: -60px;
+            bottom: -50px;
             left: 50%;
             transform: translateX(-50%);
         }
         .profile-picture {
-            width: 140px;
-            height: 140px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
-            border: 5px solid #fff;
+            border: 4px solid #fff;
             object-fit: cover;
             background: #fff;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         .profile-picture-placeholder {
-            width: 140px;
-            height: 140px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
-            border: 5px solid #fff;
+            border: 4px solid #fff;
             background: linear-gradient(135deg, #667eea, #764ba2);
             display: flex;
             align-items: center;
@@ -55,119 +55,121 @@
         }
         .verification-badge {
             position: absolute;
-            bottom: 10px;
-            right: 10px;
+            bottom: 5px;
+            right: 5px;
             background: #4CAF50;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 26px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 18px;
+            font-size: 14px;
             border: 2px solid #fff;
         }
-        .profile-info { padding: 80px 2rem 2rem; text-align: center; }
-        .profile-username { font-size: 2.5rem; color: #fff; margin-bottom: 0.5rem; }
+        .profile-info { padding: 65px 1.2rem 1.2rem; text-align: center; }
+        .profile-username { font-size: 1.6rem; color: #fff; margin-bottom: 0.5rem; }
         .profile-stats {
             display: flex;
             justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1.5rem;
+            gap: 1rem;
+            margin-bottom: 1rem;
             flex-wrap: wrap;
         }
         .stat-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             color: #aaa;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
-        .stat-item i { color: #667eea; }
+        .stat-item i { color: #667eea; font-size: 0.8rem; }
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
+            gap: 0.4rem;
+            padding: 0.3rem 0.8rem;
             border-radius: 50px;
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
+            font-size: 0.75rem;
+            margin-bottom: 1.2rem;
             background: rgba(255,255,255,0.1);
         }
         .status-badge.online { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
         .status-badge.offline { background: rgba(158, 158, 158, 0.2); color: #999; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
         .profile-section {
             text-align: left;
-            margin-bottom: 2rem;
-            padding: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
             background: rgba(255,255,255,0.05);
-            border-radius: 15px;
+            border-radius: 12px;
         }
         .profile-section h3 {
             color: #fff;
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
+            font-size: 1rem;
+            margin-bottom: 0.7rem;
         }
-        .profile-section h3 i { color: #667eea; margin-right: 0.5rem; }
-        .bio-content p { color: #ccc; line-height: 1.6; }
-        .interests-container { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .profile-section h3 i { color: #667eea; margin-right: 0.4rem; font-size: 0.9rem; }
+        .bio-content p { color: #ccc; line-height: 1.5; font-size: 0.85rem; }
+        .interests-container { display: flex; flex-wrap: wrap; gap: 0.4rem; }
         .interest-tag {
             background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 0.4rem 1rem;
+            padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             color: white;
         }
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
         }
         .gallery-item {
             aspect-ratio: 1;
             overflow: hidden;
             border-radius: 10px;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: transform 0.2s;
         }
-        .gallery-item:hover { transform: scale(1.05); }
+        .gallery-item:active { transform: scale(0.98); }
         .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
         .voice-intro-placeholder {
             text-align: center;
-            padding: 2rem;
+            padding: 1rem;
             background: rgba(255,255,255,0.03);
             border-radius: 10px;
             color: #666;
         }
-        .voice-intro-placeholder i { font-size: 3rem; margin-bottom: 0.5rem; }
+        .voice-intro-placeholder i { font-size: 2rem; margin-bottom: 0.3rem; }
+        .voice-intro-placeholder p { font-size: 0.7rem; }
         .profile-actions {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
             justify-content: center;
-            margin-top: 2rem;
+            margin-top: 1.2rem;
         }
         .btn-edit, .btn-back {
-            padding: 0.8rem 2rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
-            transition: all 0.3s;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            font-size: 0.8rem;
         }
         .btn-edit {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
         }
-        .btn-edit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
+        .btn-edit:active { transform: scale(0.97); }
         .btn-back {
             background: rgba(255,255,255,0.1);
             color: white;
         }
-        .btn-back:hover { background: rgba(255,255,255,0.2); }
+        .btn-back:active { transform: scale(0.97); }
         .lightbox {
             display: none;
             position: fixed;
@@ -190,43 +192,52 @@
         }
         .close-lightbox {
             position: absolute;
-            top: 20px;
-            right: 35px;
+            top: 15px;
+            right: 20px;
             color: #fff;
-            font-size: 40px;
+            font-size: 30px;
             cursor: pointer;
         }
-        .text-muted { color: #888; }
+        .text-muted { color: #888; font-size: 0.8rem; }
         .back-link {
-            display: inline-block;
-            margin-bottom: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.8rem;
             color: white;
             text-decoration: none;
             background: rgba(255,255,255,0.2);
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 30px;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .profile-username { font-size: 1.8rem; }
-            .profile-stats { gap: 1rem; }
-            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
-            .profile-actions { flex-direction: column; }
-            .profile-info { padding: 80px 1rem 1rem; }
+        /* Tablet and up */
+        @media (min-width: 600px) {
+            body { padding: 20px; }
+            .profile-cover { height: 200px; }
+            .profile-picture, .profile-picture-placeholder { width: 140px; height: 140px; }
+            .profile-info { padding: 80px 2rem 2rem; }
+            .profile-username { font-size: 2rem; }
+            .profile-stats { gap: 2rem; }
+            .stat-item { font-size: 0.9rem; }
+            .gallery-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+            .btn-edit, .btn-back { padding: 0.8rem 2rem; font-size: 1rem; }
+        }
+        @media (min-width: 900px) {
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
         }
     </style>
 </head>
 <body>
     <div class="profile-container">
-        <a href="{{ url_for('users') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Users</a>
+        <a href="{{ url_for('users') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
         <div class="profile-card">
             <div class="profile-cover">
                 <div class="profile-picture-container">
                     {% if user.profile_pic %}
                     <img src="{{ user.profile_pic }}" class="profile-picture">
                     {% else %}
-                    <div class="profile-picture-placeholder"><i class="fas fa-user fa-3x"></i></div>
+                    <div class="profile-picture-placeholder"><i class="fas fa-user fa-2x"></i></div>
                     {% endif %}
                     {% if user.is_verified %}
                     <span class="verification-badge"><i class="fas fa-check-circle"></i></span>
@@ -236,18 +247,18 @@
             <div class="profile-info">
                 <h1 class="profile-username">{{ user.username }}</h1>
                 <div class="profile-stats">
-                    <div class="stat-item"><i class="fas fa-calendar-alt"></i> <span>{% if user.age %}{{ user.age }} years{% else %}Age not set{% endif %}</span></div>
-                    <div class="stat-item"><i class="fas fa-venus-mars"></i> <span>{{ user.gender|capitalize if user.gender else 'Not set' }}</span></div>
-                    <div class="stat-item"><i class="fas fa-map-marker-alt"></i> <span>{{ user.distance_display if user.distance_display else 'Unknown' }}</span></div>
+                    <div class="stat-item"><i class="fas fa-calendar-alt"></i> <span>{% if user.age %}{{ user.age }}y{% else %}Age?{% endif %}</span></div>
+                    <div class="stat-item"><i class="fas fa-venus-mars"></i> <span>{{ user.gender|capitalize if user.gender else '?' }}</span></div>
+                    <div class="stat-item"><i class="fas fa-map-marker-alt"></i> <span>{{ user.distance_display if user.distance_display else '?' }}</span></div>
                 </div>
                 <div class="status-badge {% if user.is_online %}online{% else %}offline{% endif %}">
                     <span class="status-dot"></span>
                     {% if user.is_online %}Online{% else %}Last seen {{ user.last_seen_formatted }}{% endif %}
                 </div>
                 <div class="profile-section">
-                    <h3><i class="fas fa-edit"></i> About Me</h3>
+                    <h3><i class="fas fa-edit"></i> About</h3>
                     <div class="bio-content">
-                        {% if user.bio %}<p>{{ user.bio }}</p>{% else %}<p class="text-muted">No bio added yet. <a href="{{ url_for('edit_profile') }}" style="color:#667eea;">Add one!</a></p>{% endif %}
+                        {% if user.bio %}<p>{{ user.bio }}</p>{% else %}<p class="text-muted">No bio yet. <a href="{{ url_for('edit_profile') }}" style="color:#667eea;">Add</a></p>{% endif %}
                     </div>
                 </div>
                 <div class="profile-section">
@@ -255,7 +266,7 @@
                     <div class="interests-container">
                         {% if user.interests_list %}
                             {% for interest in user.interests_list %}<span class="interest-tag">{{ interest }}</span>{% endfor %}
-                        {% else %}<p class="text-muted">No interests added yet. <a href="{{ url_for('edit_profile') }}" style="color:#667eea;">Add interests!</a></p>{% endif %}
+                        {% else %}<p class="text-muted">No interests. <a href="{{ url_for('edit_profile') }}" style="color:#667eea;">Add</a></p>{% endif %}
                     </div>
                 </div>
                 {% if user.photos_list %}
@@ -269,12 +280,12 @@
                 </div>
                 {% endif %}
                 <div class="profile-section">
-                    <h3><i class="fas fa-microphone-alt"></i> Voice Intro</h3>
-                    <div class="voice-intro-placeholder"><i class="fas fa-headphones"></i><p>Coming soon! Record a voice introduction.</p></div>
+                    <h3><i class="fas fa-microphone-alt"></i> Voice</h3>
+                    <div class="voice-intro-placeholder"><i class="fas fa-headphones"></i><p>Coming soon</p></div>
                 </div>
                 <div class="profile-actions">
-                    <a href="{{ url_for('edit_profile') }}" class="btn-edit"><i class="fas fa-pen"></i> Edit Profile</a>
-                    <a href="{{ url_for('users') }}" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Users</a>
+                    <a href="{{ url_for('edit_profile') }}" class="btn-edit"><i class="fas fa-pen"></i> Edit</a>
+                    <a href="{{ url_for('users') }}" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
                 </div>
             </div>
         </div>

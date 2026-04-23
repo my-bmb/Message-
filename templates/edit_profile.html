@@ -12,38 +12,39 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 20px;
+            padding: 12px;
         }
         .edit-profile-container { max-width: 800px; margin: 0 auto; }
         .edit-card {
             background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
             border-radius: 20px;
-            padding: 2rem;
+            padding: 1.2rem;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         .edit-title {
             color: #fff;
             text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+            font-size: 1.4rem;
         }
-        .edit-title i { color: #667eea; margin-right: 0.5rem; }
-        .form-group { margin-bottom: 1.5rem; }
+        .edit-title i { color: #667eea; margin-right: 0.4rem; }
+        .form-group { margin-bottom: 1rem; }
         .form-group label {
             display: block;
             color: #fff;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             font-weight: 500;
+            font-size: 0.85rem;
         }
-        .form-group label i { color: #667eea; margin-right: 0.5rem; }
+        .form-group label i { color: #667eea; margin-right: 0.4rem; }
         .form-control, .form-select {
             width: 100%;
-            padding: 0.8rem;
+            padding: 0.6rem 0.8rem;
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 10px;
             color: #fff;
-            font-size: 1rem;
+            font-size: 0.85rem;
             transition: all 0.3s;
         }
         .form-control:focus, .form-select:focus {
@@ -53,7 +54,7 @@
         }
         .form-control::placeholder { color: #888; }
         .form-select option { background: #2a2a3e; color: #fff; }
-        textarea.form-control { resize: vertical; }
+        textarea.form-control { resize: vertical; min-height: 80px; }
         .file-input {
             width: 100%;
             padding: 0.5rem;
@@ -62,85 +63,94 @@
             border-radius: 10px;
             color: #ccc;
             cursor: pointer;
+            font-size: 0.75rem;
         }
         .form-text {
             display: block;
             color: #888;
-            font-size: 0.8rem;
-            margin-top: 0.25rem;
+            font-size: 0.7rem;
+            margin-top: 0.2rem;
         }
-        .current-photo { margin-bottom: 0.5rem; }
+        .current-photo { margin-bottom: 0.4rem; }
         .current-profile-img {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #667eea;
         }
         .no-photo {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background: rgba(255,255,255,0.1);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #888;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
         }
         .current-gallery {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
             flex-wrap: wrap;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
         }
         .gallery-preview {
-            width: 80px;
-            height: 80px;
-            border-radius: 10px;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
             overflow: hidden;
         }
         .gallery-preview img { width: 100%; height: 100%; object-fit: cover; }
         .form-actions {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
             justify-content: center;
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }
         .btn-save, .btn-cancel {
-            padding: 0.8rem 2rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
             border: none;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            font-size: 0.85rem;
         }
         .btn-save {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
         }
-        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
+        .btn-save:active { transform: scale(0.97); }
         .btn-cancel {
             background: rgba(255,255,255,0.1);
             color: white;
         }
-        .btn-cancel:hover { background: rgba(255,255,255,0.2); }
+        .btn-cancel:active { transform: scale(0.97); }
         .alert {
-            padding: 1rem;
+            padding: 0.6rem;
             border-radius: 10px;
             margin-bottom: 1rem;
+            font-size: 0.8rem;
         }
         .alert-success { background: rgba(76,175,80,0.2); color: #4CAF50; border: 1px solid #4CAF50; }
         .alert-danger { background: rgba(244,67,54,0.2); color: #f44336; border: 1px solid #f44336; }
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .edit-card { padding: 1.5rem; }
-            .form-actions { flex-direction: column; }
-            .btn-save, .btn-cancel { justify-content: center; }
+        /* Tablet and up */
+        @media (min-width: 600px) {
+            body { padding: 20px; }
+            .edit-card { padding: 2rem; }
+            .edit-title { font-size: 1.8rem; margin-bottom: 2rem; }
+            .form-group { margin-bottom: 1.5rem; }
+            .form-group label { font-size: 1rem; }
+            .form-control, .form-select { padding: 0.8rem; font-size: 1rem; }
+            .btn-save, .btn-cancel { padding: 0.8rem 2rem; font-size: 1rem; }
+            .current-profile-img { width: 100px; height: 100px; }
+            .gallery-preview { width: 80px; height: 80px; }
         }
     </style>
 </head>
@@ -162,11 +172,11 @@
                         {% if user.profile_pic %}
                         <img src="{{ user.profile_pic }}" class="current-profile-img">
                         {% else %}
-                        <div class="no-photo">No profile picture</div>
+                        <div class="no-photo">No photo</div>
                         {% endif %}
                     </div>
                     <input type="file" name="profile_pic" accept="image/*" class="file-input">
-                    <small class="form-text">Recommended: Square image, max 5MB (JPG, PNG, GIF, WEBP)</small>
+                    <small class="form-text">Max 5MB | Square image</small>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-user"></i> Username *</label>
@@ -174,18 +184,18 @@
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-edit"></i> Bio</label>
-                    <textarea name="bio" rows="4" class="form-control" placeholder="Tell others about yourself...">{{ user.bio or '' }}</textarea>
-                    <small class="form-text">Max 500 characters</small>
+                    <textarea name="bio" rows="3" class="form-control" placeholder="Tell about yourself...">{{ user.bio or '' }}</textarea>
+                    <small class="form-text">Max 500 chars</small>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-calendar-alt"></i> Age</label>
                     <input type="number" name="age" value="{{ user.age or '' }}" min="18" max="120" class="form-control">
-                    <small class="form-text">Must be between 18 and 120</small>
+                    <small class="form-text">18-120 years</small>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-venus-mars"></i> Gender</label>
                     <select name="gender" class="form-select">
-                        <option value="">Select gender</option>
+                        <option value="">Select</option>
                         <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
                         <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
                         <option value="non-binary" {% if user.gender == 'non-binary' %}selected{% endif %}>Non-binary</option>
@@ -194,11 +204,11 @@
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-tags"></i> Interests</label>
-                    <input type="text" name="interests" value="{{ user.interests_str }}" class="form-control" placeholder="e.g., Music, Travel, Coding, Photography">
-                    <small class="form-text">Separate interests with commas</small>
+                    <input type="text" name="interests" value="{{ user.interests_str }}" class="form-control" placeholder="Music, Travel, Coding">
+                    <small class="form-text">Separate with commas</small>
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-images"></i> Gallery Photos</label>
+                    <label><i class="fas fa-images"></i> Gallery</label>
                     {% if user.photos_list %}
                     <div class="current-gallery">
                         {% for photo in user.photos_list %}
@@ -207,10 +217,10 @@
                     </div>
                     {% endif %}
                     <input type="file" name="photos" accept="image/*" multiple class="file-input">
-                    <small class="form-text">You can select multiple images (max 10, each up to 5MB)</small>
+                    <small class="form-text">Multiple images (max 10)</small>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Changes</button>
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button>
                     <a href="{{ url_for('profile') }}" class="btn-cancel"><i class="fas fa-times"></i> Cancel</a>
                 </div>
             </form>
