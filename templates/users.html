@@ -2,131 +2,299 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>ChatApp - Nearby Users</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 12px;
+            padding-bottom: 80px;
         }
-        .container { padding-top: 2rem; }
-        .card {
-            border-radius: 1.5rem;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            overflow: hidden;
+
+        /* Header */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
             backdrop-filter: blur(10px);
-            background: rgba(255,255,255,0.95);
-        }
-        .card-header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 8px 16px;
+            border-radius: 30px;
             color: white;
             font-weight: bold;
-            font-size: 1.3rem;
-            border: none;
-            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
         }
-        .list-group-item {
-            transition: all 0.2s ease;
-            border-left: none;
-            border-right: none;
-            padding: 1rem 1.5rem;
-            cursor: pointer;
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
         }
-        .list-group-item:hover {
-            background-color: #f8f9ff;
-            transform: translateX(5px);
-        }
-        .user-info { flex-grow: 1; }
-        .online-badge { color: #28a745; font-weight: 500; }
-        .offline-badge { color: #6c757d; font-size: 0.85rem; }
-        
-        /* 🆕 Distance Badge Styles */
-        .distance-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
             color: white;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-btn:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Search Box */
+        .search-container {
+            margin-bottom: 12px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 30px;
+            border: none;
+            background: rgba(255,255,255,0.95);
+            font-size: 14px;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Distance Filters - Horizontal Scroll */
+        .filters-container {
+            margin-bottom: 16px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .filters-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-buttons {
+            display: inline-flex;
+            gap: 8px;
+            padding: 0 4px;
+        }
+
+        .filter-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
             font-weight: 500;
-            margin-top: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
-        .distance-near {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+
+        .filter-btn.active {
+            background: #075e54;
+            color: white;
         }
-        .distance-far {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+        .filter-btn:active {
+            transform: scale(0.95);
         }
-        .distance-unknown {
+
+        /* User Grid - 3 Columns on Mobile */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        /* User Card */
+        .user-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .user-card:active {
+            transform: scale(0.98);
+        }
+
+        /* Online indicator */
+        .online-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #28a745;
+            border: 2px solid white;
+            z-index: 2;
+        }
+
+        .online-indicator.offline {
             background: #6c757d;
         }
-        
+
+        /* Avatar */
+        .user-avatar {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 16px 0 8px 0;
+            text-align: center;
+        }
+
+        .user-avatar i {
+            font-size: 48px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* User Info */
+        .user-card-info {
+            padding: 10px 8px 12px 8px;
+            text-align: center;
+        }
+
+        .user-card-name {
+            font-weight: 700;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background: #e9ecef;
+            color: #6c757d;
+            font-size: 8px;
+        }
+
+        /* Distance Badge */
+        .distance-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: center;
+            margin-top: 6px;
+            width: 100%;
+        }
+
+        .distance-known {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .distance-unknown {
+            background: #6c757d;
+            color: white;
+        }
+
+        .distance-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        /* Call Icons */
+        .call-icons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px solid #eee;
+        }
+
         .call-icons a {
             color: #075e54;
-            margin-left: 12px;
+            font-size: 14px;
             text-decoration: none;
-            font-size: 1.2rem;
-            transition: color 0.2s;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.2s;
         }
-        .call-icons a:hover { color: #128c7e; }
+
+        .call-icons a:active {
+            background: rgba(7,94,84,0.1);
+            transform: scale(0.9);
+        }
+
+        /* Unread Badge */
         .unread-badge {
-            background-color: #dc3545;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
             color: white;
-            border-radius: 30px;
-            padding: 2px 10px;
-            font-size: 0.7rem;
+            border-radius: 20px;
+            padding: 2px 6px;
+            font-size: 9px;
             font-weight: bold;
-            margin-left: 8px;
+            min-width: 18px;
+            text-align: center;
         }
-        .search-box { margin-bottom: 1rem; padding: 0 1rem; }
-        .search-box input {
-            border-radius: 30px;
-            border: 1px solid #ddd;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-        }
-        .fa-circle { font-size: 0.55rem; vertical-align: middle; }
-        .status-text { font-size: 0.85rem; margin-left: 4px; }
-        .avatar-icon { font-size: 1.8rem; margin-right: 12px; color: #4facfe; }
-        .user-name { font-weight: 600; font-size: 1.1rem; }
-        
-        /* 🆕 Refresh Location Button */
-        .refresh-location-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
             color: white;
-            border-radius: 30px;
-            padding: 5px 15px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            margin-right: 10px;
         }
-        .refresh-location-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-1px);
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.8;
         }
-        
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            border-radius: 30px;
-            padding: 5px 15px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-1px);
-        }
-        .logout-btn i, .refresh-location-btn i {
-            margin-right: 5px;
-        }
-        
-        .logout-loading {
+
+        /* Loading Overlays */
+        .logout-loading, .location-loading {
             position: fixed;
             top: 0;
             left: 0;
@@ -140,177 +308,228 @@
             color: white;
             flex-direction: column;
         }
-        .logout-loading.active { display: flex; }
+
+        .logout-loading.active, .location-loading.active {
+            display: flex;
+        }
+
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255,255,255,0.3);
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 1s ease-in-out infinite;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Location loading indicator */
-        .location-loading {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #075e54;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 12px;
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            gap: 8px;
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
-        .location-loading.active { display: flex; }
-        .location-loading .fa-spinner { animation: spin 1s linear infinite; }
-        
+
         .toast-notification {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             background: #333;
             color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 30px;
             z-index: 10000;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            font-size: 13px;
+            white-space: nowrap;
         }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
         }
-        
-        /* Distance filter buttons */
-        .distance-filters {
-            padding: 0 1rem 1rem 1rem;
+
+        /* Desktop View */
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            .users-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+            }
+            .user-card-name {
+                font-size: 14px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .users-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .users-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        /* Location prompt banner */
+        .location-prompt {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
             flex-wrap: wrap;
+            gap: 10px;
         }
-        .filter-btn {
-            background: #f0f0f0;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .filter-btn.active {
-            background: #075e54;
-            color: white;
-        }
-        .filter-btn:hover {
-            background: #128c7e;
-            color: white;
-        }
-        
-        /* User row compact */
-        .user-details {
-            display: flex;
-            flex-direction: column;
-        }
-        .user-name-row {
+
+        .location-prompt-text {
+            font-size: 13px;
+            color: #333;
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
+        }
+
+        .location-prompt-text i {
+            color: #ff9800;
+            font-size: 18px;
+        }
+
+        .enable-location-btn {
+            background: #075e54;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .enable-location-btn:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
+    <!-- Loading Overlays -->
     <div class="logout-loading" id="logoutLoading">
         <div class="spinner"></div>
         <div>Logging out...</div>
     </div>
     
     <div class="location-loading" id="locationLoading">
-        <i class="fas fa-spinner fa-spin"></i>
-        <span>Getting your location...</span>
+        <div class="spinner"></div>
+        <div>Getting your location...</div>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
-                <span><i class="fas fa-map-marker-alt me-2"></i> Nearby Users</span>
-                <div class="d-flex gap-2">
-                    <button onclick="refreshLocation()" class="refresh-location-btn">
-                        <i class="fas fa-location-dot"></i> Refresh
-                    </button>
-                    <button onclick="logoutUser()" class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </div>
+    <!-- Main Content -->
+    <div class="app-header">
+        <div class="app-title">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Nearby</span>
+        </div>
+        <div class="header-buttons">
+            <button onclick="refreshLocation()" class="header-btn">
+                <i class="fas fa-location-dot"></i> <span class="hide-mobile">Refresh</span>
+            </button>
+            <button onclick="logoutUser()" class="header-btn">
+                <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Logout</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search users...">
+    </div>
+
+    <!-- Distance Filters -->
+    <div class="filters-container">
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-distance="all">All</button>
+            <button class="filter-btn" data-distance="1">📍 1km</button>
+            <button class="filter-btn" data-distance="5">📍 5km</button>
+            <button class="filter-btn" data-distance="10">📍 10km</button>
+            <button class="filter-btn" data-distance="25">📍 25km</button>
+        </div>
+    </div>
+
+    <!-- Location Prompt (only if user hasn't enabled location) -->
+    <div id="locationPrompt" class="location-prompt" style="display: none;">
+        <div class="location-prompt-text">
+            <i class="fas fa-location-arrow"></i>
+            <span>Turn on location to see distances of nearby users</span>
+        </div>
+        <button onclick="refreshLocation()" class="enable-location-btn">
+            <i class="fas fa-location-dot"></i> Enable
+        </button>
+    </div>
+
+    <!-- Users Grid -->
+    <div class="users-grid" id="usersGrid">
+        {% for user in users %}
+        <div class="user-card" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-distance="{{ user.distance_km or 999 }}" data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}">
+            <div class="online-indicator {% if user.is_online %}online{% else %}offline{% endif %}"></div>
+            {% if unread_counts.get(user.id) %}
+            <div class="unread-badge">{{ unread_counts[user.id] }}</div>
+            {% endif %}
+            <div class="user-avatar">
+                <i class="fas fa-user-circle"></i>
             </div>
-            <div class="card-body p-0">
-                <div class="search-box mt-3">
-                    <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search users...">
-                </div>
-                
-                <!-- 🆕 Distance Filters -->
-                <div class="distance-filters">
-                    <button class="filter-btn active" data-distance="all">All</button>
-                    <button class="filter-btn" data-distance="1">Within 1 km</button>
-                    <button class="filter-btn" data-distance="5">Within 5 km</button>
-                    <button class="filter-btn" data-distance="10">Within 10 km</button>
-                    <button class="filter-btn" data-distance="25">Within 25 km</button>
-                </div>
-                
-                <div class="list-group list-group-flush" id="usersList">
-                    {% for user in users %}
-                    <div class="list-group-item" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-distance="{{ user.distance_km or 999 }}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="user-info d-flex align-items-center">
-                                <i class="fas fa-user-circle avatar-icon"></i>
-                                <div class="user-details">
-                                    <div class="user-name-row">
-                                        <span class="user-name">{{ user.username }}</span>
-                                        {% if unread_counts.get(user.id) %}
-                                        <span class="unread-badge">{{ unread_counts[user.id] }}</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="status-container" id="status-{{ user.id }}">
-                                        {% if user.is_online %}
-                                            <span class="online-badge"><i class="fas fa-circle"></i> <span class="status-text">Online</span></span>
-                                        {% else %}
-                                            <span class="offline-badge">
-                                                <i class="fas fa-circle"></i>
-                                                <span class="status-text">Last seen: {{ user.last_seen_formatted }}</span>
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                    <!-- 🆕 Distance Badge -->
-                                    {% if user.distance_display and user.distance_display != 'Unknown' %}
-                                        <div class="distance-badge distance-near">
-                                            <i class="fas fa-location-dot"></i> {{ user.distance_display }}
-                                        </div>
-                                    {% else %}
-                                        <div class="distance-badge distance-unknown">
-                                            <i class="fas fa-question-circle"></i> Location unknown
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="call-icons">
-                                <a href="{{ url_for('chat', user_id=user.id) }}" class="chat-link" title="Chat"><i class="fas fa-comment"></i></a>
-                                <a href="{{ url_for('audio_call', user_id=user.id) }}" class="audio-call-link" title="Audio Call"><i class="fas fa-phone"></i></a>
-                                <a href="{{ url_for('video_call', user_id=user.id) }}" class="video-call-link" title="Video Call"><i class="fas fa-video"></i></a>
-                            </div>
-                        </div>
-                    </div>
+            <div class="user-card-info">
+                <div class="user-card-name">{{ user.username }}</div>
+                <div class="status-badge {% if user.is_online %}status-online{% else %}status-offline{% endif %}">
+                    {% if user.is_online %}
+                        ● Online
                     {% else %}
-                    <div class="text-center p-4 text-muted">No other users found nearby.</div>
-                    {% endfor %}
+                        ⚫ {{ user.last_seen_formatted|truncate(12, true) }}
+                    {% endif %}
+                </div>
+                
+                <!-- Smart Distance Display -->
+                {% if user.distance_display and user.distance_display != 'Unknown' %}
+                    <div class="distance-badge distance-known">
+                        <i class="fas fa-location-dot"></i> {{ user.distance_display }}
+                    </div>
+                {% elif current_user_has_location is defined and not current_user_has_location %}
+                    <div class="distance-badge distance-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Turn on location
+                    </div>
+                {% else %}
+                    <div class="distance-badge distance-unknown">
+                        <i class="fas fa-question-circle"></i> Location unknown
+                    </div>
+                {% endif %}
+                
+                <div class="call-icons">
+                    <a href="{{ url_for('chat', user_id=user.id) }}" class="chat-link" title="Chat" onclick="event.stopPropagation();">
+                        <i class="fas fa-comment"></i>
+                    </a>
+                    <a href="{{ url_for('audio_call', user_id=user.id) }}" class="audio-call-link" title="Audio Call" onclick="event.stopPropagation();">
+                        <i class="fas fa-phone"></i>
+                    </a>
+                    <a href="{{ url_for('video_call', user_id=user.id) }}" class="video-call-link" title="Video Call" onclick="event.stopPropagation();">
+                        <i class="fas fa-video"></i>
+                    </a>
                 </div>
             </div>
         </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <p>No other users found</p>
+        </div>
+        {% endfor %}
     </div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -321,8 +540,25 @@
         let isLoggingOut = false;
         let currentLocation = null;
         let currentDistanceFilter = 'all';
+        let currentUserHasLocation = false;
         
-        // Helper functions
+        // Get current user's location status from server
+        {% if session.get('user_lat') and session.get('user_lng') %}
+            currentUserHasLocation = true;
+        {% endif %}
+        
+        // Show/hide location prompt
+        function updateLocationPrompt() {
+            const prompt = document.getElementById('locationPrompt');
+            if (prompt) {
+                if (!currentUserHasLocation && !currentLocation) {
+                    prompt.style.display = 'flex';
+                } else {
+                    prompt.style.display = 'none';
+                }
+            }
+        }
+        
         function showToast(message) {
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
@@ -333,12 +569,9 @@
         
         function showLocationLoading(show) {
             const loader = document.getElementById('locationLoading');
-            if (loader) {
-                loader.classList.toggle('active', show);
-            }
+            if (loader) loader.classList.toggle('active', show);
         }
         
-        // 🆕 Get user's current location
         function getCurrentLocation() {
             return new Promise((resolve, reject) => {
                 if (!navigator.geolocation) {
@@ -365,15 +598,14 @@
             });
         }
         
-        // 🆕 Update location to server and refresh user list
         async function refreshLocation() {
             showLocationLoading(true);
             
             try {
                 const location = await getCurrentLocation();
                 currentLocation = location;
+                currentUserHasLocation = true;
                 
-                // Send to server via API
                 const response = await fetch('/update_location', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -381,35 +613,32 @@
                 });
                 
                 if (response.ok) {
-                    // Also send via socket for real-time
                     if (socket && socket.connected) {
                         socket.emit('location_update', { lat: location.lat, lng: location.lng });
                     }
-                    
-                    // Refresh page with new location
                     window.location.href = `/users?lat=${location.lat}&lng=${location.lng}`;
                 } else {
                     showToast('Failed to update location');
                 }
             } catch (error) {
                 console.error('Location error:', error);
+                currentUserHasLocation = false;
+                updateLocationPrompt();
+                
                 if (error.code === 1) {
-                    showToast('Please allow location access to see nearby users');
+                    showToast('Please allow location access to see distances');
                 } else {
                     showToast('Unable to get your location');
                 }
-                // Still load page without location
                 window.location.href = `/users`;
             } finally {
                 showLocationLoading(false);
             }
         }
         
-        // 🆕 Filter users by distance
         function filterByDistance(distanceKm) {
             currentDistanceFilter = distanceKm;
             
-            // Update active button
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.distance === distanceKm.toString()) {
@@ -417,21 +646,21 @@
                 }
             });
             
-            const userItems = document.querySelectorAll('.list-group-item');
-            userItems.forEach(item => {
-                const userDistance = parseFloat(item.dataset.distance);
+            const userCards = document.querySelectorAll('.user-card');
+            userCards.forEach(card => {
+                const userDistance = parseFloat(card.dataset.distance);
+                const hasLocation = card.dataset.hasLocation === 'true';
                 
                 if (distanceKm === 'all') {
-                    item.style.display = '';
-                } else if (userDistance && userDistance <= parseFloat(distanceKm)) {
-                    item.style.display = '';
+                    card.style.display = '';
+                } else if (hasLocation && userDistance <= parseFloat(distanceKm)) {
+                    card.style.display = '';
                 } else {
-                    item.style.display = 'none';
+                    card.style.display = 'none';
                 }
             });
         }
         
-        // Initialize socket
         function initSocket() {
             if (socket && socket.connected) return socket;
             
@@ -444,7 +673,6 @@
             
             socket.on('connect', () => {
                 if (!isLoggingOut) console.log('✅ Socket connected');
-                // Send location if we have it
                 if (currentLocation && socket.connected) {
                     socket.emit('location_update', currentLocation);
                 }
@@ -454,46 +682,50 @@
                 if (!isLoggingOut) console.log('❌ Socket disconnected');
             });
             
-            // 🆕 Nearby users real-time update
             socket.on('nearby_users_update', (data) => {
-                console.log('📍 Nearby users update received:', data);
+                console.log('📍 Nearby users update:', data);
                 if (data.users) {
-                    // Update distance badges without page refresh
                     updateUsersDistance(data.users);
                 }
             });
             
-            socket.on('user_location_changed', (data) => {
-                console.log(`📍 ${data.username} location changed`);
-            });
-            
             socket.on('user_status', (data) => {
-                const statusDiv = document.getElementById(`status-${data.user_id}`);
-                if (!statusDiv) return;
-                if (data.is_online) {
-                    statusDiv.innerHTML = `<span class="online-badge"><i class="fas fa-circle"></i> <span class="status-text">Online</span></span>`;
-                } else {
-                    let lastSeenText = "recently";
-                    if (data.last_seen) {
-                        const date = new Date(data.last_seen);
-                        lastSeenText = date.toLocaleString('en-IN', { hour12: true });
+                const card = document.querySelector(`.user-card[data-user-id="${data.user_id}"]`);
+                if (card) {
+                    const indicator = card.querySelector('.online-indicator');
+                    const statusBadge = card.querySelector('.status-badge');
+                    
+                    if (data.is_online) {
+                        indicator.classList.remove('offline');
+                        indicator.classList.add('online');
+                        if (statusBadge) {
+                            statusBadge.innerHTML = '● Online';
+                            statusBadge.className = 'status-badge status-online';
+                        }
+                    } else {
+                        indicator.classList.remove('online');
+                        indicator.classList.add('offline');
+                        if (statusBadge && data.last_seen) {
+                            const date = new Date(data.last_seen);
+                            const timeStr = date.toLocaleString('en-IN', { hour12: true });
+                            statusBadge.innerHTML = `⚫ ${timeStr.substring(0, 12)}`;
+                            statusBadge.className = 'status-badge status-offline';
+                        }
                     }
-                    statusDiv.innerHTML = `<span class="offline-badge"><i class="fas fa-circle"></i> <span class="status-text">Last seen: ${lastSeenText}</span></span>`;
                 }
             });
             
             socket.on('unread_update', (data) => {
-                const userRow = document.querySelector(`.list-group-item[data-user-id="${data.sender_id}"]`);
-                if (userRow) {
-                    let badge = userRow.querySelector('.unread-badge');
+                const card = document.querySelector(`.user-card[data-user-id="${data.sender_id}"]`);
+                if (card) {
+                    let badge = card.querySelector('.unread-badge');
                     if (data.count > 0) {
                         if (badge) badge.textContent = data.count;
                         else {
-                            const nameSpan = userRow.querySelector('.user-name');
-                            const newBadge = document.createElement('span');
+                            const newBadge = document.createElement('div');
                             newBadge.className = 'unread-badge';
                             newBadge.textContent = data.count;
-                            nameSpan.appendChild(newBadge);
+                            card.appendChild(newBadge);
                         }
                     } else {
                         if (badge) badge.remove();
@@ -501,61 +733,59 @@
                 }
             });
             
-            socket.on('call_ended', (data) => {
-                const now = Date.now();
-                if (window.lastCallEndTime && now - window.lastCallEndTime < 500) return;
-                window.lastCallEndTime = now;
-                console.log('📞 Call ended event received');
+            socket.on('call_ended', () => {
                 showToast('Call has ended');
             });
             
             return socket;
         }
         
-        // Update users distance in UI
         function updateUsersDistance(users) {
             for (const user of users) {
-                const userRow = document.querySelector(`.list-group-item[data-user-id="${user.id}"]`);
-                if (userRow && user.distance_display) {
-                    // Update data attribute
-                    userRow.dataset.distance = user.distance_km || 999;
+                const card = document.querySelector(`.user-card[data-user-id="${user.id}"]`);
+                if (card && user.distance_display) {
+                    card.dataset.distance = user.distance_km || 999;
+                    card.dataset.hasLocation = user.distance_display !== 'Unknown' ? 'true' : 'false';
                     
-                    // Update distance badge
-                    const distanceBadge = userRow.querySelector('.distance-badge');
+                    const distanceBadge = card.querySelector('.distance-badge');
                     if (distanceBadge) {
                         if (user.distance_display && user.distance_display !== 'Unknown') {
                             distanceBadge.innerHTML = `<i class="fas fa-location-dot"></i> ${user.distance_display}`;
-                            distanceBadge.className = 'distance-badge distance-near';
+                            distanceBadge.className = 'distance-badge distance-known';
+                        } else if (!currentUserHasLocation) {
+                            distanceBadge.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Turn on location`;
+                            distanceBadge.className = 'distance-badge distance-warning';
                         } else {
                             distanceBadge.innerHTML = `<i class="fas fa-question-circle"></i> Location unknown`;
                             distanceBadge.className = 'distance-badge distance-unknown';
                         }
                     }
                     
-                    // Re-apply filter
                     filterByDistance(currentDistanceFilter);
                 }
             }
-            
-            // Re-sort users by distance
             sortUsersByDistance();
         }
         
-        // Sort users by distance (nearest first)
         function sortUsersByDistance() {
-            const container = document.getElementById('usersList');
-            const items = Array.from(container.querySelectorAll('.list-group-item'));
+            const container = document.getElementById('usersGrid');
+            const items = Array.from(container.querySelectorAll('.user-card'));
             
             items.sort((a, b) => {
                 const distA = parseFloat(a.dataset.distance) || 999;
                 const distB = parseFloat(b.dataset.distance) || 999;
+                const hasLocA = a.dataset.hasLocation === 'true';
+                const hasLocB = b.dataset.hasLocation === 'true';
+                
+                // Users with location come first
+                if (hasLocA && !hasLocB) return -1;
+                if (!hasLocA && hasLocB) return 1;
                 return distA - distB;
             });
             
             items.forEach(item => container.appendChild(item));
         }
         
-        // Logout function
         async function logoutUser() {
             if (isLoggingOut) return;
             isLoggingOut = true;
@@ -578,9 +808,7 @@
                 await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
             } catch (err) {}
             
-            setTimeout(() => {
-                window.location.replace('/login');
-            }, 50);
+            window.location.replace('/login');
         }
         
         // ==================== PAGE INITIALIZATION ====================
@@ -591,30 +819,31 @@
             const hasLocation = urlParams.has('lat') && urlParams.has('lng');
             
             if (currentUserId && currentUserId !== "") {
-                // Initialize socket
                 window.socket = initSocket();
                 window.socket.connect();
             }
             
-            // If no location in URL, get location
-            if (!hasLocation && !isLoggingOut) {
+            if (!hasLocation && !isLoggingOut && !currentUserHasLocation) {
                 refreshLocation();
             } else if (hasLocation) {
                 currentLocation = {
                     lat: parseFloat(urlParams.get('lat')),
                     lng: parseFloat(urlParams.get('lng'))
                 };
+                currentUserHasLocation = true;
                 showLocationLoading(false);
             }
+            
+            updateLocationPrompt();
             
             // Search filter
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     const query = this.value.toLowerCase();
-                    document.querySelectorAll('.list-group-item').forEach(item => {
-                        const username = item.getAttribute('data-username').toLowerCase();
-                        item.style.display = username.includes(query) ? '' : 'none';
+                    document.querySelectorAll('.user-card').forEach(card => {
+                        const username = card.getAttribute('data-username').toLowerCase();
+                        card.style.display = username.includes(query) ? '' : 'none';
                     });
                 });
             }
@@ -627,11 +856,10 @@
                 });
             });
             
-            // Sort users by distance initially
             sortUsersByDistance();
             
             // Click on card redirects to chat
-            document.querySelectorAll('.list-group-item').forEach(card => {
+            document.querySelectorAll('.user-card').forEach(card => {
                 const userId = card.getAttribute('data-user-id');
                 const chatUrl = `/chat/${userId}`;
                 card.addEventListener('click', (e) => {
@@ -644,7 +872,6 @@
             });
         });
         
-        // Prevent accidental refresh issues
         window.addEventListener('beforeunload', function() {
             if (socket && socket.connected) {
                 socket.off();
