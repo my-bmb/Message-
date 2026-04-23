@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>FlirtyBee - Nearby Users</title>
+    <title>FlirtyBee - Nearby</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -17,7 +17,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 10px;
+            padding: 8px;
             padding-bottom: 70px;
         }
 
@@ -26,27 +26,27 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
         }
 
         .app-title {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(10px);
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 30px;
             color: white;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .header-buttons {
             display: flex;
-            gap: 6px;
+            gap: 5px;
         }
 
         .header-btn {
@@ -55,13 +55,13 @@
             border: 1px solid rgba(255,255,255,0.3);
             color: white;
             border-radius: 30px;
-            padding: 6px 12px;
-            font-size: 0.8rem;
+            padding: 5px 10px;
+            font-size: 0.7rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             text-decoration: none;
         }
 
@@ -74,24 +74,24 @@
             border: none;
         }
 
-        /* Search Box */
+        /* Search */
         .search-container {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .search-input {
             width: 100%;
-            padding: 10px 14px;
+            padding: 8px 12px;
             border-radius: 30px;
             border: none;
             background: rgba(255,255,255,0.95);
-            font-size: 13px;
+            font-size: 12px;
             outline: none;
         }
 
         /* Distance Filters */
         .filters-container {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             overflow-x: auto;
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
@@ -104,16 +104,16 @@
 
         .filter-buttons {
             display: inline-flex;
-            gap: 6px;
+            gap: 5px;
             padding: 0 2px;
         }
 
         .filter-btn {
             background: rgba(255,255,255,0.9);
             border: none;
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 30px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
@@ -124,14 +124,14 @@
             color: white;
         }
 
-        /* User Grid - 3 Columns */
+        /* User Grid - 3 Columns on Mobile */
         .users-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
         }
 
-        /* User Card - 3:4 Ratio */
+        /* User Card */
         .user-card {
             background: white;
             border-radius: 14px;
@@ -140,7 +140,6 @@
             transition: all 0.2s ease;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             position: relative;
-            aspect-ratio: 3 / 4;
             display: flex;
             flex-direction: column;
         }
@@ -167,54 +166,53 @@
 
         .user-avatar {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 14px 0 6px 0;
+            padding: 16px 0 12px 0;
             text-align: center;
             flex-shrink: 0;
         }
 
         .profile-pic-small {
-            width: 60px;
-            height: 60px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid white;
         }
 
         .user-avatar i {
-            font-size: 42px;
+            font-size: 55px;
             color: white;
         }
 
         .user-card-info {
-            padding: 8px 6px 10px 6px;
+            padding: 10px 8px 12px 8px;
             text-align: center;
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
         }
 
         .user-card-name {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 13px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
             color: #333;
         }
 
         .age-text {
-            font-size: 9px;
+            font-size: 10px;
             color: #667eea;
         }
 
         .status-badge {
-            font-size: 8px;
-            padding: 2px 5px;
+            font-size: 9px;
+            padding: 2px 6px;
             border-radius: 20px;
             display: inline-block;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
 
         .status-online {
@@ -228,14 +226,14 @@
         }
 
         .distance-badge {
-            font-size: 9px;
+            font-size: 10px;
             padding: 3px 6px;
             border-radius: 20px;
             display: inline-flex;
             align-items: center;
             gap: 3px;
             justify-content: center;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
             width: 100%;
         }
 
@@ -254,53 +252,86 @@
             color: white;
         }
 
-        /* Call Icons - Mobile Friendly */
-        .call-icons {
+        /* ========== ACTION BUTTONS - FIXED 4 BUTTONS ========== */
+        .action-buttons {
             display: flex;
-            justify-content: center;
-            gap: 8px;
-            padding-top: 5px;
-            border-top: 1px solid #eee;
-            flex-wrap: wrap;
-        }
-
-        .call-icons a {
-            color: #075e54;
-            font-size: 12px;
-            text-decoration: none;
-            padding: 5px 8px;
-            border-radius: 20px;
-            background: rgba(7,94,84,0.08);
-            transition: all 0.2s;
-            display: inline-flex;
+            flex-direction: row;
+            justify-content: space-around;
             align-items: center;
             gap: 4px;
+            padding: 8px 4px 4px 4px;
+            border-top: 1px solid #eee;
+            margin-top: 5px;
+            flex-wrap: nowrap;
         }
 
-        .call-icons a:active {
-            background: rgba(7,94,84,0.2);
-            transform: scale(0.95);
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 6px 0;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 9px;
+            transition: all 0.2s;
+            background: rgba(7, 94, 84, 0.1);
+            color: #075e54;
+            flex: 1;
+            min-width: 0;
         }
 
-        /* Mobile specific: show icons with labels on larger screens */
-        .call-icons .icon-label {
-            display: none;
+        .action-btn:active {
+            background: rgba(7, 94, 84, 0.25);
+            transform: scale(0.96);
         }
 
+        .action-btn i {
+            font-size: 14px;
+        }
+
+        .action-btn span {
+            font-size: 8px;
+            font-weight: 500;
+        }
+
+        /* Make buttons a bit larger on tablet */
         @media (min-width: 480px) {
-            .call-icons a {
-                padding: 4px 10px;
+            .action-btn i {
+                font-size: 16px;
             }
-            .call-icons .icon-label {
-                display: inline;
-                font-size: 9px;
+            .action-btn span {
+                font-size: 10px;
+            }
+            .action-btn {
+                padding: 8px 0;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .users-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+        }
+
+        @media (min-width: 900px) {
+            .users-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .users-grid {
+                grid-template-columns: repeat(6, 1fr);
             }
         }
 
         .unread-badge {
             position: absolute;
-            top: -3px;
-            right: -3px;
+            top: -2px;
+            right: -2px;
             background: #dc3545;
             color: white;
             border-radius: 20px;
@@ -321,9 +352,9 @@
 
         .location-prompt {
             background: rgba(255,255,255,0.95);
-            border-radius: 14px;
-            padding: 10px 14px;
-            margin-bottom: 12px;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -331,25 +362,25 @@
         }
 
         .location-prompt-text {
-            font-size: 12px;
+            font-size: 11px;
             color: #333;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .location-prompt-text i {
             color: #ff9800;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .enable-location-btn {
             background: #075e54;
             color: white;
             border: none;
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 30px;
-            font-size: 11px;
+            font-size: 10px;
             cursor: pointer;
         }
 
@@ -360,83 +391,68 @@
             transform: translateX(-50%);
             background: #333;
             color: white;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 30px;
             z-index: 10000;
-            font-size: 12px;
+            font-size: 11px;
             white-space: nowrap;
         }
 
-        /* Desktop View */
-        @media (min-width: 768px) {
-            body { padding: 15px; }
-            .users-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
-            .empty-state { grid-column: span 4; }
-            .call-icons a { padding: 5px 12px; }
+        .hide-mobile {
+            display: none;
         }
-
-        @media (min-width: 1024px) {
-            .users-grid { grid-template-columns: repeat(5, 1fr); }
-            .empty-state { grid-column: span 5; }
+        
+        @media (min-width: 450px) {
+            .hide-mobile {
+                display: inline;
+            }
         }
-
-        @media (min-width: 1300px) {
-            .users-grid { grid-template-columns: repeat(6, 1fr); }
-            .empty-state { grid-column: span 6; }
-        }
-
-        .hide-mobile { display: none; }
-        @media (min-width: 500px) { .hide-mobile { display: inline; } }
     </style>
 </head>
 <body>
-    <!-- Main Content - No Loading Overlays -->
     <div class="app-header">
         <div class="app-title">
-            <i class="fas fa-map-marker-alt"></i>
+            <i class="fas fa-heart" style="color: #ff6b6b;"></i>
             <span>FlirtyBee</span>
         </div>
         <div class="header-buttons">
             <a href="{{ url_for('profile') }}" class="header-btn profile-btn">
-                <i class="fas fa-user-circle"></i> <span class="hide-mobile">Profile</span>
+                <i class="fas fa-user-circle"></i> <span class="hide-mobile">Me</span>
             </a>
             <button onclick="refreshLocation()" class="header-btn">
                 <i class="fas fa-location-dot"></i> <span class="hide-mobile">Nearby</span>
             </button>
             <button onclick="logoutUser()" class="header-btn">
-                <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Logout</span>
+                <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Exit</span>
             </button>
         </div>
     </div>
 
-    <!-- Search -->
     <div class="search-container">
         <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search users...">
     </div>
 
-    <!-- Distance Filters -->
     <div class="filters-container">
         <div class="filter-buttons">
             <button class="filter-btn active" data-distance="all">All</button>
-            <button class="filter-btn" data-distance="1">📍 1km</button>
-            <button class="filter-btn" data-distance="5">📍 5km</button>
-            <button class="filter-btn" data-distance="10">📍 10km</button>
-            <button class="filter-btn" data-distance="25">📍 25km</button>
+            <button class="filter-btn" data-distance="1">1km</button>
+            <button class="filter-btn" data-distance="5">5km</button>
+            <button class="filter-btn" data-distance="10">10km</button>
+            <button class="filter-btn" data-distance="25">25km</button>
+            <button class="filter-btn" data-distance="50">50km</button>
         </div>
     </div>
 
-    <!-- Location Prompt -->
     <div id="locationPrompt" class="location-prompt" style="display: none;">
         <div class="location-prompt-text">
             <i class="fas fa-location-arrow"></i>
-            <span>Turn on location to see distances</span>
+            <span>Enable location to see distances</span>
         </div>
         <button onclick="refreshLocation()" class="enable-location-btn">
             <i class="fas fa-location-dot"></i> Enable
         </button>
     </div>
 
-    <!-- Users Grid -->
     <div class="users-grid" id="usersGrid">
         {% for user in users %}
         <div class="user-card" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-distance="{{ user.distance_km or 999 }}" data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}">
@@ -463,17 +479,17 @@
                         {% if user.is_online %}
                             ● Online
                         {% else %}
-                            ⚫ {{ user.last_seen_formatted|truncate(10, true) }}
+                            ⚫ Offline
                         {% endif %}
                     </div>
                     
                     {% if user.distance_display and user.distance_display != 'Unknown' %}
                         <div class="distance-badge distance-known">
-                            <i class="fas fa-location-dot"></i> {{ user.distance_display }}
+                            <i class="fas fa-map-marker-alt"></i> {{ user.distance_display }}
                         </div>
                     {% elif session.get('user_lat') is none and session.get('user_lng') is none %}
                         <div class="distance-badge distance-warning">
-                            <i class="fas fa-exclamation-triangle"></i> Turn on location
+                            <i class="fas fa-exclamation-triangle"></i> No GPS
                         </div>
                     {% else %}
                         <div class="distance-badge distance-unknown">
@@ -482,31 +498,32 @@
                     {% endif %}
                 </div>
                 
-                <!-- Call Icons - All 4 buttons visible on mobile -->
-                <div class="call-icons">
-                    <a href="{{ url_for('view_user_profile', user_id=user.id) }}" title="View Profile" onclick="event.stopPropagation();">
-                        <i class="fas fa-user-circle"></i>
-                        <span class="icon-label">Profile</span>
+                <!-- 4 ACTION BUTTONS - ALWAYS VISIBLE -->
+                <div class="action-buttons">
+                    <a href="{{ url_for('view_user_profile', user_id=user.id) }}" class="action-btn" title="View Profile" onclick="event.stopPropagation();">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
                     </a>
-                    <a href="{{ url_for('chat', user_id=user.id) }}" class="chat-link" title="Chat" onclick="event.stopPropagation();">
+                    <a href="{{ url_for('chat', user_id=user.id) }}" class="action-btn" title="Send Message" onclick="event.stopPropagation();">
                         <i class="fas fa-comment"></i>
-                        <span class="icon-label">Chat</span>
+                        <span>Chat</span>
                     </a>
-                    <a href="{{ url_for('audio_call', user_id=user.id) }}" class="audio-call-link" title="Audio Call" onclick="event.stopPropagation();">
+                    <a href="{{ url_for('audio_call', user_id=user.id) }}" class="action-btn" title="Audio Call" onclick="event.stopPropagation();">
                         <i class="fas fa-phone"></i>
-                        <span class="icon-label">Call</span>
+                        <span>Call</span>
                     </a>
-                    <a href="{{ url_for('video_call', user_id=user.id) }}" class="video-call-link" title="Video Call" onclick="event.stopPropagation();">
+                    <a href="{{ url_for('video_call', user_id=user.id) }}" class="action-btn" title="Video Call" onclick="event.stopPropagation();">
                         <i class="fas fa-video"></i>
-                        <span class="icon-label">Video</span>
+                        <span>Video</span>
                     </a>
                 </div>
             </div>
         </div>
         {% else %}
         <div class="empty-state">
-            <i class="fas fa-users"></i>
-            <p>No other users found</p>
+            <i class="fas fa-users fa-3x"></i>
+            <p style="margin-top: 10px;">No other users found nearby</p>
+            <small>Try increasing distance filter</small>
         </div>
         {% endfor %}
     </div>
@@ -523,7 +540,7 @@
             toast.className = 'toast-notification';
             toast.textContent = message;
             document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
+            setTimeout(() => toast.remove(), 2000);
         }
         
         function getCurrentLocation() {
@@ -596,10 +613,7 @@
                     } else {
                         indicator.classList.remove('online');
                         indicator.classList.add('offline');
-                        if (statusBadge && data.last_seen) {
-                            const date = new Date(data.last_seen);
-                            statusBadge.innerHTML = `⚫ ${date.toLocaleString('en-IN', { hour12: true }).substring(0, 10)}`;
-                        }
+                        if (statusBadge) statusBadge.innerHTML = '⚫ Offline';
                     }
                 }
             });
@@ -626,10 +640,10 @@
                     const db = card.querySelector('.distance-badge');
                     if (db) {
                         if (user.distance_display && user.distance_display !== 'Unknown') {
-                            db.innerHTML = `<i class="fas fa-location-dot"></i> ${user.distance_display}`;
+                            db.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${user.distance_display}`;
                             db.className = 'distance-badge distance-known';
                         } else if (!currentLocation) {
-                            db.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Turn on location`;
+                            db.innerHTML = `<i class="fas fa-exclamation-triangle"></i> No GPS`;
                             db.className = 'distance-badge distance-warning';
                         } else {
                             db.innerHTML = `<i class="fas fa-question-circle"></i> Unknown`;
@@ -721,7 +735,7 @@
             document.querySelectorAll('.user-card').forEach(card => {
                 const userId = card.getAttribute('data-user-id');
                 card.addEventListener('click', (e) => {
-                    if (e.target.closest('.call-icons')) return;
+                    if (e.target.closest('.action-buttons')) return;
                     window.location.href = `/chat/${userId}`;
                 });
             });
