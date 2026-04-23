@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatApp - Users</title>
+    <title>ChatApp - Nearby Users</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -42,6 +42,28 @@
         .user-info { flex-grow: 1; }
         .online-badge { color: #28a745; font-weight: 500; }
         .offline-badge { color: #6c757d; font-size: 0.85rem; }
+        
+        /* 🆕 Distance Badge Styles */
+        .distance-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        .distance-near {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .distance-far {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .distance-unknown {
+            background: #6c757d;
+        }
+        
         .call-icons a {
             color: #075e54;
             margin-left: 12px;
@@ -71,6 +93,22 @@
         .avatar-icon { font-size: 1.8rem; margin-right: 12px; color: #4facfe; }
         .user-name { font-weight: 600; font-size: 1.1rem; }
         
+        /* 🆕 Refresh Location Button */
+        .refresh-location-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 30px;
+            padding: 5px 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .refresh-location-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+        
         .logout-btn {
             background: rgba(255,255,255,0.2);
             border: 1px solid rgba(255,255,255,0.3);
@@ -84,7 +122,7 @@
             background: rgba(255,255,255,0.3);
             transform: translateY(-1px);
         }
-        .logout-btn i {
+        .logout-btn i, .refresh-location-btn i {
             margin-right: 5px;
         }
         
@@ -102,9 +140,7 @@
             color: white;
             flex-direction: column;
         }
-        .logout-loading.active {
-            display: flex;
-        }
+        .logout-loading.active { display: flex; }
         .spinner {
             width: 50px;
             height: 50px;
@@ -114,11 +150,26 @@
             animation: spin 1s ease-in-out infinite;
             margin-bottom: 15px;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* Toast notification for call ended */
+        /* Location loading indicator */
+        .location-loading {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #075e54;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        .location-loading.active { display: flex; }
+        .location-loading .fa-spinner { animation: spin 1s linear infinite; }
+        
         .toast-notification {
             position: fixed;
             bottom: 20px;
@@ -132,22 +183,45 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
-        /* Prevent FOUC */
-        .hide-until-ready {
-            visibility: hidden;
+        /* Distance filter buttons */
+        .distance-filters {
+            padding: 0 1rem 1rem 1rem;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-        .ready {
-            visibility: visible;
+        .filter-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background: #075e54;
+            color: white;
+        }
+        .filter-btn:hover {
+            background: #128c7e;
+            color: white;
+        }
+        
+        /* User row compact */
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .user-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
     </style>
 </head>
@@ -156,28 +230,48 @@
         <div class="spinner"></div>
         <div>Logging out...</div>
     </div>
+    
+    <div class="location-loading" id="locationLoading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Getting your location...</span>
+    </div>
 
     <div class="container">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-comments me-2"></i> ChatApp</span>
-                <button onclick="logoutUser()" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <span><i class="fas fa-map-marker-alt me-2"></i> Nearby Users</span>
+                <div class="d-flex gap-2">
+                    <button onclick="refreshLocation()" class="refresh-location-btn">
+                        <i class="fas fa-location-dot"></i> Refresh
+                    </button>
+                    <button onclick="logoutUser()" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
             </div>
             <div class="card-body p-0">
                 <div class="search-box mt-3">
                     <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search users...">
                 </div>
+                
+                <!-- 🆕 Distance Filters -->
+                <div class="distance-filters">
+                    <button class="filter-btn active" data-distance="all">All</button>
+                    <button class="filter-btn" data-distance="1">Within 1 km</button>
+                    <button class="filter-btn" data-distance="5">Within 5 km</button>
+                    <button class="filter-btn" data-distance="10">Within 10 km</button>
+                    <button class="filter-btn" data-distance="25">Within 25 km</button>
+                </div>
+                
                 <div class="list-group list-group-flush" id="usersList">
                     {% for user in users %}
-                    <div class="list-group-item" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                    <div class="list-group-item" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-distance="{{ user.distance_km or 999 }}">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="user-info d-flex align-items-center">
                                 <i class="fas fa-user-circle avatar-icon"></i>
-                                <div>
-                                    <div class="user-name">
-                                        {{ user.username }}
+                                <div class="user-details">
+                                    <div class="user-name-row">
+                                        <span class="user-name">{{ user.username }}</span>
                                         {% if unread_counts.get(user.id) %}
                                         <span class="unread-badge">{{ unread_counts[user.id] }}</span>
                                         {% endif %}
@@ -192,6 +286,16 @@
                                             </span>
                                         {% endif %}
                                     </div>
+                                    <!-- 🆕 Distance Badge -->
+                                    {% if user.distance_display and user.distance_display != 'Unknown' %}
+                                        <div class="distance-badge distance-near">
+                                            <i class="fas fa-location-dot"></i> {{ user.distance_display }}
+                                        </div>
+                                    {% else %}
+                                        <div class="distance-badge distance-unknown">
+                                            <i class="fas fa-question-circle"></i> Location unknown
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="call-icons">
@@ -202,7 +306,7 @@
                         </div>
                     </div>
                     {% else %}
-                    <div class="text-center p-4 text-muted">No other users found.</div>
+                    <div class="text-center p-4 text-muted">No other users found nearby.</div>
                     {% endfor %}
                 </div>
             </div>
@@ -211,52 +315,158 @@
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // CRITICAL: Socket with NO auto-reconnect
+        // ==================== LOCATION & NEARBY USERS SYSTEM ====================
+        
         let socket = null;
         let isLoggingOut = false;
+        let currentLocation = null;
+        let currentDistanceFilter = 'all';
         
-        // Helper function to show toast notification
+        // Helper functions
         function showToast(message) {
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
             toast.textContent = message;
             document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
+            setTimeout(() => toast.remove(), 3000);
         }
         
-        // Initialize socket ONLY after authentication
-        function initSocket() {
-            if (socket && socket.connected) {
-                return socket;
+        function showLocationLoading(show) {
+            const loader = document.getElementById('locationLoading');
+            if (loader) {
+                loader.classList.toggle('active', show);
             }
+        }
+        
+        // 🆕 Get user's current location
+        function getCurrentLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Geolocation not supported'));
+                    return;
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        });
+                    },
+                    (error) => {
+                        reject(error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 30000
+                    }
+                );
+            });
+        }
+        
+        // 🆕 Update location to server and refresh user list
+        async function refreshLocation() {
+            showLocationLoading(true);
             
-            // CRITICAL: Disable auto-reconnect completely
+            try {
+                const location = await getCurrentLocation();
+                currentLocation = location;
+                
+                // Send to server via API
+                const response = await fetch('/update_location', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat: location.lat, lng: location.lng })
+                });
+                
+                if (response.ok) {
+                    // Also send via socket for real-time
+                    if (socket && socket.connected) {
+                        socket.emit('location_update', { lat: location.lat, lng: location.lng });
+                    }
+                    
+                    // Refresh page with new location
+                    window.location.href = `/users?lat=${location.lat}&lng=${location.lng}`;
+                } else {
+                    showToast('Failed to update location');
+                }
+            } catch (error) {
+                console.error('Location error:', error);
+                if (error.code === 1) {
+                    showToast('Please allow location access to see nearby users');
+                } else {
+                    showToast('Unable to get your location');
+                }
+                // Still load page without location
+                window.location.href = `/users`;
+            } finally {
+                showLocationLoading(false);
+            }
+        }
+        
+        // 🆕 Filter users by distance
+        function filterByDistance(distanceKm) {
+            currentDistanceFilter = distanceKm;
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.distance === distanceKm.toString()) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            const userItems = document.querySelectorAll('.list-group-item');
+            userItems.forEach(item => {
+                const userDistance = parseFloat(item.dataset.distance);
+                
+                if (distanceKm === 'all') {
+                    item.style.display = '';
+                } else if (userDistance && userDistance <= parseFloat(distanceKm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        // Initialize socket
+        function initSocket() {
+            if (socket && socket.connected) return socket;
+            
             socket = io({
-                autoConnect: false,      // Don't auto connect
-                reconnection: false,     // Disable auto reconnect
-                reconnectionAttempts: 0, // No reconnection attempts
+                autoConnect: false,
+                reconnection: false,
+                reconnectionAttempts: 0,
                 transports: ['websocket', 'polling']
             });
             
-            socket.on('connect', function() {
-                if (!isLoggingOut) {
-                    console.log('✅ Socket connected');
+            socket.on('connect', () => {
+                if (!isLoggingOut) console.log('✅ Socket connected');
+                // Send location if we have it
+                if (currentLocation && socket.connected) {
+                    socket.emit('location_update', currentLocation);
                 }
             });
             
-            socket.on('disconnect', function() {
-                if (!isLoggingOut) {
-                    console.log('❌ Socket disconnected');
+            socket.on('disconnect', () => {
+                if (!isLoggingOut) console.log('❌ Socket disconnected');
+            });
+            
+            // 🆕 Nearby users real-time update
+            socket.on('nearby_users_update', (data) => {
+                console.log('📍 Nearby users update received:', data);
+                if (data.users) {
+                    // Update distance badges without page refresh
+                    updateUsersDistance(data.users);
                 }
             });
             
-            socket.on('connect_error', function(error) {
-                console.log('❌ Socket connection error:', error);
+            socket.on('user_location_changed', (data) => {
+                console.log(`📍 ${data.username} location changed`);
             });
             
-            // Socket event handlers
             socket.on('user_status', (data) => {
                 const statusDiv = document.getElementById(`status-${data.user_id}`);
                 if (!statusDiv) return;
@@ -291,123 +501,136 @@
                 }
             });
             
-            // ✅ Call ended event handler - prevents duplicate handling
-            let lastCallEndTime = 0;
             socket.on('call_ended', (data) => {
                 const now = Date.now();
-                // Prevent duplicate call_ended events within 500ms
-                if (now - lastCallEndTime < 500) {
-                    console.log('⚠️ Duplicate call_ended ignored');
-                    return;
-                }
-                lastCallEndTime = now;
-                console.log('📞 Call ended event received', data);
-                // Optional: Show notification to user
+                if (window.lastCallEndTime && now - window.lastCallEndTime < 500) return;
+                window.lastCallEndTime = now;
+                console.log('📞 Call ended event received');
                 showToast('Call has ended');
             });
             
             return socket;
         }
         
-        // FINAL LOGOUT FUNCTION - NO AUTO RECONNECT
+        // Update users distance in UI
+        function updateUsersDistance(users) {
+            for (const user of users) {
+                const userRow = document.querySelector(`.list-group-item[data-user-id="${user.id}"]`);
+                if (userRow && user.distance_display) {
+                    // Update data attribute
+                    userRow.dataset.distance = user.distance_km || 999;
+                    
+                    // Update distance badge
+                    const distanceBadge = userRow.querySelector('.distance-badge');
+                    if (distanceBadge) {
+                        if (user.distance_display && user.distance_display !== 'Unknown') {
+                            distanceBadge.innerHTML = `<i class="fas fa-location-dot"></i> ${user.distance_display}`;
+                            distanceBadge.className = 'distance-badge distance-near';
+                        } else {
+                            distanceBadge.innerHTML = `<i class="fas fa-question-circle"></i> Location unknown`;
+                            distanceBadge.className = 'distance-badge distance-unknown';
+                        }
+                    }
+                    
+                    // Re-apply filter
+                    filterByDistance(currentDistanceFilter);
+                }
+            }
+            
+            // Re-sort users by distance
+            sortUsersByDistance();
+        }
+        
+        // Sort users by distance (nearest first)
+        function sortUsersByDistance() {
+            const container = document.getElementById('usersList');
+            const items = Array.from(container.querySelectorAll('.list-group-item'));
+            
+            items.sort((a, b) => {
+                const distA = parseFloat(a.dataset.distance) || 999;
+                const distB = parseFloat(b.dataset.distance) || 999;
+                return distA - distB;
+            });
+            
+            items.forEach(item => container.appendChild(item));
+        }
+        
+        // Logout function
         async function logoutUser() {
-            if (isLoggingOut) return; // Prevent multiple logout attempts
-            
+            if (isLoggingOut) return;
             isLoggingOut = true;
-            console.log('🚪 Logout initiated - Will NOT reconnect');
             
-            // Show loading overlay
             const loadingOverlay = document.getElementById('logoutLoading');
-            if (loadingOverlay) {
-                loadingOverlay.classList.add('active');
-            }
+            if (loadingOverlay) loadingOverlay.classList.add('active');
             
-            // CRITICAL: Stop socket completely before logout
             if (socket) {
-                socket.off();           // Remove all event listeners
-                socket.disconnect();    // Disconnect socket
-                socket = null;          // Clear socket reference
-                console.log('🔌 Socket fully disconnected and cleared');
+                socket.off();
+                socket.disconnect();
+                socket = null;
             }
             
-            // Clear all storage immediately
             try {
                 sessionStorage.clear();
                 localStorage.clear();
-                console.log('🗑️ Storage cleared');
-            } catch(e) {
-                console.warn('Could not clear storage:', e);
-            }
+            } catch(e) {}
             
-            // Send logout request to server (fire and forget)
             try {
-                const response = await fetch('/logout', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Logout successful:', data);
-                } else {
-                    console.error('❌ Logout failed with status:', response.status);
-                }
-            } catch (err) {
-                console.error('❌ Logout fetch error:', err);
-            }
+                await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+            } catch (err) {}
             
-            // FORCE HARD REDIRECT - Use replace to prevent back button issues
-            // Small delay to ensure server processes logout
-            setTimeout(function() {
-                console.log('🔄 Redirecting to login page...');
+            setTimeout(() => {
                 window.location.replace('/login');
             }, 50);
         }
         
-        // Connect socket only after page load AND user is authenticated
+        // ==================== PAGE INITIALIZATION ====================
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is authenticated (from server-rendered template)
             const currentUserId = "{{ current_user.id }}";
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasLocation = urlParams.has('lat') && urlParams.has('lng');
             
-            if (currentUserId && currentUserId !== "" && !isLoggingOut) {
-                console.log('🔌 User authenticated, connecting socket...');
+            if (currentUserId && currentUserId !== "") {
+                // Initialize socket
                 window.socket = initSocket();
                 window.socket.connect();
-            } else {
-                console.log('⚠️ User not authenticated, socket not connected');
+            }
+            
+            // If no location in URL, get location
+            if (!hasLocation && !isLoggingOut) {
+                refreshLocation();
+            } else if (hasLocation) {
+                currentLocation = {
+                    lat: parseFloat(urlParams.get('lat')),
+                    lng: parseFloat(urlParams.get('lng'))
+                };
+                showLocationLoading(false);
             }
             
             // Search filter
             const searchInput = document.getElementById('searchInput');
-            const userItems = document.querySelectorAll('.list-group-item');
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     const query = this.value.toLowerCase();
-                    userItems.forEach(item => {
+                    document.querySelectorAll('.list-group-item').forEach(item => {
                         const username = item.getAttribute('data-username').toLowerCase();
                         item.style.display = username.includes(query) ? '' : 'none';
                     });
                 });
             }
             
-            // Online first sorting
-            const usersContainer = document.getElementById('usersList');
-            const items = Array.from(userItems);
-            if (items.length > 0) {
-                items.sort((a, b) => {
-                    const aOnline = a.querySelector('.online-badge') !== null;
-                    const bOnline = b.querySelector('.online-badge') !== null;
-                    if (aOnline && !bOnline) return -1;
-                    if (!aOnline && bOnline) return 1;
-                    return 0;
+            // Distance filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const distance = this.dataset.distance;
+                    filterByDistance(distance);
                 });
-                items.forEach(item => usersContainer.appendChild(item));
-            }
+            });
             
-            // Click on card redirects to chat (except call icons)
+            // Sort users by distance initially
+            sortUsersByDistance();
+            
+            // Click on card redirects to chat
             document.querySelectorAll('.list-group-item').forEach(card => {
                 const userId = card.getAttribute('data-user-id');
                 const chatUrl = `/chat/${userId}`;
@@ -421,7 +644,7 @@
             });
         });
         
-        // Prevent accidental page refresh from reconnecting
+        // Prevent accidental refresh issues
         window.addEventListener('beforeunload', function() {
             if (socket && socket.connected) {
                 socket.off();

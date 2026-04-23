@@ -433,6 +433,19 @@
         .user-status { font-size: 11px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-status.online { color: #2E7D32; }
         
+        /* 🆕 Distance display in chat header */
+        .distance-in-chat {
+            font-size: 10px;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin-top: 1px;
+        }
+        .distance-in-chat i {
+            font-size: 8px;
+        }
+        
         .call-buttons { display: flex; gap: 6px; margin-left: auto; }
         .call-buttons button { 
             background: rgba(255,255,255,0.2); 
@@ -590,6 +603,7 @@
             .reaction-modal { padding: 10px; gap: 6px; max-width: 200px; }
             .reaction-modal button { font-size: 1.2rem; padding: 5px; }
             .scroll-to-bottom { bottom: 66px; right: 12px; width: 36px; height: 36px; font-size: 1rem; }
+            .distance-in-chat { font-size: 9px; }
         }
         
         @media (orientation: landscape) and (max-height: 500px) {
@@ -613,6 +627,16 @@
         <a href="{{ url_for('users') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <div class="user-info">
             <div class="user-name">{{ other_user.username }}</div>
+            <!-- 🆕 Distance display in chat header -->
+            {% if other_user.distance_display and other_user.distance_display != 'Unknown' %}
+                <div class="distance-in-chat">
+                    <i class="fas fa-location-dot"></i> {{ other_user.distance_display }} away
+                </div>
+            {% elif other_user.distance_display == 'Unknown' %}
+                <div class="distance-in-chat">
+                    <i class="fas fa-question-circle"></i> Location unknown
+                </div>
+            {% endif %}
             <div class="user-status" id="onlineStatus">
                 {% if other_user.is_online %}
                     <span class="online">● Online</span>
@@ -704,32 +728,22 @@
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-    // ================== FINAL TIME FIX SYSTEM ==================
+    // ================== TIME SYSTEM ==================
 
-    // 🔥 Universal Safe Date Parser (MAIN FIX)
     function parseUTC(utcTimestamp) {
         if (!utcTimestamp) return null;
-
-        // अगर backend से "2026-04-20 11:49:00" आ रहा है
-        // तो इसे force ISO + UTC बना देंगे
         let fixed = utcTimestamp.replace(' ', 'T');
-
-        // अगर Z या timezone नहीं है तो add कर दो
         if (!fixed.includes('Z') && !fixed.includes('+')) {
             fixed += 'Z';
         }
-
         let date = new Date(fixed);
         if (isNaN(date.getTime())) return null;
-
         return date;
     }
 
-    // ⏰ Time only (WhatsApp style)
     function formatIndianTime(utcTimestamp) {
         let date = parseUTC(utcTimestamp);
         if (!date) return '';
-
         return date.toLocaleString('en-IN', {
             hour: '2-digit',
             minute: '2-digit',
@@ -738,29 +752,22 @@
         });
     }
 
-    // 📅 Full date + time
     function formatFullDateTime(utcTimestamp) {
         let date = parseUTC(utcTimestamp);
         if (!date) return '';
-
         const day = date.toLocaleString('en-IN', { day: 'numeric', timeZone: 'Asia/Kolkata' });
         const month = date.toLocaleString('en-IN', { month: 'short', timeZone: 'Asia/Kolkata' });
         const year = date.toLocaleString('en-IN', { year: 'numeric', timeZone: 'Asia/Kolkata' });
         const time = formatIndianTime(utcTimestamp);
-
         return `${day} ${month} ${year}, ${time}`;
     }
 
-    // 🧠 Smart message time (Today / Old)
     function formatMessageTime(utcTimestamp) {
         let date = parseUTC(utcTimestamp);
         if (!date) return '';
-
         let now = new Date();
-
         const today = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
         const msgDay = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
-
         if (today === msgDay) {
             return formatIndianTime(utcTimestamp);
         } else {
@@ -768,22 +775,16 @@
         }
     }
 
-    // 🟢 Last seen system (WhatsApp style)
     function formatLastSeen(utcTimestamp) {
         let date = parseUTC(utcTimestamp);
         if (!date) return 'recently';
-
         let now = new Date();
-
         const today = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
-
         let yesterdayDate = new Date();
         yesterdayDate.setDate(yesterdayDate.getDate() - 1);
         const yesterday = yesterdayDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
-
         const msgDay = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
         const time = formatIndianTime(utcTimestamp);
-
         if (msgDay === today) {
             return `Last seen today at ${time}`;
         } else if (msgDay === yesterday) {
@@ -794,7 +795,6 @@
         }
     }
 
-    // 🔄 Status update
     function updateOnlineStatus(isOnline, lastSeenUtc) {
         const statusDiv = document.getElementById('onlineStatus');
         if (isOnline) {
