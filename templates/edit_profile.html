@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Edit Profile | FlirtyBee</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+        }
+        .edit-profile-container { max-width: 800px; margin: 0 auto; }
+        .edit-card {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .edit-title {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+        .edit-title i { color: #667eea; margin-right: 0.5rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label {
+            display: block;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group label i { color: #667eea; margin-right: 0.5rem; }
+        .form-control, .form-select {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255,255,255,0.15);
+        }
+        .form-control::placeholder { color: #888; }
+        .form-select option { background: #2a2a3e; color: #fff; }
+        textarea.form-control { resize: vertical; }
+        .file-input {
+            width: 100%;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px dashed rgba(255,255,255,0.3);
+            border-radius: 10px;
+            color: #ccc;
+            cursor: pointer;
+        }
+        .form-text {
+            display: block;
+            color: #888;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+        .current-photo { margin-bottom: 0.5rem; }
+        .current-profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #667eea;
+        }
+        .no-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 0.8rem;
+        }
+        .current-gallery {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+        .gallery-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .gallery-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .btn-save, .btn-cancel {
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-save {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
+        .btn-cancel {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .btn-cancel:hover { background: rgba(255,255,255,0.2); }
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        .alert-success { background: rgba(76,175,80,0.2); color: #4CAF50; border: 1px solid #4CAF50; }
+        .alert-danger { background: rgba(244,67,54,0.2); color: #f44336; border: 1px solid #f44336; }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .edit-card { padding: 1.5rem; }
+            .form-actions { flex-direction: column; }
+            .btn-save, .btn-cancel { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-profile-container">
+        <div class="edit-card">
+            <h1 class="edit-title"><i class="fas fa-user-edit"></i> Edit Profile</h1>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label><i class="fas fa-camera"></i> Profile Picture</label>
+                    <div class="current-photo">
+                        {% if user.profile_pic %}
+                        <img src="{{ user.profile_pic }}" class="current-profile-img">
+                        {% else %}
+                        <div class="no-photo">No profile picture</div>
+                        {% endif %}
+                    </div>
+                    <input type="file" name="profile_pic" accept="image/*" class="file-input">
+                    <small class="form-text">Recommended: Square image, max 5MB (JPG, PNG, GIF, WEBP)</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Username *</label>
+                    <input type="text" name="username" value="{{ user.username }}" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-edit"></i> Bio</label>
+                    <textarea name="bio" rows="4" class="form-control" placeholder="Tell others about yourself...">{{ user.bio or '' }}</textarea>
+                    <small class="form-text">Max 500 characters</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-alt"></i> Age</label>
+                    <input type="number" name="age" value="{{ user.age or '' }}" min="18" max="120" class="form-control">
+                    <small class="form-text">Must be between 18 and 120</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-venus-mars"></i> Gender</label>
+                    <select name="gender" class="form-select">
+                        <option value="">Select gender</option>
+                        <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
+                        <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                        <option value="non-binary" {% if user.gender == 'non-binary' %}selected{% endif %}>Non-binary</option>
+                        <option value="prefer-not-to-say" {% if user.gender == 'prefer-not-to-say' %}selected{% endif %}>Prefer not to say</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-tags"></i> Interests</label>
+                    <input type="text" name="interests" value="{{ user.interests_str }}" class="form-control" placeholder="e.g., Music, Travel, Coding, Photography">
+                    <small class="form-text">Separate interests with commas</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-images"></i> Gallery Photos</label>
+                    {% if user.photos_list %}
+                    <div class="current-gallery">
+                        {% for photo in user.photos_list %}
+                        <div class="gallery-preview"><img src="{{ photo }}"></div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <input type="file" name="photos" accept="image/*" multiple class="file-input">
+                    <small class="form-text">You can select multiple images (max 10, each up to 5MB)</small>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Changes</button>
+                    <a href="{{ url_for('profile') }}" class="btn-cancel"><i class="fas fa-times"></i> Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

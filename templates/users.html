@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ChatApp - Nearby Users</title>
+    <title>FlirtyBee - Nearby Users</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -62,10 +62,16 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            text-decoration: none;
         }
 
         .header-btn:active {
             transform: scale(0.95);
+        }
+
+        .profile-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
         }
 
         /* Search Box */
@@ -166,6 +172,14 @@
             flex-shrink: 0;
         }
 
+        .profile-pic-small {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+        }
+
         .user-avatar i {
             font-size: 42px;
             color: white;
@@ -188,6 +202,11 @@
             text-overflow: ellipsis;
             margin-bottom: 3px;
             color: #333;
+        }
+
+        .age-text {
+            font-size: 9px;
+            color: #667eea;
         }
 
         .status-badge {
@@ -235,24 +254,47 @@
             color: white;
         }
 
+        /* Call Icons - Mobile Friendly */
         .call-icons {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             padding-top: 5px;
             border-top: 1px solid #eee;
+            flex-wrap: wrap;
         }
 
         .call-icons a {
             color: #075e54;
             font-size: 12px;
             text-decoration: none;
-            padding: 4px;
-            border-radius: 50%;
+            padding: 5px 8px;
+            border-radius: 20px;
+            background: rgba(7,94,84,0.08);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .call-icons a:active {
-            background: rgba(7,94,84,0.1);
+            background: rgba(7,94,84,0.2);
+            transform: scale(0.95);
+        }
+
+        /* Mobile specific: show icons with labels on larger screens */
+        .call-icons .icon-label {
+            display: none;
+        }
+
+        @media (min-width: 480px) {
+            .call-icons a {
+                padding: 4px 10px;
+            }
+            .call-icons .icon-label {
+                display: inline;
+                font-size: 9px;
+            }
         }
 
         .unread-badge {
@@ -330,6 +372,7 @@
             body { padding: 15px; }
             .users-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
             .empty-state { grid-column: span 4; }
+            .call-icons a { padding: 5px 12px; }
         }
 
         @media (min-width: 1024px) {
@@ -351,11 +394,14 @@
     <div class="app-header">
         <div class="app-title">
             <i class="fas fa-map-marker-alt"></i>
-            <span>Nearby</span>
+            <span>FlirtyBee</span>
         </div>
         <div class="header-buttons">
+            <a href="{{ url_for('profile') }}" class="header-btn profile-btn">
+                <i class="fas fa-user-circle"></i> <span class="hide-mobile">Profile</span>
+            </a>
             <button onclick="refreshLocation()" class="header-btn">
-                <i class="fas fa-location-dot"></i> <span class="hide-mobile">Refresh</span>
+                <i class="fas fa-location-dot"></i> <span class="hide-mobile">Nearby</span>
             </button>
             <button onclick="logoutUser()" class="header-btn">
                 <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Logout</span>
@@ -399,11 +445,20 @@
             <div class="unread-badge">{{ unread_counts[user.id] }}</div>
             {% endif %}
             <div class="user-avatar">
+                {% if user.profile_pic %}
+                <img src="{{ user.profile_pic }}" class="profile-pic-small">
+                {% else %}
                 <i class="fas fa-user-circle"></i>
+                {% endif %}
             </div>
             <div class="user-card-info">
                 <div>
-                    <div class="user-card-name">{{ user.username }}</div>
+                    <div class="user-card-name">
+                        {{ user.username }}
+                        {% if user.age %}
+                        <span class="age-text">({{ user.age }})</span>
+                        {% endif %}
+                    </div>
                     <div class="status-badge {% if user.is_online %}status-online{% else %}status-offline{% endif %}">
                         {% if user.is_online %}
                             ● Online
@@ -427,15 +482,23 @@
                     {% endif %}
                 </div>
                 
+                <!-- Call Icons - All 4 buttons visible on mobile -->
                 <div class="call-icons">
+                    <a href="{{ url_for('view_user_profile', user_id=user.id) }}" title="View Profile" onclick="event.stopPropagation();">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="icon-label">Profile</span>
+                    </a>
                     <a href="{{ url_for('chat', user_id=user.id) }}" class="chat-link" title="Chat" onclick="event.stopPropagation();">
                         <i class="fas fa-comment"></i>
+                        <span class="icon-label">Chat</span>
                     </a>
                     <a href="{{ url_for('audio_call', user_id=user.id) }}" class="audio-call-link" title="Audio Call" onclick="event.stopPropagation();">
                         <i class="fas fa-phone"></i>
+                        <span class="icon-label">Call</span>
                     </a>
                     <a href="{{ url_for('video_call', user_id=user.id) }}" class="video-call-link" title="Video Call" onclick="event.stopPropagation();">
                         <i class="fas fa-video"></i>
+                        <span class="icon-label">Video</span>
                     </a>
                 </div>
             </div>
@@ -613,7 +676,6 @@
             const prompt = document.getElementById('locationPrompt');
             
             if (!hasLocation && !isLoggingOut) {
-                // Silently get location without showing any popup
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         async (position) => {
