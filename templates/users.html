@@ -366,7 +366,7 @@
             white-space: nowrap;
         }
 
-        /* ========== FIXED MODAL - NO BOTTOM CUT-OFF ========== */
+        /* ========== ULTRA COMPACT MODAL - MOBILE FRIENDLY ========== */
         .user-modal {
             display: none;
             position: fixed;
@@ -383,31 +383,15 @@
         }
 
         .user-modal-content {
-            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            background: #1a1a2e;
             border-radius: 20px;
             width: 85%;
-            max-width: 320px;
-            max-height: 85vh;
+            max-width: 300px;
             position: relative;
             animation: modalFadeIn 0.3s ease;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        /* Custom scrollbar for modal */
-        .user-modal-content::-webkit-scrollbar {
-            width: 3px;
-        }
-        .user-modal-content::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-        .user-modal-content::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            /* No fixed aspect-ratio - let content determine height */
         }
 
         @keyframes modalFadeIn {
@@ -422,73 +406,63 @@
         }
 
         .modal-close {
-            position: sticky;
+            position: absolute;
             top: 10px;
             right: 10px;
-            margin-left: auto;
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
             z-index: 10;
             background: rgba(0,0,0,0.5);
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            float: right;
         }
 
         .modal-close:active {
             transform: scale(0.95);
         }
 
-        /* Clearfix for close button */
-        .modal-header-fix {
-            padding: 10px 10px 0 10px;
-            min-height: 40px;
-        }
-
-        /* Avatar Section */
+        /* Avatar Section - Compact */
         .modal-avatar-section {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 16px 0 12px 0;
+            background: transparent;
+            padding: 20px 0 8px 0;
             text-align: center;
-            flex-shrink: 0;
         }
 
         .modal-avatar {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            border: 3px solid white;
+            border: 3px solid #667eea;
             object-fit: cover;
-            background: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: #2a2a3e;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
         .modal-avatar-placeholder {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            border: 3px solid white;
+            border: 3px solid #667eea;
             background: linear-gradient(135deg, #667eea, #764ba2);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 32px;
+            font-size: 35px;
             margin: 0 auto;
         }
 
-        /* Info Section - Reduced spacing */
+        /* Info Section - Ultra Compact */
         .modal-info {
-            padding: 8px 12px 12px 12px;
+            padding: 4px 14px 16px 14px;
             text-align: center;
-            flex: 1;
         }
 
         .modal-name {
@@ -499,7 +473,7 @@
         }
 
         .modal-age {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: #667eea;
             margin-left: 4px;
         }
@@ -507,9 +481,8 @@
         .modal-details {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin: 3px 0;
-            flex-wrap: wrap;
+            gap: 12px;
+            margin: 4px 0;
         }
 
         .modal-detail-item {
@@ -530,21 +503,23 @@
             align-items: center;
             gap: 5px;
             padding: 2px 10px;
-            border-radius: 25px;
+            border-radius: 30px;
             font-size: 0.6rem;
-            margin: 3px 0;
+            margin: 4px 0;
             width: fit-content;
             align-self: center;
         }
 
         .modal-status.online {
-            background: rgba(76, 175, 80, 0.2);
+            background: rgba(76, 175, 80, 0.15);
             color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
         }
 
         .modal-status.offline {
-            background: rgba(158, 158, 158, 0.2);
+            background: rgba(158, 158, 158, 0.15);
             color: #999;
+            border: 1px solid rgba(158, 158, 158, 0.2);
         }
 
         .modal-status-dot {
@@ -554,73 +529,46 @@
             background: currentColor;
         }
 
-        /* Compact Bio */
-        .modal-bio {
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            padding: 5px 8px;
-            margin: 4px 0;
-            text-align: left;
-        }
-
-        .modal-bio h4 {
-            color: white;
-            font-size: 0.6rem;
-            margin-bottom: 2px;
-        }
-
-        .modal-bio h4 i {
-            font-size: 0.55rem;
-        }
-
-        .modal-bio p {
-            color: #ccc;
-            font-size: 0.6rem;
-            line-height: 1.3;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Compact Interests */
+        /* Interests - Compact */
         .modal-interests {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
             justify-content: center;
-            margin: 3px 0;
+            margin: 6px 0 8px 0;
         }
 
         .modal-interest-tag {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 2px 8px;
-            border-radius: 15px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 3px 8px;
+            border-radius: 20px;
             font-size: 0.55rem;
-            color: white;
+            color: #667eea;
         }
 
         .interests-heading {
             color: white;
             font-size: 0.6rem;
-            margin-bottom: 3px;
-            text-align: left;
+            margin-bottom: 4px;
+            text-align: center;
+            opacity: 0.7;
         }
 
-        /* BIG ACTION BUTTONS - Fixed spacing, no cut-off */
+        /* Action Buttons - 2x2 Grid - Big & Visible */
         .modal-actions {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin-top: 8px;
-            margin-bottom: 4px;
         }
 
         .modal-action-btn {
-            padding: 10px 10px;
+            padding: 9px 8px;
             border-radius: 40px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             transition: all 0.2s;
             display: flex;
             align-items: center;
@@ -659,15 +607,20 @@
             font-size: 0.55rem;
         }
 
+        /* Bio hidden */
+        .modal-bio {
+            display: none;
+        }
+
         /* Desktop View */
         @media (min-width: 768px) {
             body { padding: 15px; }
             .users-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
             .empty-state { grid-column: span 4; }
-            .user-modal-content { max-width: 340px; max-height: 80vh; }
-            .modal-avatar { width: 80px; height: 80px; }
+            .user-modal-content { max-width: 320px; }
+            .modal-avatar { width: 90px; height: 90px; }
             .modal-name { font-size: 1.2rem; }
-            .modal-action-btn { padding: 11px 14px; font-size: 0.78rem; }
+            .modal-action-btn { padding: 10px 12px; font-size: 0.75rem; }
         }
 
         @media (min-width: 1024px) {
@@ -817,12 +770,10 @@
         {% endfor %}
     </div>
 
-    <!-- Fixed Modal - No Bottom Cut-off -->
+    <!-- Ultra Compact Modal - Mobile Optimized -->
     <div id="userModal" class="user-modal">
         <div class="user-modal-content">
-            <div class="modal-header-fix">
-                <span class="modal-close" onclick="closeModal()">&times;</span>
-            </div>
+            <span class="modal-close" onclick="closeModal()">&times;</span>
             
             <!-- Avatar Section -->
             <div class="modal-avatar-section">
@@ -832,35 +783,33 @@
             <!-- Info Section -->
             <div class="modal-info">
                 <div>
-                    <div>
-                        <span class="modal-name" id="modalName"></span>
-                        <span class="modal-age" id="modalAge"></span>
-                    </div>
-                    <div class="modal-details">
-                        <div class="modal-detail-item" id="modalGender">
-                            <i class="fas fa-venus-mars"></i>
-                            <span></span>
-                        </div>
-                        <div class="modal-detail-item" id="modalDistance">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span></span>
-                        </div>
-                    </div>
-                    <div class="modal-status" id="modalStatus">
-                        <span class="modal-status-dot"></span>
+                    <span class="modal-name" id="modalName"></span>
+                    <span class="modal-age" id="modalAge"></span>
+                </div>
+                
+                <div class="modal-details">
+                    <div class="modal-detail-item" id="modalGender">
+                        <i class="fas fa-venus-mars"></i>
                         <span></span>
                     </div>
-                    <div class="modal-bio" id="modalBio">
-                        <h4><i class="fas fa-edit"></i> About</h4>
-                        <p></p>
-                    </div>
-                    <div id="modalInterests">
-                        <div class="interests-heading"><i class="fas fa-tags"></i> Interests</div>
-                        <div class="modal-interests" id="modalInterestsList"></div>
+                    <div class="modal-detail-item" id="modalDistance">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span></span>
                     </div>
                 </div>
                 
-                <!-- BIG Action Buttons - Fixed spacing -->
+                <div class="modal-status" id="modalStatus">
+                    <span class="modal-status-dot"></span>
+                    <span></span>
+                </div>
+                
+                <!-- Interests -->
+                <div id="modalInterests">
+                    <div class="interests-heading"><i class="fas fa-tags"></i> Interests</div>
+                    <div class="modal-interests" id="modalInterestsList"></div>
+                </div>
+                
+                <!-- 4 Action Buttons -->
                 <div class="modal-actions">
                     <button class="modal-action-btn btn-profile-modal" id="modalViewProfileBtn">
                         <i class="fas fa-user-circle"></i> Profile
@@ -951,7 +900,6 @@
             const username = userCard.dataset.username;
             const age = userCard.dataset.userAge;
             const gender = userCard.dataset.userGender;
-            const bio = userCard.dataset.userBio;
             const interests = userCard.dataset.userInterests;
             const profilePic = userCard.dataset.userProfilePic;
             const lastSeen = userCard.dataset.userLastSeen;
@@ -1006,29 +954,20 @@
                 statusText.innerHTML = `Last seen ${lastSeen}`;
             }
             
-            // Set bio
-            const bioP = document.querySelector('#modalBio p');
-            if (bio && bio !== '') {
-                bioP.innerHTML = bio.length > 40 ? bio.substring(0, 40) + '...' : bio;
-                document.getElementById('modalBio').style.display = 'block';
-            } else {
-                bioP.innerHTML = 'No bio yet';
-            }
-            
             // Set interests
             const interestsContainer = document.getElementById('modalInterestsList');
             if (interests && interests !== '') {
                 const interestsArray = interests.split(',');
-                const displayInterests = interestsArray.slice(0, 3);
+                const displayInterests = interestsArray.slice(0, 4);
                 interestsContainer.innerHTML = displayInterests.map(interest => 
                     `<span class="modal-interest-tag">${interest.trim()}</span>`
                 ).join('');
-                if (interestsArray.length > 3) {
-                    interestsContainer.innerHTML += `<span class="modal-interest-tag">+${interestsArray.length - 3}</span>`;
+                if (interestsArray.length > 4) {
+                    interestsContainer.innerHTML += `<span class="modal-interest-tag">+${interestsArray.length - 4}</span>`;
                 }
                 document.getElementById('modalInterests').style.display = 'block';
             } else {
-                interestsContainer.innerHTML = '<span class="text-muted">None</span>';
+                interestsContainer.innerHTML = '<span class="text-muted">No interests</span>';
             }
             
             // Set button actions
