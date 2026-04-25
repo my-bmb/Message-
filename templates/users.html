@@ -228,18 +228,18 @@
             font-size: 48px;
         }
 
-        /* ========== EXTRA TRANSPARENT CARD - 90% TRANSPARENT (10% opacity) ========== */
+        /* ========== INFO CARD - PURE SHADOW EFFECT ========== */
         .info-card {
             position: absolute;
             bottom: 8px;
             left: 6px;
             right: 6px;
-            background: rgba(0, 0, 0, 0.1);  /* 90% transparent */
-            backdrop-filter: blur(16px);
+            /* No background color - pure shadow */
+            background: transparent;
             border-radius: 12px;
             padding: 6px 8px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            /* Only shadow effect */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
             transition: all 0.2s ease;
         }
 
@@ -257,7 +257,7 @@
             font-weight: 700;
             font-size: 11px;
             color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
             letter-spacing: 0.2px;
         }
 
@@ -267,6 +267,7 @@
             margin-left: 2px;
             font-weight: 500;
             color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
 
         /* Distance Row */
@@ -277,36 +278,28 @@
             gap: 3px;
             margin-bottom: 2px;
             color: rgba(255,255,255,0.85);
-            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
             line-height: 1.2;
         }
 
         .user-distance i {
             font-size: 6px;
-            color: rgba(255,255,255,0.75);
+            color: rgba(255,255,255,0.8);
         }
 
-        /* Last Seen / Status Row - Full Text */
+        /* Last Seen / Status Row */
         .user-lastseen {
             font-size: 7px;
             display: flex;
             align-items: center;
             gap: 3px;
             color: rgba(255,255,255,0.8);
-            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
             line-height: 1.2;
-            white-space: normal;
-            word-break: break-word;
         }
 
         .user-lastseen i {
             font-size: 5px;
-            flex-shrink: 0;
-        }
-
-        .user-lastseen span {
-            white-space: normal;
-            word-break: break-word;
         }
 
         .online-text {
@@ -328,7 +321,7 @@
             background: #2ecc71;
             border: 1.5px solid white;
             z-index: 5;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             animation: pulseOnline 1.5s infinite;
         }
 
@@ -356,7 +349,7 @@
             min-width: 18px;
             text-align: center;
             z-index: 5;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         /* Floating Buttons */
@@ -502,7 +495,7 @@
             .username { font-size: 10px; }
             .user-age { font-size: 8px; }
             .user-distance { font-size: 7px; }
-            .user-lastseen { font-size: 6px; line-height: 1.3; }
+            .user-lastseen { font-size: 6px; }
             .info-card { padding: 5px 6px; bottom: 5px; left: 4px; right: 4px; border-radius: 8px; }
             .online-indicator { top: 4px; right: 4px; width: 7px; height: 7px; }
             .unread-badge { top: 3px; left: 3px; font-size: 7px; padding: 1px 4px; min-width: 15px; }
@@ -583,8 +576,6 @@
         <div class="user-card" 
              data-user-id="{{ user.id }}" 
              data-username="{{ user.username }}" 
-             data-user-age="{{ user.age or '' }}"
-             data-user-lastseen-full="{{ user.last_seen_formatted or 'recently' }}"
              data-distance="{{ user.distance_km or 999 }}" 
              data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}"
              onclick="window.location.href='/user/profile/{{ user.id }}'">
@@ -607,7 +598,7 @@
                 </div>
                 {% endif %}
                 
-                <!-- Extra Transparent Card - 90% Transparent -->
+                <!-- Info Card - Pure Shadow Effect (No Background) -->
                 <div class="info-card">
                     <div class="user-name-row">
                         <span class="username">{{ user.username }}</span>
@@ -620,19 +611,19 @@
                         {% if user.distance_display and user.distance_display != 'Unknown' %}
                             <i class="fas fa-location-dot"></i> {{ user.distance_display }}
                         {% elif session.get('user_lat') is none and session.get('user_lng') is none %}
-                            <i class="fas fa-exclamation-triangle"></i> Location off
+                            <i class="fas fa-exclamation-triangle"></i> Off
                         {% else %}
-                            <i class="fas fa-question-circle"></i> Unknown
+                            <i class="fas fa-question-circle"></i> ?
                         {% endif %}
                     </div>
                     
                     <div class="user-lastseen">
                         {% if user.is_online %}
                         <i class="fas fa-circle online-text"></i>
-                        <span class="online-text">Online now</span>
+                        <span class="online-text">Online</span>
                         {% else %}
                         <i class="fas fa-circle offline-text"></i>
-                        <span class="offline-text">Last seen: {{ user.last_seen_formatted or 'recently' }}</span>
+                        <span class="offline-text">{{ user.last_seen_formatted|truncate(8, true) }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -737,21 +728,15 @@
                         indicator.classList.remove('offline');
                         indicator.classList.add('online');
                         if (lastseenDiv) {
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text"></i><span class="online-text">Online now</span>`;
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text"></i><span class="online-text">Online</span>`;
                         }
                     } else {
                         indicator.classList.remove('online');
                         indicator.classList.add('offline');
                         if (lastseenDiv && data.last_seen) {
                             const date = new Date(data.last_seen);
-                            const formatted = date.toLocaleString('en-IN', { 
-                                day: 'numeric', 
-                                month: 'short', 
-                                hour: '2-digit', 
-                                minute: '2-digit',
-                                hour12: true 
-                            });
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle offline-text"></i><span class="offline-text">Last seen: ${formatted}</span>`;
+                            const formatted = date.toLocaleString('en-IN', { hour12: true }).substring(0, 8);
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle offline-text"></i><span class="offline-text">${formatted}</span>`;
                         }
                     }
                 }
@@ -787,9 +772,9 @@
                         if (user.distance_display && user.distance_display !== 'Unknown') {
                             distanceDiv.innerHTML = `<i class="fas fa-location-dot"></i> ${user.distance_display}`;
                         } else if (!currentLocation) {
-                            distanceDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Location off`;
+                            distanceDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Off`;
                         } else {
-                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> Unknown`;
+                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> ?`;
                         }
                     }
                 }
