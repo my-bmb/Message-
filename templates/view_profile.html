@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>{{ profile_user.username }} - Profile | FlirtyBee</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -12,12 +12,23 @@
             background: #000;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
+            position: relative;
         }
         
-        /* Full page container */
-        .profile-container {
+        /* Main wrapper to handle fixed bottom nav */
+        .main-wrapper {
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        /* Scrollable content - takes available space */
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0;
         }
         
         /* 9:16 Photo Container */
@@ -64,7 +75,7 @@
             opacity: 0.7;
         }
         
-        /* Compact Toggle Buttons */
+        /* Profile/Gallery Toggle Buttons */
         .toggle-section {
             position: absolute;
             top: 12px;
@@ -106,117 +117,60 @@
             transform: scale(0.96);
         }
         
-        /* TRANSPARENT MESSAGE CARD - Glass morphism, reduced height */
-        .message-card-overlay {
-            position: absolute;
-            bottom: 95px;
-            left: 16px;
-            right: 16px;
-            z-index: 25;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(20px);
-            border-radius: 50px;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .message-card-overlay:active {
-            transform: scale(0.98);
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .message-card-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .message-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #11998e, #38ef7d);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .message-icon i {
-            font-size: 1rem;
-            color: white;
-        }
-        
-        .message-text h4 {
-            font-size: 0.8rem;
-            font-weight: 700;
-            margin: 0;
-            color: white;
-            letter-spacing: 0.3px;
-        }
-        
-        .message-text p {
-            font-size: 0.6rem;
-            margin: 2px 0 0 0;
-            opacity: 0.8;
-            color: rgba(255,255,255,0.9);
-        }
-        
-        .message-arrow {
-            background: rgba(255,255,255,0.15);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .message-arrow i {
-            color: white;
-            font-size: 0.8rem;
-        }
-        
-        /* Name overlay at bottom of photo */
+        /* Name overlay at bottom of photo - SHIFTED FURTHER UP */
         .name-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.6), transparent);
-            padding: 20px 16px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.5), transparent);
+            padding: 60px 16px 25px;
         }
         
+        /* Distance and Name Container - Distance above Name */
+        .distance-name-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        
+        /* DISTANCE BADGE - Simple Green (Appears above name) */
+        .distance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #4CAF50;
+            padding: 0.25rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: white;
+            animation: simpleBlink 1s ease-in-out infinite;
+            order: 1;
+        }
+        
+        /* Simple blink animation - only opacity change */
+        @keyframes simpleBlink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+        
+        .distance-badge i {
+            font-size: 0.6rem;
+        }
+        
+        /* Username - Below distance */
         .profile-username {
             font-size: 1.6rem;
             font-weight: 700;
             color: white;
             margin: 0;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .distance-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(8px);
-            padding: 0.3rem 0.8rem;
-            border-radius: 25px;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-        
-        .distance-badge i {
-            font-size: 0.65rem;
+            order: 2;
         }
         
         /* Gallery Grid */
@@ -257,34 +211,6 @@
         
         .profile-image-container.hidden {
             display: none;
-        }
-        
-        /* Back button */
-        .back-btn {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            z-index: 30;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            color: white;
-            text-decoration: none;
-            padding: 8px 14px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .back-btn i {
-            font-size: 0.8rem;
-        }
-        
-        .back-btn:active {
-            transform: scale(0.96);
         }
         
         /* Info Section - Below photo */
@@ -458,11 +384,126 @@
             font-size: 0.7rem;
         }
         
+        /* ============ COMPACT FIXED BOTTOM NAVIGATION BAR ============ */
+        .bottom-nav-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 46, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+        }
+        
+        /* Compact Back Button */
+        .bottom-back-btn {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            color: white;
+            text-decoration: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+        }
+        
+        .bottom-back-btn:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.25);
+        }
+        
+        /* Compact Message Card */
+        .bottom-message-card {
+            flex: 1;
+            background: white;
+            border-radius: 50px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bottom-message-card:active {
+            transform: scale(0.98);
+        }
+        
+        .bottom-message-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .bottom-message-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bottom-message-icon i {
+            font-size: 0.9rem;
+            color: white;
+        }
+        
+        .bottom-message-text h4 {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin: 0;
+            color: #1a1a2e;
+            line-height: 1.2;
+        }
+        
+        .bottom-message-text p {
+            font-size: 0.55rem;
+            margin: 1px 0 0 0;
+            opacity: 0.6;
+            color: #666;
+            line-height: 1.2;
+        }
+        
+        .bottom-message-arrow {
+            background: rgba(0,0,0,0.05);
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bottom-message-arrow i {
+            color: #11998e;
+            font-size: 0.75rem;
+        }
+        
+        .main-wrapper {
+            padding-bottom: 70px;
+        }
+        
         /* Lightbox */
         .lightbox {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 1001;
             left: 0;
             top: 0;
             width: 100%;
@@ -489,7 +530,7 @@
             color: #fff;
             font-size: 35px;
             cursor: pointer;
-            z-index: 1001;
+            z-index: 1002;
         }
         
         /* Tablet adjustments */
@@ -502,18 +543,15 @@
                 max-width: 450px;
                 margin: -10px auto 0;
             }
-            .profile-container {
-                display: flex;
-                flex-direction: column;
+            .main-wrapper {
                 align-items: center;
             }
-            .message-card-overlay {
-                max-width: 418px;
+            .bottom-nav-fixed {
+                max-width: 550px;
                 left: 50%;
                 right: auto;
                 transform: translateX(-50%);
-                width: calc(100% - 32px);
-                bottom: 95px;
+                border-radius: 30px 30px 0 0;
             }
             .toggle-btn {
                 padding: 9px 22px;
@@ -521,6 +559,13 @@
             }
             .profile-username {
                 font-size: 1.8rem;
+            }
+            .distance-badge {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.8rem;
+            }
+            .name-overlay {
+                padding: 70px 16px 30px;
             }
         }
         
@@ -531,155 +576,151 @@
             .info-section {
                 max-width: 500px;
             }
-            .message-card-overlay {
-                max-width: 468px;
-                bottom: 95px;
+            .bottom-nav-fixed {
+                max-width: 600px;
             }
-        }
-        
-        /* Adjust for different screen heights */
-        @media (min-height: 800px) {
-            .message-card-overlay {
-                bottom: 105px;
-            }
-        }
-        
-        @media (max-height: 700px) {
-            .message-card-overlay {
-                bottom: 85px;
+            .name-overlay {
+                padding: 80px 16px 35px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="profile-container">
-        <!-- Fixed Back Button -->
-        <a href="{{ url_for('users') }}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
-        
-        <!-- 9:16 Photo Container -->
-        <div class="photo-container">
-            <!-- Compact Toggle Buttons -->
-            <div class="toggle-section">
-                <div class="toggle-btn active" id="toggleProfileBtn" onclick="showProfilePhoto()">
-                    <i class="fas fa-user-circle"></i> Profile
-                </div>
-                <div class="toggle-btn" id="toggleGalleryBtn" onclick="showGallery()">
-                    <i class="fas fa-images"></i> Gallery
-                    {% if profile_user.photos_list %}<span style="font-size: 0.65rem;">({{ profile_user.photos_list|length }})</span>{% endif %}
-                </div>
-            </div>
-            
-            <!-- TRANSPARENT MESSAGE CARD - Glass design with reduced height -->
-            <div class="message-card-overlay" onclick="window.location.href='{{ url_for('chat', user_id=profile_user.id) }}'">
-                <div class="message-card-left">
-                    <div class="message-icon">
-                        <i class="fas fa-comment-dots"></i>
+    <div class="main-wrapper">
+        <!-- Scrollable Content -->
+        <div class="scrollable-content">
+            <!-- 9:16 Photo Container -->
+            <div class="photo-container">
+                <!-- Profile/Gallery Toggle Buttons -->
+                <div class="toggle-section">
+                    <div class="toggle-btn active" id="toggleProfileBtn" onclick="showProfilePhoto()">
+                        <i class="fas fa-user-circle"></i> Profile
                     </div>
-                    <div class="message-text">
-                        <h4>Send a message</h4>
-                        <p>Say hello to {{ profile_user.username }}</p>
+                    <div class="toggle-btn" id="toggleGalleryBtn" onclick="showGallery()">
+                        <i class="fas fa-images"></i> Gallery
+                        {% if profile_user.photos_list %}<span style="font-size: 0.65rem;">({{ profile_user.photos_list|length }})</span>{% endif %}
                     </div>
                 </div>
-                <div class="message-arrow">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
-            </div>
-            
-            <!-- Profile Photo Container -->
-            <div id="profileImageContainer" class="profile-image-container">
-                {% if profile_user.profile_pic %}
-                <img src="{{ profile_user.profile_pic }}" class="profile-photo" alt="{{ profile_user.username }}">
-                {% else %}
-                <div class="photo-placeholder">
-                    <i class="fas fa-user-circle"></i>
-                    <span>No profile photo</span>
-                </div>
-                {% endif %}
                 
-                <!-- Name overlay at bottom -->
-                <div class="name-overlay">
-                    <h1 class="profile-username">
-                        {{ profile_user.username }}
-                        {% if distance %}
-                        <span class="distance-badge"><i class="fas fa-map-marker-alt"></i> {{ distance }}</span>
-                        {% endif %}
-                    </h1>
-                </div>
-            </div>
-            
-            <!-- Gallery Container -->
-            <div id="galleryContainer" class="gallery-grid hidden">
-                {% if profile_user.photos_list %}
-                    {% for photo in profile_user.photos_list %}
-                    <div class="gallery-item">
-                        <img src="{{ photo }}" alt="Gallery photo" onclick="openLightbox(this.src)">
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; width: 100%;">
-                        <i class="fas fa-images" style="font-size: 2.5rem; opacity: 0.5;"></i>
-                        <p style="margin-top: 10px; font-size: 0.8rem;">No photos in gallery</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Info Section - Below photo -->
-        <div class="info-section">
-            <!-- Age & Gender Row -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>{% if profile_user.age %}{{ profile_user.age }} years{% else %}Age not set{% endif %}</span>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-venus-mars"></i>
-                    <span>{{ profile_user.gender|capitalize if profile_user.gender else 'Not specified' }}</span>
-                </div>
-            </div>
-            
-            <!-- Status -->
-            <div class="status-card {% if profile_user.is_online %}online{% else %}offline{% endif %}">
-                <span class="status-dot"></span>
-                {% if profile_user.is_online %}
-                <i class="fas fa-circle" style="font-size: 0.5rem;"></i> Online now
-                {% else %}
-                <i class="fas fa-clock"></i> Last seen {{ profile_user.last_seen_formatted }}
-                {% endif %}
-            </div>
-            
-            <!-- About -->
-            <div class="profile-section">
-                <h3><i class="fas fa-edit"></i> About</h3>
-                <div class="bio-content">
-                    {% if profile_user.bio %}
-                    <p>{{ profile_user.bio }}</p>
+                <!-- Profile Photo Container -->
+                <div id="profileImageContainer" class="profile-image-container">
+                    {% if profile_user.profile_pic %}
+                    <img src="{{ profile_user.profile_pic }}" class="profile-photo" alt="{{ profile_user.username }}">
                     {% else %}
-                    <p class="text-muted"><i class="fas fa-quote-left"></i> No bio yet</p>
+                    <div class="photo-placeholder">
+                        <i class="fas fa-user-circle"></i>
+                        <span>No profile photo</span>
+                    </div>
                     {% endif %}
+                    
+                    <!-- Name overlay at bottom - SHIFTED FURTHER UP -->
+                    <div class="name-overlay">
+                        <div class="distance-name-container">
+                            {% if distance %}
+                            <span class="distance-badge">
+                                <i class="fas fa-map-marker-alt"></i> 
+                                {{ distance }}
+                            </span>
+                            {% endif %}
+                            <h1 class="profile-username">{{ profile_user.username }}</h1>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Interests -->
-            <div class="profile-section">
-                <h3><i class="fas fa-tags"></i> Interests</h3>
-                <div class="interests-container">
-                    {% if profile_user.interests_list %}
-                        {% for interest in profile_user.interests_list %}
-                        <span class="interest-tag">{{ interest }}</span>
+                
+                <!-- Gallery Container -->
+                <div id="galleryContainer" class="gallery-grid hidden">
+                    {% if profile_user.photos_list %}
+                        {% for photo in profile_user.photos_list %}
+                        <div class="gallery-item">
+                            <img src="{{ photo }}" alt="Gallery photo" onclick="openLightbox(this.src)">
+                        </div>
                         {% endfor %}
                     {% else %}
-                    <p class="text-muted"><i class="fas fa-heart-broken"></i> No interests listed</p>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; width: 100%;">
+                            <i class="fas fa-images" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                            <p style="margin-top: 10px; font-size: 0.8rem;">No photos in gallery</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Call Buttons -->
-            <div class="action-buttons">
-                <a href="{{ url_for('audio_call', user_id=profile_user.id) }}" class="btn-audio"><i class="fas fa-phone"></i> Audio Call</a>
-                <a href="{{ url_for('video_call', user_id=profile_user.id) }}" class="btn-call"><i class="fas fa-video"></i> Video Call</a>
+            <!-- Info Section - Below photo -->
+            <div class="info-section">
+                <!-- Age & Gender Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>{% if profile_user.age %}{{ profile_user.age }} years{% else %}Age not set{% endif %}</span>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-venus-mars"></i>
+                        <span>{{ profile_user.gender|capitalize if profile_user.gender else 'Not specified' }}</span>
+                    </div>
+                </div>
+                
+                <!-- Status -->
+                <div class="status-card {% if profile_user.is_online %}online{% else %}offline{% endif %}">
+                    <span class="status-dot"></span>
+                    {% if profile_user.is_online %}
+                    <i class="fas fa-circle" style="font-size: 0.5rem;"></i> Online now
+                    {% else %}
+                    <i class="fas fa-clock"></i> Last seen {{ profile_user.last_seen_formatted }}
+                    {% endif %}
+                </div>
+                
+                <!-- About -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-edit"></i> About</h3>
+                    <div class="bio-content">
+                        {% if profile_user.bio %}
+                        <p>{{ profile_user.bio }}</p>
+                        {% else %}
+                        <p class="text-muted"><i class="fas fa-quote-left"></i> No bio yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Interests -->
+                <div class="profile-section">
+                    <h3><i class="fas fa-tags"></i> Interests</h3>
+                    <div class="interests-container">
+                        {% if profile_user.interests_list %}
+                            {% for interest in profile_user.interests_list %}
+                            <span class="interest-tag">{{ interest }}</span>
+                            {% endfor %}
+                        {% else %}
+                        <p class="text-muted"><i class="fas fa-heart-broken"></i> No interests listed</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Call Buttons -->
+                <div class="action-buttons">
+                    <a href="{{ url_for('audio_call', user_id=profile_user.id) }}" class="btn-audio"><i class="fas fa-phone"></i> Audio Call</a>
+                    <a href="{{ url_for('video_call', user_id=profile_user.id) }}" class="btn-call"><i class="fas fa-video"></i> Video Call</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- COMPACT FIXED BOTTOM NAVIGATION BAR -->
+    <div class="bottom-nav-fixed">
+        <a href="{{ url_for('users') }}" class="bottom-back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        
+        <div class="bottom-message-card" onclick="window.location.href='{{ url_for('chat', user_id=profile_user.id) }}'">
+            <div class="bottom-message-left">
+                <div class="bottom-message-icon">
+                    <i class="fas fa-comment-dots"></i>
+                </div>
+                <div class="bottom-message-text">
+                    <h4>Send a message</h4>
+                    <p>Say hello to {{ profile_user.username }}</p>
+                </div>
+            </div>
+            <div class="bottom-message-arrow">
+                <i class="fas fa-chevron-right"></i>
             </div>
         </div>
     </div>
