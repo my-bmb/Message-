@@ -117,14 +117,14 @@
             transform: scale(0.96);
         }
         
-        /* Name overlay at bottom of photo - SHIFTED FURTHER UP */
+        /* Name overlay at bottom of photo - SHIFTED MUCH FURTHER UP */
         .name-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.5), transparent);
-            padding: 60px 16px 25px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.3), transparent);
+            padding: 120px 16px 25px;
         }
         
         /* Distance and Name Container - Distance above Name */
@@ -132,7 +132,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 6px;
+            gap: 8px;
         }
         
         /* DISTANCE BADGE - Simple Green (Appears above name) */
@@ -141,9 +141,9 @@
             align-items: center;
             gap: 0.3rem;
             background: #4CAF50;
-            padding: 0.25rem 0.7rem;
+            padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: white;
             animation: simpleBlink 1s ease-in-out infinite;
@@ -161,16 +161,17 @@
         }
         
         .distance-badge i {
-            font-size: 0.6rem;
+            font-size: 0.65rem;
         }
         
         /* Username - Below distance */
         .profile-username {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 700;
             color: white;
             margin: 0;
             order: 2;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
         }
         
         /* Gallery Grid */
@@ -558,14 +559,14 @@
                 font-size: 0.85rem;
             }
             .profile-username {
-                font-size: 1.8rem;
+                font-size: 2rem;
             }
             .distance-badge {
-                font-size: 0.7rem;
-                padding: 0.3rem 0.8rem;
+                font-size: 0.75rem;
+                padding: 0.35rem 0.9rem;
             }
             .name-overlay {
-                padding: 70px 16px 30px;
+                padding: 140px 16px 30px;
             }
         }
         
@@ -580,7 +581,7 @@
                 max-width: 600px;
             }
             .name-overlay {
-                padding: 80px 16px 35px;
+                padding: 160px 16px 35px;
             }
         }
     </style>
@@ -613,7 +614,7 @@
                     </div>
                     {% endif %}
                     
-                    <!-- Name overlay at bottom - SHIFTED FURTHER UP -->
+                    <!-- Name overlay at bottom - SHIFTED MUCH FURTHER UP -->
                     <div class="name-overlay">
                         <div class="distance-name-container">
                             {% if distance %}
