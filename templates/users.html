@@ -208,7 +208,6 @@
             aspect-ratio: 3 / 4;
             display: flex;
             flex-direction: column;
-            text-decoration: none;
         }
 
         .user-card:active {
@@ -606,7 +605,7 @@
     <!-- Users Grid -->
     <div class="users-grid" id="usersGrid">
         {% for user in users %}
-        <a href="{{ url_for('view_user_profile', user_id=user.id) }}" class="user-card" 
+        <div class="user-card" 
              data-user-id="{{ user.id }}" 
              data-username="{{ user.username }}" 
              data-user-age="{{ user.age or '' }}"
@@ -618,7 +617,8 @@
              data-user-is-online="{{ user.is_online|lower }}"
              data-distance="{{ user.distance_km or 999 }}" 
              data-distance-display="{{ user.distance_display or 'Unknown' }}"
-             data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}">
+             data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}"
+             onclick="window.location.href='/user/profile/{{ user.id }}'">
             <div class="online-indicator {% if user.is_online %}online{% else %}offline{% endif %}"></div>
             {% if unread_counts.get(user.id) %}
             <div class="unread-badge">{{ unread_counts[user.id] }}</div>
@@ -661,26 +661,26 @@
                     {% endif %}
                 </div>
                 
-                <div class="call-icons">
-                    <a href="{{ url_for('view_user_profile', user_id=user.id) }}" title="View Profile" onclick="event.stopPropagation();">
+                <div class="call-icons" onclick="event.stopPropagation();">
+                    <a href="{{ url_for('view_user_profile', user_id=user.id) }}" title="View Profile">
                         <i class="fas fa-user-circle"></i>
                         <span class="icon-label">Profile</span>
                     </a>
-                    <a href="{{ url_for('chat', user_id=user.id) }}" class="chat-link" title="Chat" onclick="event.stopPropagation();">
+                    <a href="{{ url_for('chat', user_id=user.id) }}" class="chat-link" title="Chat">
                         <i class="fas fa-comment"></i>
                         <span class="icon-label">Chat</span>
                     </a>
-                    <a href="{{ url_for('audio_call', user_id=user.id) }}" class="audio-call-link" title="Audio Call" onclick="event.stopPropagation();">
+                    <a href="{{ url_for('audio_call', user_id=user.id) }}" class="audio-call-link" title="Audio Call">
                         <i class="fas fa-phone"></i>
                         <span class="icon-label">Call</span>
                     </a>
-                    <a href="{{ url_for('video_call', user_id=user.id) }}" class="video-call-link" title="Video Call" onclick="event.stopPropagation();">
+                    <a href="{{ url_for('video_call', user_id=user.id) }}" class="video-call-link" title="Video Call">
                         <i class="fas fa-video"></i>
                         <span class="icon-label">Video</span>
                     </a>
                 </div>
             </div>
-        </a>
+        </div>
         {% else %}
         <div class="empty-state">
             <i class="fas fa-users"></i>
