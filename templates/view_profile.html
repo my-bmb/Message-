@@ -9,147 +9,471 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #000;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 12px;
+            min-height: 100vh;
         }
-        .profile-container { max-width: 1200px; margin: 0 auto; }
-        .profile-card {
-            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        
+        /* Full page container */
+        .profile-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
         }
-        .profile-cover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 160px;
+        
+        /* Scrollable content area */
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* 9:16 Photo Container */
+        .photo-container {
             position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 177.78%; /* 9:16 ratio */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
         }
-        .profile-picture-container {
+        
+        .profile-photo {
             position: absolute;
-            bottom: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .profile-picture {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            border: 4px solid #fff;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            background: #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            object-position: center;
         }
-        .profile-picture-placeholder {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            border: 4px solid #fff;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+        
+        .photo-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
             color: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-        .profile-info { padding: 65px 1.2rem 1.2rem; text-align: center; }
-        .profile-username { font-size: 1.6rem; color: #fff; margin-bottom: 0.5rem; }
-        .profile-stats {
+        
+        .photo-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .photo-placeholder span {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        
+        /* Compact Toggle Buttons */
+        .toggle-section {
+            position: absolute;
+            top: 12px;
+            left: 0;
+            right: 0;
+            z-index: 20;
             display: flex;
             justify-content: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
+            gap: 8px;
+            padding: 0 12px;
         }
-        .stat-item {
+        
+        .toggle-btn {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            color: #aaa;
-            font-size: 0.75rem;
+            gap: 5px;
         }
-        .stat-item i { color: #667eea; font-size: 0.8rem; }
-        .status-badge {
+        
+        .toggle-btn i {
+            font-size: 0.7rem;
+        }
+        
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+        }
+        
+        .toggle-btn:active {
+            transform: scale(0.96);
+        }
+        
+        /* Name overlay at bottom of photo */
+        .name-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.4), transparent);
+            padding: 20px 12px 12px;
+        }
+        
+        .profile-username {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .distance-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.3rem 0.8rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            margin-bottom: 1.2rem;
-            background: rgba(255,255,255,0.1);
-        }
-        .status-badge.online { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
-        .status-badge.offline { background: rgba(158, 158, 158, 0.2); color: #999; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-        .profile-section {
-            text-align: left;
-            margin-bottom: 1rem;
-            padding: 0.8rem;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-        }
-        .profile-section h3 {
-            color: #fff;
-            font-size: 1rem;
-            margin-bottom: 0.7rem;
-        }
-        .profile-section h3 i { color: #667eea; margin-right: 0.4rem; font-size: 0.9rem; }
-        .bio-content p { color: #ccc; line-height: 1.5; font-size: 0.85rem; }
-        .interests-container { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-        .interest-tag {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 0.3rem 0.8rem;
+            gap: 0.2rem;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            padding: 0.2rem 0.6rem;
             border-radius: 20px;
-            font-size: 0.7rem;
-            color: white;
+            font-size: 0.6rem;
+            font-weight: 500;
         }
+        
+        .distance-badge i {
+            font-size: 0.55rem;
+        }
+        
+        /* Gallery Grid */
         .gallery-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 0.6rem;
+            gap: 3px;
+            background: #000;
+            overflow-y: auto;
+            padding: 55px 3px 12px 3px;
         }
+        
         .gallery-item {
-            aspect-ratio: 1;
+            aspect-ratio: 9 / 16;
             overflow: hidden;
-            border-radius: 10px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.15s;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
         }
-        .gallery-item:active { transform: scale(0.98); }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
-        .action-buttons {
+        
+        .gallery-item:active { transform: scale(0.97); }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Hidden states */
+        .gallery-grid.hidden {
+            display: none;
+        }
+        
+        .profile-image-container.hidden {
+            display: none;
+        }
+        
+        /* Back button */
+        .back-btn {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 30;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 25px;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        
+        .back-btn i {
+            font-size: 0.7rem;
+        }
+        
+        .back-btn:active {
+            transform: scale(0.96);
+        }
+        
+        /* Info Section - Compact below photo */
+        .info-section {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            padding: 12px;
+            border-radius: 20px 20px 0 0;
+            margin-top: -15px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* Stats row - compact */
+        .stats-row {
             display: flex;
-            gap: 0.6rem;
-            justify-content: center;
-            margin-top: 1.2rem;
+            gap: 8px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
         }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(8px);
+            padding: 6px 12px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            justify-content: center;
+            min-width: 80px;
+        }
+        
+        .stat-card i {
+            font-size: 0.75rem;
+            color: #667eea;
+        }
+        
+        .stat-card span {
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        
+        /* Status card - compact */
+        .status-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(8px);
+            padding: 6px 12px;
+            border-radius: 25px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .status-card.online {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        
+        .status-card.offline {
+            background: rgba(158, 158, 158, 0.2);
+            color: #ddd;
+        }
+        
+        .status-card i, .status-card span {
+            font-size: 0.7rem;
+        }
+        
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        /* Profile sections - compact */
+        .profile-section {
+            text-align: left;
+            margin-bottom: 10px;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+        }
+        
+        .profile-section h3 {
+            color: #fff;
+            font-size: 0.75rem;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        
+        .profile-section h3 i { 
+            color: #667eea; 
+            margin-right: 5px; 
+            font-size: 0.7rem; 
+        }
+        
+        .bio-content p {
+            color: #bbb;
+            line-height: 1.4;
+            font-size: 0.7rem;
+            margin: 0;
+        }
+        
+        /* Interests - compact */
+        .interests-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .interest-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            color: white;
+            font-weight: 500;
+        }
+        
+        /* Action buttons - compact */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 10px 0 6px;
+            flex-wrap: wrap;
+        }
+        
         .btn-chat, .btn-call, .btn-audio {
-            padding: 0.6rem 1rem;
-            border-radius: 50px;
+            padding: 6px 12px;
+            border-radius: 40px;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            font-size: 0.75rem;
+            gap: 5px;
+            font-size: 0.7rem;
+            flex: 1;
+            justify-content: center;
+            min-width: 85px;
         }
+        
+        .btn-chat i, .btn-call i, .btn-audio i {
+            font-size: 0.7rem;
+        }
+        
         .btn-chat {
             background: linear-gradient(135deg, #11998e, #38ef7d);
             color: white;
         }
+        
         .btn-call {
             background: linear-gradient(135deg, #f093fb, #f5576c);
             color: white;
         }
+        
         .btn-audio {
             background: linear-gradient(135deg, #4facfe, #00f2fe);
             color: white;
         }
+        
         .btn-chat:active, .btn-call:active, .btn-audio:active { transform: scale(0.97); }
+        
+        /* MESSAGE CARD - Bottom Right Corner */
+        .message-card-fixed {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 50px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.25);
+            z-index: 100;
+            gap: 12px;
+        }
+        
+        .message-card-fixed:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .message-card-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .message-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .message-icon i {
+            font-size: 1rem;
+            color: white;
+        }
+        
+        .message-text h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 0;
+            color: white;
+            letter-spacing: 0.3px;
+        }
+        
+        .message-text p {
+            font-size: 0.6rem;
+            margin: 0;
+            opacity: 0.8;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .message-arrow {
+            background: rgba(255,255,255,0.2);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .message-arrow i {
+            color: white;
+            font-size: 0.8rem;
+        }
+        
+        .text-muted { 
+            color: #888; 
+            font-size: 0.7rem; 
+        }
+        .text-muted i { 
+            margin-right: 4px; 
+            font-size: 0.65rem;
+        }
+        
+        /* Lightbox */
         .lightbox {
             display: none;
             position: fixed;
@@ -158,8 +482,9 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.9);
+            background-color: rgba(0,0,0,0.95);
         }
+        
         .lightbox-content {
             margin: auto;
             display: block;
@@ -169,130 +494,267 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            border-radius: 8px;
         }
+        
         .close-lightbox {
             position: absolute;
             top: 15px;
-            right: 20px;
+            right: 25px;
             color: #fff;
             font-size: 30px;
             cursor: pointer;
+            z-index: 1001;
         }
-        .text-muted { color: #888; font-size: 0.8rem; }
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            margin-bottom: 0.8rem;
-            color: white;
-            text-decoration: none;
-            background: rgba(255,255,255,0.2);
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-        }
-        .distance-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            background: rgba(255,255,255,0.1);
-            padding: 0.2rem 0.5rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            margin-left: 0.3rem;
-        }
-        /* Tablet and up */
+        
+        /* Tablet adjustments */
         @media (min-width: 600px) {
-            body { padding: 20px; }
-            .profile-cover { height: 200px; }
-            .profile-picture, .profile-picture-placeholder { width: 140px; height: 140px; }
-            .profile-info { padding: 80px 2rem 2rem; }
-            .profile-username { font-size: 2rem; }
-            .profile-stats { gap: 2rem; }
-            .stat-item { font-size: 0.9rem; }
-            .gallery-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-            .btn-chat, .btn-call, .btn-audio { padding: 0.8rem 1.5rem; font-size: 0.9rem; }
+            .photo-container {
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            .info-section {
+                max-width: 400px;
+                margin: -15px auto 0;
+                border-radius: 20px 20px 0 0;
+            }
+            .profile-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .message-card-fixed {
+                bottom: 24px;
+                right: 24px;
+            }
+            .toggle-btn {
+                padding: 8px 20px;
+                font-size: 0.75rem;
+            }
+            .profile-username {
+                font-size: 1.4rem;
+            }
         }
+        
         @media (min-width: 900px) {
-            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+            .photo-container {
+                max-width: 450px;
+            }
+            .info-section {
+                max-width: 450px;
+            }
+            .message-card-fixed {
+                bottom: 30px;
+                right: 30px;
+            }
+        }
+        
+        /* Mobile landscape adjustment */
+        @media (max-width: 480px) and (orientation: landscape) {
+            .message-card-fixed {
+                bottom: 10px;
+                right: 10px;
+                padding: 6px 12px;
+            }
+            .message-icon {
+                width: 30px;
+                height: 30px;
+            }
+            .message-text h4 {
+                font-size: 0.7rem;
+            }
+            .message-text p {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <div class="profile-container">
-        <a href="{{ url_for('users') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
-        <div class="profile-card">
-            <div class="profile-cover">
-                <div class="profile-picture-container">
+        <!-- Fixed Back Button -->
+        <a href="{{ url_for('users') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        
+        <!-- Scrollable Content -->
+        <div class="scrollable-content">
+            <!-- 9:16 Photo Container -->
+            <div class="photo-container">
+                <!-- Compact Toggle Buttons -->
+                <div class="toggle-section">
+                    <div class="toggle-btn active" id="toggleProfileBtn" onclick="showProfilePhoto()">
+                        <i class="fas fa-user-circle"></i> Profile
+                    </div>
+                    <div class="toggle-btn" id="toggleGalleryBtn" onclick="showGallery()">
+                        <i class="fas fa-images"></i> Gallery
+                        {% if profile_user.photos_list %}<span style="font-size: 0.6rem;">({{ profile_user.photos_list|length }})</span>{% endif %}
+                    </div>
+                </div>
+                
+                <!-- Profile Photo Container -->
+                <div id="profileImageContainer" class="profile-image-container">
                     {% if profile_user.profile_pic %}
-                    <img src="{{ profile_user.profile_pic }}" class="profile-picture">
+                    <img src="{{ profile_user.profile_pic }}" class="profile-photo" alt="{{ profile_user.username }}">
                     {% else %}
-                    <div class="profile-picture-placeholder"><i class="fas fa-user fa-2x"></i></div>
+                    <div class="photo-placeholder">
+                        <i class="fas fa-user-circle"></i>
+                        <span>No photo</span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Name overlay at bottom -->
+                    <div class="name-overlay">
+                        <h1 class="profile-username">
+                            {{ profile_user.username }}
+                            {% if distance %}
+                            <span class="distance-badge"><i class="fas fa-map-marker-alt"></i> {{ distance }}</span>
+                            {% endif %}
+                        </h1>
+                    </div>
+                </div>
+                
+                <!-- Gallery Container -->
+                <div id="galleryContainer" class="gallery-grid hidden">
+                    {% if profile_user.photos_list %}
+                        {% for photo in profile_user.photos_list %}
+                        <div class="gallery-item">
+                            <img src="{{ photo }}" alt="Gallery photo" onclick="openLightbox(this.src)">
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; width: 100%;">
+                            <i class="fas fa-images" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <p style="margin-top: 8px; font-size: 0.7rem;">No photos</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
-            <div class="profile-info">
-                <h1 class="profile-username">
-                    {{ profile_user.username }}
-                    {% if distance %}
-                    <span class="distance-badge"><i class="fas fa-map-marker-alt"></i> {{ distance }}</span>
-                    {% endif %}
-                </h1>
-                <div class="profile-stats">
-                    <div class="stat-item"><i class="fas fa-calendar-alt"></i> <span>{% if profile_user.age %}{{ profile_user.age }}y{% else %}?{% endif %}</span></div>
-                    <div class="stat-item"><i class="fas fa-venus-mars"></i> <span>{{ profile_user.gender|capitalize if profile_user.gender else '?' }}</span></div>
+            
+            <!-- Info Section -->
+            <div class="info-section">
+                <!-- Age & Gender Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>{% if profile_user.age %}{{ profile_user.age }}y{% else %}?{% endif %}</span>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-venus-mars"></i>
+                        <span>{{ profile_user.gender|capitalize if profile_user.gender else '?' }}</span>
+                    </div>
                 </div>
-                <div class="status-badge {% if profile_user.is_online %}online{% else %}offline{% endif %}">
+                
+                <!-- Status -->
+                <div class="status-card {% if profile_user.is_online %}online{% else %}offline{% endif %}">
                     <span class="status-dot"></span>
-                    {% if profile_user.is_online %}Online now{% else %}Last seen {{ profile_user.last_seen_formatted }}{% endif %}
+                    {% if profile_user.is_online %}
+                    <i class="fas fa-circle" style="font-size: 0.45rem;"></i> Online now
+                    {% else %}
+                    <i class="fas fa-clock"></i> Last seen {{ profile_user.last_seen_formatted }}
+                    {% endif %}
                 </div>
+                
+                <!-- About -->
                 <div class="profile-section">
                     <h3><i class="fas fa-edit"></i> About</h3>
                     <div class="bio-content">
-                        {% if profile_user.bio %}<p>{{ profile_user.bio }}</p>{% else %}<p class="text-muted">No bio yet.</p>{% endif %}
+                        {% if profile_user.bio %}
+                        <p>{{ profile_user.bio }}</p>
+                        {% else %}
+                        <p class="text-muted"><i class="fas fa-quote-left"></i> No bio yet</p>
+                        {% endif %}
                     </div>
                 </div>
+                
+                <!-- Interests -->
                 <div class="profile-section">
                     <h3><i class="fas fa-tags"></i> Interests</h3>
                     <div class="interests-container">
                         {% if profile_user.interests_list %}
-                            {% for interest in profile_user.interests_list %}<span class="interest-tag">{{ interest }}</span>{% endfor %}
-                        {% else %}<p class="text-muted">No interests.</p>{% endif %}
+                            {% for interest in profile_user.interests_list %}
+                            <span class="interest-tag">{{ interest }}</span>
+                            {% endfor %}
+                        {% else %}
+                        <p class="text-muted"><i class="fas fa-heart-broken"></i> None</p>
+                        {% endif %}
                     </div>
                 </div>
-                {% if profile_user.photos_list %}
-                <div class="profile-section">
-                    <h3><i class="fas fa-images"></i> Gallery</h3>
-                    <div class="gallery-grid">
-                        {% for photo in profile_user.photos_list %}
-                        <div class="gallery-item"><img src="{{ photo }}" onclick="openLightbox(this.src)"></div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+                
+                <!-- Call Buttons -->
                 <div class="action-buttons">
-                    <a href="{{ url_for('chat', user_id=profile_user.id) }}" class="btn-chat"><i class="fas fa-comment"></i> Chat</a>
-                    <a href="{{ url_for('audio_call', user_id=profile_user.id) }}" class="btn-audio"><i class="fas fa-phone"></i> Call</a>
+                    <a href="{{ url_for('audio_call', user_id=profile_user.id) }}" class="btn-audio"><i class="fas fa-phone"></i> Audio</a>
                     <a href="{{ url_for('video_call', user_id=profile_user.id) }}" class="btn-call"><i class="fas fa-video"></i> Video</a>
                 </div>
             </div>
         </div>
+        
+        <!-- MESSAGE CARD - Fixed at Bottom Right Corner -->
+        <div class="message-card-fixed" onclick="window.location.href='{{ url_for('chat', user_id=profile_user.id) }}'">
+            <div class="message-card-left">
+                <div class="message-icon">
+                    <i class="fas fa-comment-dots"></i>
+                </div>
+                <div class="message-text">
+                    <h4>Message</h4>
+                    <p>Say hello</p>
+                </div>
+            </div>
+            <div class="message-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
     </div>
+    
+    <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
         <span class="close-lightbox">&times;</span>
         <img class="lightbox-content" id="lightbox-img">
     </div>
+    
     <script>
+        // Toggle functions
+        function showProfilePhoto() {
+            document.getElementById('profileImageContainer').classList.remove('hidden');
+            document.getElementById('galleryContainer').classList.add('hidden');
+            document.getElementById('toggleProfileBtn').classList.add('active');
+            document.getElementById('toggleGalleryBtn').classList.remove('active');
+        }
+        
+        function showGallery() {
+            document.getElementById('profileImageContainer').classList.add('hidden');
+            document.getElementById('galleryContainer').classList.remove('hidden');
+            document.getElementById('toggleGalleryBtn').classList.add('active');
+            document.getElementById('toggleProfileBtn').classList.remove('active');
+        }
+        
+        // Lightbox
         function openLightbox(src) {
-            document.getElementById('lightbox').style.display = 'block';
-            document.getElementById('lightbox-img').src = src;
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightbox.style.display = 'block';
+            lightboxImg.src = src;
+            document.body.style.overflow = 'hidden';
         }
-        document.querySelector('.close-lightbox').onclick = function() {
-            document.getElementById('lightbox').style.display = 'none';
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.style.display = 'none';
+            document.body.style.overflow = '';
         }
+        
+        document.querySelector('.close-lightbox').onclick = closeLightbox;
+        
         document.getElementById('lightbox').onclick = function(e) {
-            if (e.target === this) this.style.display = 'none';
+            if (e.target === this) {
+                closeLightbox();
+            }
         }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
     </script>
 </body>
 </html>
