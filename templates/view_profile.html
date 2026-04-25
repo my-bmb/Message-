@@ -18,15 +18,6 @@
         .profile-container {
             min-height: 100vh;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Scrollable content area */
-        .scrollable-content {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
         }
         
         /* 9:16 Photo Container */
@@ -64,12 +55,12 @@
         }
         
         .photo-placeholder i {
-            font-size: 3rem;
+            font-size: 3.5rem;
             margin-bottom: 0.5rem;
         }
         
         .photo-placeholder span {
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             opacity: 0.7;
         }
         
@@ -82,7 +73,7 @@
             z-index: 20;
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             padding: 0 12px;
         }
         
@@ -90,20 +81,20 @@
             background: rgba(0,0,0,0.7);
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255,255,255,0.15);
-            padding: 6px 16px;
+            padding: 8px 20px;
             border-radius: 30px;
             color: white;
-            font-size: 0.7rem;
-            font-weight: 500;
+            font-size: 0.8rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
         
         .toggle-btn i {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
         }
         
         .toggle-btn.active {
@@ -115,41 +106,117 @@
             transform: scale(0.96);
         }
         
+        /* TRANSPARENT MESSAGE CARD - Glass morphism, reduced height */
+        .message-card-overlay {
+            position: absolute;
+            bottom: 95px;
+            left: 16px;
+            right: 16px;
+            z-index: 25;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            border-radius: 50px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .message-card-overlay:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .message-card-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .message-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .message-icon i {
+            font-size: 1rem;
+            color: white;
+        }
+        
+        .message-text h4 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin: 0;
+            color: white;
+            letter-spacing: 0.3px;
+        }
+        
+        .message-text p {
+            font-size: 0.6rem;
+            margin: 2px 0 0 0;
+            opacity: 0.8;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .message-arrow {
+            background: rgba(255,255,255,0.15);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .message-arrow i {
+            color: white;
+            font-size: 0.8rem;
+        }
+        
         /* Name overlay at bottom of photo */
         .name-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.4), transparent);
-            padding: 20px 12px 12px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.6), transparent);
+            padding: 20px 16px 16px;
         }
         
         .profile-username {
-            font-size: 1.3rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: white;
             margin: 0;
             display: flex;
             align-items: center;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px;
         }
         
         .distance-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.2rem;
+            gap: 0.3rem;
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(8px);
-            padding: 0.2rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.6rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 25px;
+            font-size: 0.7rem;
             font-weight: 500;
         }
         
         .distance-badge i {
-            font-size: 0.55rem;
+            font-size: 0.65rem;
         }
         
         /* Gallery Grid */
@@ -161,10 +228,10 @@
             height: 100%;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 3px;
+            gap: 4px;
             background: #000;
             overflow-y: auto;
-            padding: 55px 3px 12px 3px;
+            padding: 70px 4px 20px 4px;
         }
         
         .gallery-item {
@@ -173,7 +240,7 @@
             cursor: pointer;
             transition: transform 0.15s;
             background: rgba(255,255,255,0.05);
-            border-radius: 6px;
+            border-radius: 8px;
         }
         
         .gallery-item:active { transform: scale(0.97); }
@@ -195,83 +262,83 @@
         /* Back button */
         .back-btn {
             position: fixed;
-            top: 12px;
-            left: 12px;
+            top: 16px;
+            left: 16px;
             z-index: 30;
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(8px);
             color: white;
             text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 25px;
-            font-size: 0.7rem;
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
         }
         
         .back-btn i {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
         }
         
         .back-btn:active {
             transform: scale(0.96);
         }
         
-        /* Info Section - Compact below photo */
+        /* Info Section - Below photo */
         .info-section {
             background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
-            padding: 12px;
-            border-radius: 20px 20px 0 0;
-            margin-top: -15px;
+            padding: 20px;
+            border-radius: 25px 25px 0 0;
+            margin-top: -10px;
             position: relative;
             z-index: 10;
         }
         
-        /* Stats row - compact */
+        /* Stats row */
         .stats-row {
             display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }
         
         .stat-card {
             background: rgba(255,255,255,0.08);
             backdrop-filter: blur(8px);
-            padding: 6px 12px;
-            border-radius: 25px;
+            padding: 8px 16px;
+            border-radius: 30px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             flex: 1;
             justify-content: center;
-            min-width: 80px;
+            min-width: 90px;
         }
         
         .stat-card i {
-            font-size: 0.75rem;
+            font-size: 0.9rem;
             color: #667eea;
         }
         
         .stat-card span {
             color: white;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             font-weight: 500;
         }
         
-        /* Status card - compact */
+        /* Status card */
         .status-card {
             background: rgba(255,255,255,0.08);
             backdrop-filter: blur(8px);
-            padding: 6px 12px;
-            border-radius: 25px;
+            padding: 8px 16px;
+            border-radius: 30px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 15px;
             width: 100%;
             justify-content: center;
         }
@@ -287,92 +354,87 @@
         }
         
         .status-card i, .status-card span {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
         }
         
         .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: currentColor;
         }
         
-        /* Profile sections - compact */
+        /* Profile sections */
         .profile-section {
             text-align: left;
-            margin-bottom: 10px;
-            padding: 8px 10px;
+            margin-bottom: 15px;
+            padding: 12px;
             background: rgba(255,255,255,0.04);
-            border-radius: 12px;
+            border-radius: 16px;
         }
         
         .profile-section h3 {
             color: #fff;
-            font-size: 0.75rem;
-            margin-bottom: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
             font-weight: 600;
         }
         
         .profile-section h3 i { 
             color: #667eea; 
-            margin-right: 5px; 
-            font-size: 0.7rem; 
+            margin-right: 6px; 
+            font-size: 0.8rem; 
         }
         
         .bio-content p {
-            color: #bbb;
-            line-height: 1.4;
-            font-size: 0.7rem;
+            color: #ccc;
+            line-height: 1.5;
+            font-size: 0.8rem;
             margin: 0;
         }
         
-        /* Interests - compact */
+        /* Interests */
         .interests-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 8px;
         }
         
         .interest-tag {
             background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 0.2rem 0.7rem;
-            border-radius: 20px;
-            font-size: 0.6rem;
+            padding: 0.3rem 1rem;
+            border-radius: 25px;
+            font-size: 0.7rem;
             color: white;
             font-weight: 500;
         }
         
-        /* Action buttons - compact */
+        /* Action buttons */
         .action-buttons {
             display: flex;
-            gap: 8px;
+            gap: 12px;
             justify-content: center;
-            margin: 10px 0 6px;
+            margin: 15px 0 10px;
             flex-wrap: wrap;
         }
         
-        .btn-chat, .btn-call, .btn-audio {
-            padding: 6px 12px;
-            border-radius: 40px;
+        .btn-call, .btn-audio {
+            padding: 10px 20px;
+            border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 0.7rem;
+            gap: 8px;
+            font-size: 0.85rem;
             flex: 1;
             justify-content: center;
-            min-width: 85px;
+            min-width: 100px;
         }
         
-        .btn-chat i, .btn-call i, .btn-audio i {
-            font-size: 0.7rem;
-        }
-        
-        .btn-chat {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
-            color: white;
+        .btn-call i, .btn-audio i {
+            font-size: 0.85rem;
         }
         
         .btn-call {
@@ -385,92 +447,15 @@
             color: white;
         }
         
-        .btn-chat:active, .btn-call:active, .btn-audio:active { transform: scale(0.97); }
-        
-        /* MESSAGE CARD - Bottom Right Corner */
-        .message-card-fixed {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border-radius: 50px;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.25);
-            z-index: 100;
-            gap: 12px;
-        }
-        
-        .message-card-fixed:active {
-            transform: scale(0.96);
-            background: rgba(255, 255, 255, 0.25);
-        }
-        
-        .message-card-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .message-icon {
-            width: 36px;
-            height: 36px;
-            background: rgba(255,255,255,0.25);
-            backdrop-filter: blur(4px);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .message-icon i {
-            font-size: 1rem;
-            color: white;
-        }
-        
-        .message-text h4 {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin: 0;
-            color: white;
-            letter-spacing: 0.3px;
-        }
-        
-        .message-text p {
-            font-size: 0.6rem;
-            margin: 0;
-            opacity: 0.8;
-            color: rgba(255,255,255,0.9);
-        }
-        
-        .message-arrow {
-            background: rgba(255,255,255,0.2);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .message-arrow i {
-            color: white;
-            font-size: 0.8rem;
-        }
+        .btn-call:active, .btn-audio:active { transform: scale(0.97); }
         
         .text-muted { 
             color: #888; 
-            font-size: 0.7rem; 
+            font-size: 0.75rem; 
         }
         .text-muted i { 
             margin-right: 4px; 
-            font-size: 0.65rem;
+            font-size: 0.7rem;
         }
         
         /* Lightbox */
@@ -502,7 +487,7 @@
             top: 15px;
             right: 25px;
             color: #fff;
-            font-size: 30px;
+            font-size: 35px;
             cursor: pointer;
             z-index: 1001;
         }
@@ -510,61 +495,58 @@
         /* Tablet adjustments */
         @media (min-width: 600px) {
             .photo-container {
-                max-width: 400px;
+                max-width: 450px;
                 margin: 0 auto;
             }
             .info-section {
-                max-width: 400px;
-                margin: -15px auto 0;
-                border-radius: 20px 20px 0 0;
+                max-width: 450px;
+                margin: -10px auto 0;
             }
             .profile-container {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
             }
-            .message-card-fixed {
-                bottom: 24px;
-                right: 24px;
+            .message-card-overlay {
+                max-width: 418px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                width: calc(100% - 32px);
+                bottom: 95px;
             }
             .toggle-btn {
-                padding: 8px 20px;
-                font-size: 0.75rem;
+                padding: 9px 22px;
+                font-size: 0.85rem;
             }
             .profile-username {
-                font-size: 1.4rem;
+                font-size: 1.8rem;
             }
         }
         
         @media (min-width: 900px) {
             .photo-container {
-                max-width: 450px;
+                max-width: 500px;
             }
             .info-section {
-                max-width: 450px;
+                max-width: 500px;
             }
-            .message-card-fixed {
-                bottom: 30px;
-                right: 30px;
+            .message-card-overlay {
+                max-width: 468px;
+                bottom: 95px;
             }
         }
         
-        /* Mobile landscape adjustment */
-        @media (max-width: 480px) and (orientation: landscape) {
-            .message-card-fixed {
-                bottom: 10px;
-                right: 10px;
-                padding: 6px 12px;
+        /* Adjust for different screen heights */
+        @media (min-height: 800px) {
+            .message-card-overlay {
+                bottom: 105px;
             }
-            .message-icon {
-                width: 30px;
-                height: 30px;
-            }
-            .message-text h4 {
-                font-size: 0.7rem;
-            }
-            .message-text p {
-                display: none;
+        }
+        
+        @media (max-height: 700px) {
+            .message-card-overlay {
+                bottom: 85px;
             }
         }
     </style>
@@ -576,131 +558,128 @@
             <i class="fas fa-arrow-left"></i> Back
         </a>
         
-        <!-- Scrollable Content -->
-        <div class="scrollable-content">
-            <!-- 9:16 Photo Container -->
-            <div class="photo-container">
-                <!-- Compact Toggle Buttons -->
-                <div class="toggle-section">
-                    <div class="toggle-btn active" id="toggleProfileBtn" onclick="showProfilePhoto()">
-                        <i class="fas fa-user-circle"></i> Profile
+        <!-- 9:16 Photo Container -->
+        <div class="photo-container">
+            <!-- Compact Toggle Buttons -->
+            <div class="toggle-section">
+                <div class="toggle-btn active" id="toggleProfileBtn" onclick="showProfilePhoto()">
+                    <i class="fas fa-user-circle"></i> Profile
+                </div>
+                <div class="toggle-btn" id="toggleGalleryBtn" onclick="showGallery()">
+                    <i class="fas fa-images"></i> Gallery
+                    {% if profile_user.photos_list %}<span style="font-size: 0.65rem;">({{ profile_user.photos_list|length }})</span>{% endif %}
+                </div>
+            </div>
+            
+            <!-- TRANSPARENT MESSAGE CARD - Glass design with reduced height -->
+            <div class="message-card-overlay" onclick="window.location.href='{{ url_for('chat', user_id=profile_user.id) }}'">
+                <div class="message-card-left">
+                    <div class="message-icon">
+                        <i class="fas fa-comment-dots"></i>
                     </div>
-                    <div class="toggle-btn" id="toggleGalleryBtn" onclick="showGallery()">
-                        <i class="fas fa-images"></i> Gallery
-                        {% if profile_user.photos_list %}<span style="font-size: 0.6rem;">({{ profile_user.photos_list|length }})</span>{% endif %}
+                    <div class="message-text">
+                        <h4>Send a message</h4>
+                        <p>Say hello to {{ profile_user.username }}</p>
                     </div>
                 </div>
-                
-                <!-- Profile Photo Container -->
-                <div id="profileImageContainer" class="profile-image-container">
-                    {% if profile_user.profile_pic %}
-                    <img src="{{ profile_user.profile_pic }}" class="profile-photo" alt="{{ profile_user.username }}">
-                    {% else %}
-                    <div class="photo-placeholder">
-                        <i class="fas fa-user-circle"></i>
-                        <span>No photo</span>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Name overlay at bottom -->
-                    <div class="name-overlay">
-                        <h1 class="profile-username">
-                            {{ profile_user.username }}
-                            {% if distance %}
-                            <span class="distance-badge"><i class="fas fa-map-marker-alt"></i> {{ distance }}</span>
-                            {% endif %}
-                        </h1>
-                    </div>
+                <div class="message-arrow">
+                    <i class="fas fa-chevron-right"></i>
                 </div>
+            </div>
+            
+            <!-- Profile Photo Container -->
+            <div id="profileImageContainer" class="profile-image-container">
+                {% if profile_user.profile_pic %}
+                <img src="{{ profile_user.profile_pic }}" class="profile-photo" alt="{{ profile_user.username }}">
+                {% else %}
+                <div class="photo-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                    <span>No profile photo</span>
+                </div>
+                {% endif %}
                 
-                <!-- Gallery Container -->
-                <div id="galleryContainer" class="gallery-grid hidden">
-                    {% if profile_user.photos_list %}
-                        {% for photo in profile_user.photos_list %}
-                        <div class="gallery-item">
-                            <img src="{{ photo }}" alt="Gallery photo" onclick="openLightbox(this.src)">
-                        </div>
-                        {% endfor %}
+                <!-- Name overlay at bottom -->
+                <div class="name-overlay">
+                    <h1 class="profile-username">
+                        {{ profile_user.username }}
+                        {% if distance %}
+                        <span class="distance-badge"><i class="fas fa-map-marker-alt"></i> {{ distance }}</span>
+                        {% endif %}
+                    </h1>
+                </div>
+            </div>
+            
+            <!-- Gallery Container -->
+            <div id="galleryContainer" class="gallery-grid hidden">
+                {% if profile_user.photos_list %}
+                    {% for photo in profile_user.photos_list %}
+                    <div class="gallery-item">
+                        <img src="{{ photo }}" alt="Gallery photo" onclick="openLightbox(this.src)">
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; width: 100%;">
+                        <i class="fas fa-images" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        <p style="margin-top: 10px; font-size: 0.8rem;">No photos in gallery</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Info Section - Below photo -->
+        <div class="info-section">
+            <!-- Age & Gender Row -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{% if profile_user.age %}{{ profile_user.age }} years{% else %}Age not set{% endif %}</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-venus-mars"></i>
+                    <span>{{ profile_user.gender|capitalize if profile_user.gender else 'Not specified' }}</span>
+                </div>
+            </div>
+            
+            <!-- Status -->
+            <div class="status-card {% if profile_user.is_online %}online{% else %}offline{% endif %}">
+                <span class="status-dot"></span>
+                {% if profile_user.is_online %}
+                <i class="fas fa-circle" style="font-size: 0.5rem;"></i> Online now
+                {% else %}
+                <i class="fas fa-clock"></i> Last seen {{ profile_user.last_seen_formatted }}
+                {% endif %}
+            </div>
+            
+            <!-- About -->
+            <div class="profile-section">
+                <h3><i class="fas fa-edit"></i> About</h3>
+                <div class="bio-content">
+                    {% if profile_user.bio %}
+                    <p>{{ profile_user.bio }}</p>
                     {% else %}
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; width: 100%;">
-                            <i class="fas fa-images" style="font-size: 2rem; opacity: 0.5;"></i>
-                            <p style="margin-top: 8px; font-size: 0.7rem;">No photos</p>
-                        </div>
+                    <p class="text-muted"><i class="fas fa-quote-left"></i> No bio yet</p>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Info Section -->
-            <div class="info-section">
-                <!-- Age & Gender Row -->
-                <div class="stats-row">
-                    <div class="stat-card">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>{% if profile_user.age %}{{ profile_user.age }}y{% else %}?{% endif %}</span>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-venus-mars"></i>
-                        <span>{{ profile_user.gender|capitalize if profile_user.gender else '?' }}</span>
-                    </div>
-                </div>
-                
-                <!-- Status -->
-                <div class="status-card {% if profile_user.is_online %}online{% else %}offline{% endif %}">
-                    <span class="status-dot"></span>
-                    {% if profile_user.is_online %}
-                    <i class="fas fa-circle" style="font-size: 0.45rem;"></i> Online now
+            <!-- Interests -->
+            <div class="profile-section">
+                <h3><i class="fas fa-tags"></i> Interests</h3>
+                <div class="interests-container">
+                    {% if profile_user.interests_list %}
+                        {% for interest in profile_user.interests_list %}
+                        <span class="interest-tag">{{ interest }}</span>
+                        {% endfor %}
                     {% else %}
-                    <i class="fas fa-clock"></i> Last seen {{ profile_user.last_seen_formatted }}
+                    <p class="text-muted"><i class="fas fa-heart-broken"></i> No interests listed</p>
                     {% endif %}
                 </div>
-                
-                <!-- About -->
-                <div class="profile-section">
-                    <h3><i class="fas fa-edit"></i> About</h3>
-                    <div class="bio-content">
-                        {% if profile_user.bio %}
-                        <p>{{ profile_user.bio }}</p>
-                        {% else %}
-                        <p class="text-muted"><i class="fas fa-quote-left"></i> No bio yet</p>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Interests -->
-                <div class="profile-section">
-                    <h3><i class="fas fa-tags"></i> Interests</h3>
-                    <div class="interests-container">
-                        {% if profile_user.interests_list %}
-                            {% for interest in profile_user.interests_list %}
-                            <span class="interest-tag">{{ interest }}</span>
-                            {% endfor %}
-                        {% else %}
-                        <p class="text-muted"><i class="fas fa-heart-broken"></i> None</p>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Call Buttons -->
-                <div class="action-buttons">
-                    <a href="{{ url_for('audio_call', user_id=profile_user.id) }}" class="btn-audio"><i class="fas fa-phone"></i> Audio</a>
-                    <a href="{{ url_for('video_call', user_id=profile_user.id) }}" class="btn-call"><i class="fas fa-video"></i> Video</a>
-                </div>
             </div>
-        </div>
-        
-        <!-- MESSAGE CARD - Fixed at Bottom Right Corner -->
-        <div class="message-card-fixed" onclick="window.location.href='{{ url_for('chat', user_id=profile_user.id) }}'">
-            <div class="message-card-left">
-                <div class="message-icon">
-                    <i class="fas fa-comment-dots"></i>
-                </div>
-                <div class="message-text">
-                    <h4>Message</h4>
-                    <p>Say hello</p>
-                </div>
-            </div>
-            <div class="message-arrow">
-                <i class="fas fa-chevron-right"></i>
+            
+            <!-- Call Buttons -->
+            <div class="action-buttons">
+                <a href="{{ url_for('audio_call', user_id=profile_user.id) }}" class="btn-audio"><i class="fas fa-phone"></i> Audio Call</a>
+                <a href="{{ url_for('video_call', user_id=profile_user.id) }}" class="btn-call"><i class="fas fa-video"></i> Video Call</a>
             </div>
         </div>
     </div>
