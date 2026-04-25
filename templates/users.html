@@ -185,17 +185,15 @@
             gap: 2px;
         }
 
-        /* User Card - Full 3:4 Ratio */
+        /* User Card - 3:4 Ratio */
         .user-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
             position: relative;
-            display: flex;
-            flex-direction: column;
             aspect-ratio: 3 / 4;
         }
 
@@ -203,14 +201,13 @@
             transform: scale(0.97);
         }
 
-        /* Photo Container - Top 3:3 (Square) */
+        /* Full Photo Container */
         .photo-container {
             position: relative;
             width: 100%;
-            aspect-ratio: 1 / 1;
+            height: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             overflow: hidden;
-            flex-shrink: 0;
         }
 
         .user-photo {
@@ -231,16 +228,104 @@
             font-size: 48px;
         }
 
-        /* Online Indicator Dot - Top Right on Photo */
+        /* ========== BLUR BACKGROUND CARD ========== */
+        .info-card {
+            position: absolute;
+            bottom: 8px;
+            left: 6px;
+            right: 6px;
+            /* Blur background effect */
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 8px 10px;
+            /* Subtle border and shadow */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        /* Name Row */
+        .user-name-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+
+        .username {
+            font-weight: 700;
+            font-size: 12px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            letter-spacing: 0.3px;
+        }
+
+        .user-age {
+            font-size: 10px;
+            opacity: 0.9;
+            margin-left: 4px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Distance Row */
+        .user-distance {
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 3px;
+            color: rgba(255,255,255,0.85);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+            line-height: 1.3;
+        }
+
+        .user-distance i {
+            font-size: 7px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Last Seen / Status Row - FULL TEXT */
+        .user-lastseen {
+            font-size: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+            line-height: 1.3;
+            white-space: normal;
+            word-break: keep-all;
+        }
+
+        .user-lastseen i {
+            font-size: 6px;
+            flex-shrink: 0;
+        }
+
+        .online-text {
+            color: #2ecc71;
+            font-weight: 500;
+        }
+
+        .offline-text {
+            color: #95a5a6;
+        }
+
+        /* Online Indicator Dot - Top Right */
         .online-indicator {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 10px;
-            height: 10px;
+            top: 6px;
+            right: 6px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             background: #2ecc71;
-            border: 2px solid white;
+            border: 1.5px solid white;
             z-index: 5;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             animation: pulseOnline 1.5s infinite;
@@ -256,97 +341,21 @@
             animation: none;
         }
 
-        /* Unread Badge - Top Left on Photo */
+        /* Unread Badge - Top Left */
         .unread-badge {
             position: absolute;
-            top: 6px;
-            left: 6px;
+            top: 4px;
+            left: 4px;
             background: #e74c3c;
             color: white;
             border-radius: 15px;
-            padding: 2px 6px;
-            font-size: 9px;
+            padding: 1px 5px;
+            font-size: 8px;
             font-weight: bold;
-            min-width: 20px;
+            min-width: 18px;
             text-align: center;
             z-index: 5;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
-
-        /* ========== INFO CARD - Bottom 1:4 Portion ========== */
-        .info-card {
-            flex: 1;
-            background: white;
-            padding: 8px 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Name Row */
-        .user-name-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-bottom: 4px;
-        }
-
-        .username {
-            font-weight: 700;
-            font-size: 13px;
-            color: #333;
-            letter-spacing: 0.2px;
-        }
-
-        .user-age {
-            font-size: 10px;
-            color: #667eea;
-            margin-left: 4px;
-            font-weight: 500;
-        }
-
-        /* Distance Row */
-        .user-distance {
-            font-size: 9px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-bottom: 4px;
-            color: #666;
-        }
-
-        .user-distance i {
-            font-size: 8px;
-            color: #999;
-        }
-
-        /* Last Seen / Status Row */
-        .user-lastseen {
-            font-size: 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: #999;
-        }
-
-        .user-lastseen i {
-            font-size: 6px;
-        }
-
-        .online-text {
-            color: #2ecc71;
-        }
-
-        .offline-text {
-            color: #95a5a6;
-        }
-
-        /* Divider */
-        .info-divider {
-            height: 1px;
-            background: #eee;
-            margin: 6px 0 4px 0;
         }
 
         /* Floating Buttons */
@@ -469,11 +478,11 @@
             .floating-live-btn i, .floating-group-btn i { font-size: 1.3rem; }
             .floating-live-btn { left: 20px; }
             .floating-group-btn { right: 20px; }
-            .username { font-size: 14px; }
+            .username { font-size: 13px; }
             .user-age { font-size: 11px; }
             .user-distance { font-size: 10px; }
             .user-lastseen { font-size: 9px; }
-            .info-card { padding: 10px 12px; }
+            .info-card { padding: 10px 12px; bottom: 10px; left: 8px; right: 8px; }
         }
 
         @media (min-width: 1024px) {
@@ -489,14 +498,14 @@
             .floating-live-btn i, .floating-group-btn i { font-size: 1rem; }
             .floating-live-btn { left: 12px; }
             .floating-group-btn { right: 12px; }
-            .username { font-size: 11px; }
-            .user-age { font-size: 9px; }
+            .username { font-size: 10px; }
+            .user-age { font-size: 8px; }
             .user-distance { font-size: 8px; }
             .user-lastseen { font-size: 7px; }
-            .info-card { padding: 6px 8px; }
-            .online-indicator { top: 6px; right: 6px; width: 8px; height: 8px; }
-            .unread-badge { top: 4px; left: 4px; font-size: 8px; padding: 1px 5px; }
-            .user-card { border-radius: 10px; }
+            .info-card { padding: 6px 8px; bottom: 5px; left: 4px; right: 4px; border-radius: 8px; }
+            .online-indicator { top: 4px; right: 4px; width: 7px; height: 7px; }
+            .unread-badge { top: 3px; left: 3px; font-size: 7px; padding: 1px 4px; min-width: 15px; }
+            .user-card { border-radius: 8px; }
             .photo-placeholder { font-size: 40px; }
         }
     </style>
@@ -577,17 +586,16 @@
              data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}"
              onclick="window.location.href='/user/profile/{{ user.id }}'">
             
-            <!-- Photo Container - Top Square (3:3) -->
+            <!-- Online Indicator -->
+            <div class="online-indicator {% if user.is_online %}online{% else %}offline{% endif %}"></div>
+            
+            <!-- Unread Badge -->
+            {% if unread_counts.get(user.id) %}
+            <div class="unread-badge">{{ unread_counts[user.id] }}</div>
+            {% endif %}
+            
+            <!-- Full Photo Container -->
             <div class="photo-container">
-                <!-- Online Indicator -->
-                <div class="online-indicator {% if user.is_online %}online{% else %}offline{% endif %}"></div>
-                
-                <!-- Unread Badge -->
-                {% if unread_counts.get(user.id) %}
-                <div class="unread-badge">{{ unread_counts[user.id] }}</div>
-                {% endif %}
-                
-                <!-- Photo -->
                 {% if user.profile_pic %}
                 <img src="{{ user.profile_pic }}" class="user-photo" alt="{{ user.username }}">
                 {% else %}
@@ -595,11 +603,9 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 {% endif %}
-            </div>
-            
-            <!-- Info Card - Bottom Portion (1:4) -->
-            <div class="info-card">
-                <div>
+                
+                <!-- Info Card - Blur Background with Full Status -->
+                <div class="info-card">
                     <div class="user-name-row">
                         <span class="username">{{ user.username }}</span>
                         {% if user.age %}
@@ -613,21 +619,19 @@
                         {% elif session.get('user_lat') is none and session.get('user_lng') is none %}
                             <i class="fas fa-exclamation-triangle"></i> Location off
                         {% else %}
-                            <i class="fas fa-question-circle"></i> Unknown
+                            <i class="fas fa-question-circle"></i> No location
                         {% endif %}
                     </div>
-                </div>
-                
-                <div class="info-divider"></div>
-                
-                <div class="user-lastseen">
-                    {% if user.is_online %}
-                    <i class="fas fa-circle online-text"></i>
-                    <span class="online-text">Online now</span>
-                    {% else %}
-                    <i class="fas fa-circle offline-text"></i>
-                    <span class="offline-text">Last seen: {{ user.last_seen_formatted|truncate(8, true) }}</span>
-                    {% endif %}
+                    
+                    <div class="user-lastseen">
+                        {% if user.is_online %}
+                        <i class="fas fa-circle online-text"></i>
+                        <span class="online-text">● Online now</span>
+                        {% else %}
+                        <i class="fas fa-circle offline-text"></i>
+                        <span class="offline-text">⚫ Last seen: {{ user.last_seen_formatted }}</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -730,15 +734,20 @@
                         indicator.classList.remove('offline');
                         indicator.classList.add('online');
                         if (lastseenDiv) {
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text"></i><span class="online-text">Online now</span>`;
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text"></i><span class="online-text">● Online now</span>`;
                         }
                     } else {
                         indicator.classList.remove('online');
                         indicator.classList.add('offline');
                         if (lastseenDiv && data.last_seen) {
                             const date = new Date(data.last_seen);
-                            const formatted = date.toLocaleString('en-IN', { hour12: true }).substring(0, 8);
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle offline-text"></i><span class="offline-text">Last seen: ${formatted}</span>`;
+                            const formatted = date.toLocaleString('en-IN', { 
+                                day: 'numeric', 
+                                month: 'short', 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                            });
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle offline-text"></i><span class="offline-text">⚫ Last seen: ${formatted}</span>`;
                         }
                     }
                 }
@@ -776,7 +785,7 @@
                         } else if (!currentLocation) {
                             distanceDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Location off`;
                         } else {
-                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> Unknown`;
+                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> No location`;
                         }
                     }
                 }
