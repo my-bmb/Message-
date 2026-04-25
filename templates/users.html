@@ -185,7 +185,7 @@
             gap: 2px;
         }
 
-        /* User Card - 3:4 Ratio with glassmorphic blur background behind overlay info */
+        /* User Card - 3:4 Ratio */
         .user-card {
             background: white;
             border-radius: 10px;
@@ -228,105 +228,99 @@
             font-size: 48px;
         }
 
-        /* ========== BLUR BACKGROUND FOR INFO CARD (fully blurred backdrop) ========== */
+        /* ========== INFO CARD - PURE SHADOW EFFECT ========== */
         .info-card {
             position: absolute;
             bottom: 8px;
             left: 6px;
             right: 6px;
-            /* Extra blurry glass effect: strong backdrop blur + semi-transparent background */
-            background: rgba(20, 20, 30, 0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 14px;
-            padding: 8px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+            /* No background color - pure shadow */
+            background: transparent;
+            border-radius: 12px;
+            padding: 6px 8px;
+            /* Only shadow effect */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
             transition: all 0.2s ease;
         }
 
-        /* Name Row: crisp text with shadow */
+        /* Name Row */
         .user-name-row {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
             flex-wrap: wrap;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             line-height: 1.2;
         }
 
         .username {
-            font-weight: 800;
-            font-size: 12px;
+            font-weight: 700;
+            font-size: 11px;
             color: white;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 0.2px;
         }
 
         .user-age {
-            font-size: 10px;
-            font-weight: 600;
-            color: rgba(255,255,240,0.95);
-            background: rgba(0,0,0,0.4);
-            padding: 1px 6px;
-            border-radius: 20px;
-            backdrop-filter: blur(2px);
-            margin-left: 4px;
+            font-size: 9px;
+            opacity: 0.9;
+            margin-left: 2px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
 
         /* Distance Row */
         .user-distance {
-            font-size: 9px;
+            font-size: 8px;
             display: flex;
             align-items: center;
-            gap: 4px;
-            margin-bottom: 3px;
-            color: rgba(255,255,245,0.9);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            font-weight: 500;
+            gap: 3px;
+            margin-bottom: 2px;
+            color: rgba(255,255,255,0.85);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            line-height: 1.2;
         }
 
         .user-distance i {
-            font-size: 8px;
-            color: #fffaec;
+            font-size: 6px;
+            color: rgba(255,255,255,0.8);
         }
 
         /* Last Seen / Status Row */
         .user-lastseen {
-            font-size: 8px;
+            font-size: 7px;
             display: flex;
             align-items: center;
-            gap: 4px;
-            color: rgba(255,255,250,0.85);
-            text-shadow: 0 1px 1px rgba(0,0,0,0.3);
-            font-weight: 500;
+            gap: 3px;
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            line-height: 1.2;
         }
 
         .user-lastseen i {
-            font-size: 6px;
+            font-size: 5px;
         }
 
         .online-text {
             color: #2ecc71;
-            font-weight: 600;
         }
 
         .offline-text {
-            color: #ecf0f1;
-            font-weight: 500;
+            color: #95a5a6;
         }
 
         /* Online Indicator Dot - Top Right */
         .online-indicator {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 10px;
-            height: 10px;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #2ecc71;
             border: 1.5px solid white;
-            z-index: 10;
+            z-index: 5;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             animation: pulseOnline 1.5s infinite;
         }
@@ -337,26 +331,25 @@
         }
 
         .online-indicator.offline {
-            background: #7f8c8d;
+            background: #95a5a6;
             animation: none;
         }
 
         /* Unread Badge - Top Left */
         .unread-badge {
             position: absolute;
-            top: 6px;
-            left: 6px;
+            top: 4px;
+            left: 4px;
             background: #e74c3c;
             color: white;
-            border-radius: 30px;
-            padding: 2px 6px;
-            font-size: 9px;
+            border-radius: 15px;
+            padding: 1px 5px;
+            font-size: 8px;
             font-weight: bold;
-            min-width: 20px;
+            min-width: 18px;
             text-align: center;
-            z-index: 10;
+            z-index: 5;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            backdrop-filter: blur(2px);
         }
 
         /* Floating Buttons */
@@ -471,7 +464,7 @@
             white-space: nowrap;
         }
 
-        /* Desktop View fine-tuning */
+        /* Desktop View */
         @media (min-width: 768px) {
             body { padding: 10px; padding-bottom: 80px; }
             .users-grid { gap: 3px; }
@@ -479,11 +472,11 @@
             .floating-live-btn i, .floating-group-btn i { font-size: 1.3rem; }
             .floating-live-btn { left: 20px; }
             .floating-group-btn { right: 20px; }
-            .username { font-size: 13px; }
-            .user-age { font-size: 11px; }
-            .user-distance { font-size: 10px; }
-            .user-lastseen { font-size: 9px; }
-            .info-card { padding: 10px 12px; bottom: 12px; left: 8px; right: 8px; border-radius: 16px; backdrop-filter: blur(14px); }
+            .username { font-size: 12px; }
+            .user-age { font-size: 10px; }
+            .user-distance { font-size: 9px; }
+            .user-lastseen { font-size: 8px; }
+            .info-card { padding: 8px 10px; bottom: 10px; left: 8px; right: 8px; }
         }
 
         @media (min-width: 1024px) {
@@ -499,14 +492,14 @@
             .floating-live-btn i, .floating-group-btn i { font-size: 1rem; }
             .floating-live-btn { left: 12px; }
             .floating-group-btn { right: 12px; }
-            .username { font-size: 10px; font-weight: 700; }
-            .user-age { font-size: 8px; padding: 1px 5px; }
-            .user-distance { font-size: 7.5px; gap: 2px; }
-            .user-lastseen { font-size: 6.5px; }
-            .info-card { padding: 6px 8px; bottom: 6px; left: 5px; right: 5px; border-radius: 12px; backdrop-filter: blur(10px); background: rgba(20,20,30,0.55); }
-            .online-indicator { top: 5px; right: 5px; width: 8px; height: 8px; }
-            .unread-badge { top: 4px; left: 4px; font-size: 8px; padding: 1px 5px; min-width: 16px; }
-            .user-card { border-radius: 10px; }
+            .username { font-size: 10px; }
+            .user-age { font-size: 8px; }
+            .user-distance { font-size: 7px; }
+            .user-lastseen { font-size: 6px; }
+            .info-card { padding: 5px 6px; bottom: 5px; left: 4px; right: 4px; border-radius: 8px; }
+            .online-indicator { top: 4px; right: 4px; width: 7px; height: 7px; }
+            .unread-badge { top: 3px; left: 3px; font-size: 7px; padding: 1px 4px; min-width: 15px; }
+            .user-card { border-radius: 8px; }
             .photo-placeholder { font-size: 40px; }
         }
     </style>
@@ -605,7 +598,7 @@
                 </div>
                 {% endif %}
                 
-                <!-- Transparent BLURRED Card for Info (Name, Age, Distance, Status) -->
+                <!-- Info Card - Pure Shadow Effect (No Background) -->
                 <div class="info-card">
                     <div class="user-name-row">
                         <span class="username">{{ user.username }}</span>
