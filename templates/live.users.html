@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Online Users - Live Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #e5ddd5;
+            min-height: 100vh;
+        }
+
+        /* Compact Header */
+        .main-header {
+            background: #075e54;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .logo h4 {
+            margin: 0;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .logo i {
+            margin-right: 6px;
+        }
+
+        .online-count {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .online-count i {
+            margin-right: 4px;
+            font-size: 8px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .current-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .user-name {
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .logout-btn, .chat-btn-header {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 18px;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn:hover, .chat-btn-header:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(0.98);
+        }
+
+        /* Compact Users Container */
+        .users-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 8px;
+        }
+
+        /* Current User Card - Compact */
+        .current-user-card {
+            background: #075e54;
+            color: white;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .current-user-card .user-info-compact {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .current-user-card .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .current-user-card .user-details h5 {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .current-user-card .user-details p {
+            margin: 2px 0 0;
+            font-size: 0.65rem;
+            opacity: 0.8;
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background: #2ecc71;
+            border-radius: 50%;
+            border: 2px solid #075e54;
+        }
+
+        .chat-btn-small {
+            background: white;
+            color: #075e54;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 18px;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-btn-small:hover {
+            transform: scale(0.95);
+            background: #f0f0f0;
+        }
+
+        /* Other Users List - Compact List View */
+        .users-list {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-item:hover {
+            background: #f5f5f5;
+        }
+
+        .user-info-compact {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .user-avatar-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #075e54 0%, #128c7e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .online-dot-small {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 9px;
+            height: 9px;
+            background: #2ecc71;
+            border-radius: 50%;
+            border: 2px solid white;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .user-details h6 {
+            margin: 0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-details p {
+            margin: 2px 0 0;
+            font-size: 0.65rem;
+            color: #2ecc71;
+        }
+
+        .user-details p i {
+            font-size: 6px;
+            margin-right: 3px;
+        }
+
+        .user-bio-compact {
+            font-size: 0.65rem;
+            color: #999;
+            margin-top: 2px;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-btn-mini {
+            background: none;
+            border: none;
+            color: #075e54;
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 18px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chat-btn-mini:hover {
+            background: #e8f5e9;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 12px;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            color: #ccc;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h5 {
+            color: #666;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .empty-state p {
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        .section-title {
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f5f5f5;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .header-content {
+                padding: 6px 10px;
+            }
+            
+            .user-bio-compact {
+                max-width: 100px;
+            }
+            
+            .chat-btn-mini span {
+                display: none;
+            }
+            
+            .chat-btn-mini {
+                padding: 6px 8px;
+            }
+            
+            .current-user-card .user-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+            
+            .user-avatar-small {
+                width: 34px;
+                height: 34px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Compact Header -->
+    <div class="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <h4><i class="fas fa-comments"></i> Live Chat</h4>
+            </div>
+            <div class="online-count">
+                <i class="fas fa-circle"></i> {{ total_online }} online
+            </div>
+            <div class="user-info">
+                <div class="current-avatar">
+                    {{ current_user.username[0].upper() }}
+                </div>
+                <span class="user-name">{{ current_user.username }}</span>
+                <a href="{{ url_for('live_chat') }}" class="chat-btn-header">
+                    <i class="fas fa-comment"></i> Chat
+                </a>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compact Users Container -->
+    <div class="users-container">
+        <!-- Current User Card -->
+        <div class="current-user-card" onclick="window.location.href='/live-chat'">
+            <div class="user-info-compact">
+                <div class="user-avatar">
+                    {{ current_user.username[0].upper() }}
+                    <div class="online-dot"></div>
+                </div>
+                <div class="user-details">
+                    <h5>{{ current_user.username }} <span style="font-size: 10px; opacity: 0.7;">(You)</span></h5>
+                    <p><i class="fas fa-circle" style="font-size: 6px;"></i> Online</p>
+                </div>
+            </div>
+            <button class="chat-btn-small" onclick="event.stopPropagation(); window.location.href='/live-chat'">
+                <i class="fas fa-comment"></i> Chat
+            </button>
+        </div>
+
+        {% if users %}
+        <div class="section-title">
+            <i class="fas fa-users"></i> Online Users · {{ users|length }}
+        </div>
+        <div class="users-list">
+            {% for user in users %}
+            <div class="user-item" data-user-id="{{ user.id }}" onclick="window.location.href='/live-chat'">
+                <div class="user-info-compact">
+                    <div class="user-avatar-small">
+                        {{ user.username[0].upper() }}
+                        <div class="online-dot-small"></div>
+                    </div>
+                    <div class="user-details">
+                        <h6>{{ user.username }}</h6>
+                        <p><i class="fas fa-circle"></i> Online</p>
+                        {% if user.bio %}
+                        <div class="user-bio-compact">📝 {{ user.bio[:40] }}{% if user.bio|length > 40 %}...{% endif %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <button class="chat-btn-mini" onclick="event.stopPropagation(); window.location.href='/live-chat'">
+                    <i class="fas fa-comment"></i> <span>Chat</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-user-friends"></i>
+            <h5>No other users online</h5>
+            <p>Check back later or invite friends!</p>
+            <a href="{{ url_for('live_chat') }}" class="btn btn-primary btn-sm mt-2" style="background: #075e54; border: none; font-size: 0.75rem;">
+                <i class="fas fa-comment"></i> Go to Live Chat
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        let socket = null;
+        
+        function initSocket() {
+            socket = io({
+                transports: ['websocket', 'polling']
+            });
+            
+            socket.on('connect', function() {
+                console.log('Socket connected');
+                socket.emit('join_live_chat');
+            });
+            
+            socket.on('live_user_join_leave', function(data) {
+                setTimeout(function() {
+                    location.reload();
+                }, 500);
+            });
+        }
+        
+        $(document).ready(function() {
+            initSocket();
+        });
+    </script>
+</body>
+</html>

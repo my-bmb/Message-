@@ -47,6 +47,7 @@
         .header-buttons {
             display: flex;
             gap: 6px;
+            flex-wrap: wrap;
         }
 
         .header-btn {
@@ -56,7 +57,7 @@
             color: white;
             border-radius: 30px;
             padding: 6px 12px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -72,6 +73,70 @@
         .profile-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             border: none;
+        }
+
+        .live-chat-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+        }
+
+        .group-call-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+        }
+
+        /* Live Chat Banner */
+        .live-chat-banner {
+            background: linear-gradient(135deg, #075e54 0%, #128c7e 100%);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(7,94,84,0.4); }
+            50% { box-shadow: 0 0 0 5px rgba(7,94,84,0); }
+        }
+
+        .banner-content {
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .banner-text h4 {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .banner-text p {
+            margin: 2px 0 0;
+            font-size: 0.6rem;
+            opacity: 0.9;
+        }
+
+        .join-live-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .join-live-btn:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.3);
         }
 
         /* Search Box */
@@ -143,6 +208,7 @@
             aspect-ratio: 3 / 4;
             display: flex;
             flex-direction: column;
+            text-decoration: none;
         }
 
         .user-card:active {
@@ -258,7 +324,7 @@
         .call-icons {
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             padding-top: 5px;
             border-top: 1px solid #eee;
             flex-wrap: wrap;
@@ -266,9 +332,9 @@
 
         .call-icons a {
             color: #075e54;
-            font-size: 10px;
+            font-size: 9px;
             text-decoration: none;
-            padding: 4px 6px;
+            padding: 3px 5px;
             border-radius: 20px;
             background: rgba(7,94,84,0.08);
             transition: all 0.2s;
@@ -289,6 +355,7 @@
         @media (min-width: 480px) {
             .call-icons a {
                 padding: 4px 8px;
+                font-size: 10px;
             }
             .call-icons .icon-label {
                 display: inline;
@@ -366,268 +433,84 @@
             white-space: nowrap;
         }
 
-        /* ========== ULTRA COMPACT MODAL - 3:4 RATIO WITH VISIBLE BUTTONS ========== */
-        .user-modal {
-            display: none;
+        /* Floating Live Chat Button */
+        .floating-live-btn {
             position: fixed;
-            z-index: 10001;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.85);
-            backdrop-filter: blur(8px);
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-        }
-
-        .user-modal-content {
-            background: white;
-            border-radius: 24px;
-            width: 85%;
-            max-width: 300px;
-            aspect-ratio: 3 / 4;
-            position: relative;
-            animation: modalFadeIn 0.3s ease;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.92);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #999;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 10;
-            background: rgba(0,0,0,0.08);
-            width: 28px;
-            height: 28px;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .modal-close:active {
-            transform: scale(0.95);
-            background: rgba(0,0,0,0.15);
-        }
-
-        /* Avatar Section - Compact */
-        .modal-avatar-section {
-            background: white;
-            padding: 12px 0 6px 0;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .modal-avatar {
-            width: 75px;
-            height: 75px;
-            border-radius: 50%;
-            border: 3px solid #667eea;
-            object-fit: cover;
-            background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .modal-avatar-placeholder {
-            width: 75px;
-            height: 75px;
-            border-radius: 50%;
-            border: 3px solid #667eea;
-            background: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #aaa;
-            font-size: 35px;
-            margin: 0 auto;
-        }
-
-        /* Info Section - Very Compact */
-        .modal-info {
-            padding: 2px 14px 12px 14px;
-            text-align: center;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .modal-name {
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 2px;
-            font-weight: 600;
-        }
-
-        .modal-age {
-            font-size: 0.8rem;
-            color: #667eea;
-            margin-left: 3px;
-        }
-
-        .modal-details {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 3px 0;
-        }
-
-        .modal-detail-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: #777;
-            font-size: 0.65rem;
-        }
-
-        .modal-detail-item i {
-            color: #667eea;
-            font-size: 0.6rem;
-        }
-
-        .modal-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: 30px;
-            font-size: 0.6rem;
-            margin: 3px 0;
-            width: fit-content;
-            align-self: center;
-        }
-
-        .modal-status.online {
-            background: rgba(76, 175, 80, 0.1);
-            color: #4CAF50;
-            border: 1px solid rgba(76, 175, 80, 0.3);
-        }
-
-        .modal-status.offline {
-            background: rgba(158, 158, 158, 0.1);
-            color: #999;
-            border: 1px solid rgba(158, 158, 158, 0.2);
-        }
-
-        .modal-status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        /* Interests - Very Compact */
-        .modal-interests {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            justify-content: center;
-            margin: 4px 0;
-        }
-
-        .modal-interest-tag {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            padding: 2px 7px;
-            border-radius: 20px;
-            font-size: 0.55rem;
-            color: #667eea;
-        }
-
-        .interests-heading {
-            color: #777;
-            font-size: 0.6rem;
-            margin-bottom: 3px;
-            text-align: center;
-        }
-
-        /* Action Buttons - 2x2 Grid - Properly Visible */
-        .modal-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-top: 6px;
-        }
-
-        .modal-action-btn {
-            padding: 7px 6px;
-            border-radius: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 999;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 0.65rem;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            animation: floatPulse 2s infinite;
+        }
+
+        /* Floating Group Video Call Button */
+        .floating-group-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            border: none;
-            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 999;
+            text-decoration: none;
+            transition: all 0.3s;
+            animation: floatPulseRed 2s infinite;
         }
 
-        .modal-action-btn:active {
-            transform: scale(0.96);
+        @keyframes floatPulseRed {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 6px 16px rgba(231,76,60,0.5); }
         }
 
-        .btn-profile-modal {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            color: white;
+        @keyframes floatPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
         }
 
-        .btn-chat-modal {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
-            color: white;
+        .floating-live-btn:active, .floating-group-btn:active {
+            transform: scale(0.95);
         }
 
-        .btn-call-modal {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            color: white;
+        .floating-live-btn i, .floating-group-btn i {
+            font-size: 1.3rem;
         }
 
-        .btn-video-modal {
-            background: linear-gradient(135deg, #fa709a, #fee140);
-            color: white;
+        .floating-live-btn .online-badge, .floating-group-btn .online-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background: #2ecc71;
+            border-radius: 50%;
+            border: 2px solid white;
         }
 
-        .text-muted {
-            color: #bbb;
-            font-size: 0.55rem;
-        }
-
-        /* Bio hidden */
-        .modal-bio {
-            display: none;
-        }
-
-        /* Desktop View - Slightly larger */
+        /* Desktop View */
         @media (min-width: 768px) {
             body { padding: 15px; }
             .users-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
             .empty-state { grid-column: span 4; }
-            .user-modal-content { max-width: 320px; }
-            .modal-avatar { width: 85px; height: 85px; }
-            .modal-name { font-size: 1.2rem; }
-            .modal-action-btn { padding: 8px 10px; font-size: 0.7rem; }
+            .floating-live-btn, .floating-group-btn { width: 55px; height: 55px; bottom: 25px; }
+            .floating-live-btn i, .floating-group-btn i { font-size: 1.5rem; }
+            .floating-live-btn { left: 25px; }
+            .floating-group-btn { right: 25px; }
         }
 
         @media (min-width: 1024px) {
@@ -642,6 +525,15 @@
 
         .hide-mobile { display: none; }
         @media (min-width: 500px) { .hide-mobile { display: inline; } }
+        
+        /* Mobile bottom padding adjustment */
+        @media (max-width: 480px) {
+            body { padding-bottom: 80px; }
+            .floating-live-btn, .floating-group-btn { width: 45px; height: 45px; bottom: 15px; }
+            .floating-live-btn i, .floating-group-btn i { font-size: 1.1rem; }
+            .floating-live-btn { left: 15px; }
+            .floating-group-btn { right: 15px; }
+        }
     </style>
 </head>
 <body>
@@ -655,12 +547,32 @@
             <a href="{{ url_for('profile') }}" class="header-btn profile-btn">
                 <i class="fas fa-user-circle"></i> <span class="hide-mobile">Profile</span>
             </a>
+            <a href="{{ url_for('live_chat') }}" class="header-btn live-chat-btn">
+                <i class="fas fa-globe"></i> <span class="hide-mobile">Live</span>
+            </a>
+            <a href="{{ url_for('group_video_call') }}" class="header-btn group-call-btn">
+                <i class="fas fa-video"></i> <span class="hide-mobile">Group Call</span>
+            </a>
             <button onclick="refreshLocation()" class="header-btn">
                 <i class="fas fa-location-dot"></i> <span class="hide-mobile">Nearby</span>
             </button>
             <button onclick="logoutUser()" class="header-btn">
                 <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Logout</span>
             </button>
+        </div>
+    </div>
+
+    <!-- Live Chat Banner -->
+    <div class="live-chat-banner">
+        <div class="banner-content">
+            <div class="banner-text">
+                <h4><i class="fas fa-globe"></i> Live Chat Room</h4>
+                <p>Chat with everyone online in real-time!</p>
+            </div>
+            <a href="{{ url_for('live_chat') }}" class="join-live-btn">
+                <i class="fas fa-comment"></i> Join
+                <i class="fas fa-arrow-right"></i>
+            </a>
         </div>
     </div>
 
@@ -694,7 +606,7 @@
     <!-- Users Grid -->
     <div class="users-grid" id="usersGrid">
         {% for user in users %}
-        <div class="user-card" 
+        <a href="{{ url_for('view_user_profile', user_id=user.id) }}" class="user-card" 
              data-user-id="{{ user.id }}" 
              data-username="{{ user.username }}" 
              data-user-age="{{ user.age or '' }}"
@@ -768,7 +680,7 @@
                     </a>
                 </div>
             </div>
-        </div>
+        </a>
         {% else %}
         <div class="empty-state">
             <i class="fas fa-users"></i>
@@ -777,65 +689,17 @@
         {% endfor %}
     </div>
 
-    <!-- Ultra Compact Modal - 3:4 Ratio with All Buttons Visible -->
-    <div id="userModal" class="user-modal">
-        <div class="user-modal-content">
-            <span class="modal-close" onclick="closeModal()">&times;</span>
-            
-            <!-- Avatar Section -->
-            <div class="modal-avatar-section">
-                <div id="modalAvatar"></div>
-            </div>
-            
-            <!-- Info Section -->
-            <div class="modal-info">
-                <div>
-                    <div>
-                        <span class="modal-name" id="modalName"></span>
-                        <span class="modal-age" id="modalAge"></span>
-                    </div>
-                    
-                    <div class="modal-details">
-                        <div class="modal-detail-item" id="modalGender">
-                            <i class="fas fa-venus-mars"></i>
-                            <span></span>
-                        </div>
-                        <div class="modal-detail-item" id="modalDistance">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span></span>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-status" id="modalStatus">
-                        <span class="modal-status-dot"></span>
-                        <span></span>
-                    </div>
-                    
-                    <!-- Interests -->
-                    <div id="modalInterests">
-                        <div class="interests-heading"><i class="fas fa-tags"></i> Interests</div>
-                        <div class="modal-interests" id="modalInterestsList"></div>
-                    </div>
-                </div>
-                
-                <!-- 4 Action Buttons - 2x2 Grid -->
-                <div class="modal-actions">
-                    <button class="modal-action-btn btn-profile-modal" id="modalViewProfileBtn">
-                        <i class="fas fa-user-circle"></i> Profile
-                    </button>
-                    <button class="modal-action-btn btn-chat-modal" id="modalChatBtn">
-                        <i class="fas fa-comment"></i> Chat
-                    </button>
-                    <button class="modal-action-btn btn-call-modal" id="modalCallBtn">
-                        <i class="fas fa-phone"></i> Call
-                    </button>
-                    <button class="modal-action-btn btn-video-modal" id="modalVideoBtn">
-                        <i class="fas fa-video"></i> Video
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Floating Live Chat Button -->
+    <a href="{{ url_for('live_chat') }}" class="floating-live-btn" title="Live Chat">
+        <i class="fas fa-globe"></i>
+        <div class="online-badge"></div>
+    </a>
+
+    <!-- Floating Group Video Call Button -->
+    <a href="{{ url_for('group_video_call') }}" class="floating-group-btn" title="Group Video Call">
+        <i class="fas fa-video"></i>
+        <div class="online-badge"></div>
+    </a>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
@@ -843,7 +707,6 @@
         let isLoggingOut = false;
         let currentLocation = null;
         let currentDistanceFilter = 'all';
-        let currentModalUserId = null;
         
         function showToast(message) {
             const toast = document.createElement('div');
@@ -902,107 +765,6 @@
             });
         }
         
-        function openModal(userCard) {
-            const modal = document.getElementById('userModal');
-            
-            const userId = userCard.dataset.userId;
-            const username = userCard.dataset.username;
-            const age = userCard.dataset.userAge;
-            const gender = userCard.dataset.userGender;
-            const interests = userCard.dataset.userInterests;
-            const profilePic = userCard.dataset.userProfilePic;
-            const lastSeen = userCard.dataset.userLastSeen;
-            const isOnline = userCard.dataset.userIsOnline === 'true';
-            const distanceDisplay = userCard.dataset.distanceDisplay;
-            
-            currentModalUserId = userId;
-            
-            // Set avatar
-            const modalAvatarDiv = document.getElementById('modalAvatar');
-            if (profilePic && profilePic !== '') {
-                modalAvatarDiv.innerHTML = `<img src="${profilePic}" class="modal-avatar">`;
-            } else {
-                modalAvatarDiv.innerHTML = `<div class="modal-avatar-placeholder"><i class="fas fa-user"></i></div>`;
-            }
-            
-            // Set name and age
-            document.getElementById('modalName').innerHTML = username;
-            document.getElementById('modalAge').innerHTML = age ? `(${age})` : '';
-            
-            // Set gender
-            const genderSpan = document.querySelector('#modalGender span');
-            if (gender && gender !== '') {
-                genderSpan.innerHTML = gender.charAt(0).toUpperCase() + gender.slice(1);
-                document.getElementById('modalGender').style.display = 'flex';
-            } else {
-                document.getElementById('modalGender').style.display = 'none';
-            }
-            
-            // Set distance
-            const distanceSpan = document.querySelector('#modalDistance span');
-            if (distanceDisplay && distanceDisplay !== 'Unknown') {
-                distanceSpan.innerHTML = distanceDisplay;
-                document.getElementById('modalDistance').style.display = 'flex';
-            } else {
-                document.getElementById('modalDistance').style.display = 'none';
-            }
-            
-            // Set status
-            const modalStatus = document.getElementById('modalStatus');
-            const statusDot = modalStatus.querySelector('.modal-status-dot');
-            const statusText = modalStatus.querySelector('span:last-child');
-            if (isOnline) {
-                modalStatus.classList.add('online');
-                modalStatus.classList.remove('offline');
-                statusDot.style.background = '#4CAF50';
-                statusText.innerHTML = 'Online';
-            } else {
-                modalStatus.classList.add('offline');
-                modalStatus.classList.remove('online');
-                statusDot.style.background = '#999';
-                statusText.innerHTML = `Last seen ${lastSeen}`;
-            }
-            
-            // Set interests
-            const interestsContainer = document.getElementById('modalInterestsList');
-            if (interests && interests !== '') {
-                const interestsArray = interests.split(',');
-                const displayInterests = interestsArray.slice(0, 4);
-                interestsContainer.innerHTML = displayInterests.map(interest => 
-                    `<span class="modal-interest-tag">${interest.trim()}</span>`
-                ).join('');
-                if (interestsArray.length > 4) {
-                    interestsContainer.innerHTML += `<span class="modal-interest-tag">+${interestsArray.length - 4}</span>`;
-                }
-                document.getElementById('modalInterests').style.display = 'block';
-            } else {
-                interestsContainer.innerHTML = '<span class="text-muted">No interests</span>';
-            }
-            
-            // Set button actions
-            document.getElementById('modalViewProfileBtn').onclick = () => {
-                window.location.href = `/user/profile/${userId}`;
-            };
-            document.getElementById('modalChatBtn').onclick = () => {
-                window.location.href = `/chat/${userId}`;
-            };
-            document.getElementById('modalCallBtn').onclick = () => {
-                window.location.href = `/audio-call/${userId}`;
-            };
-            document.getElementById('modalVideoBtn').onclick = () => {
-                window.location.href = `/video-call/${userId}`;
-            };
-            
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function closeModal() {
-            const modal = document.getElementById('userModal');
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-        
         function initSocket() {
             if (socket && socket.connected) return socket;
             socket = io({ autoConnect: false, reconnection: false });
@@ -1021,26 +783,12 @@
                         indicator.classList.remove('offline');
                         indicator.classList.add('online');
                         if (statusBadge) statusBadge.innerHTML = '● Online';
-                        if (currentModalUserId === data.user_id) {
-                            const modalStatus = document.getElementById('modalStatus');
-                            modalStatus.classList.add('online');
-                            modalStatus.classList.remove('offline');
-                            modalStatus.querySelector('.modal-status-dot').style.background = '#4CAF50';
-                            modalStatus.querySelector('span:last-child').innerHTML = 'Online';
-                        }
                     } else {
                         indicator.classList.remove('online');
                         indicator.classList.add('offline');
                         if (statusBadge && data.last_seen) {
                             const date = new Date(data.last_seen);
                             statusBadge.innerHTML = `⚫ ${date.toLocaleString('en-IN', { hour12: true }).substring(0, 10)}`;
-                        }
-                        if (currentModalUserId === data.user_id) {
-                            const modalStatus = document.getElementById('modalStatus');
-                            modalStatus.classList.add('offline');
-                            modalStatus.classList.remove('online');
-                            modalStatus.querySelector('.modal-status-dot').style.background = '#999';
-                            modalStatus.querySelector('span:last-child').innerHTML = `Last seen ${new Date(data.last_seen).toLocaleString()}`;
                         }
                     }
                 }
@@ -1160,21 +908,6 @@
             });
             
             sortUsersByDistance();
-            
-            document.querySelectorAll('.user-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    if (e.target.closest('.call-icons')) return;
-                    e.preventDefault();
-                    openModal(card);
-                });
-            });
-            
-            const modal = document.getElementById('userModal');
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
         });
         
         window.addEventListener('beforeunload', () => {
