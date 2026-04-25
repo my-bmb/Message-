@@ -234,11 +234,9 @@
             bottom: 8px;
             left: 6px;
             right: 6px;
-            /* No background color - pure shadow */
             background: transparent;
             border-radius: 12px;
             padding: 6px 8px;
-            /* Only shadow effect */
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
             transition: all 0.2s ease;
         }
@@ -257,17 +255,28 @@
             font-weight: 700;
             font-size: 11px;
             color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            /* Text Outline - Multiple text-shadows for outline effect */
+            text-shadow: 
+                -1px -1px 0 rgba(0,0,0,0.8),
+                1px -1px 0 rgba(0,0,0,0.8),
+                -1px 1px 0 rgba(0,0,0,0.8),
+                1px 1px 0 rgba(0,0,0,0.8),
+                0 0 4px rgba(0,0,0,0.5);
             letter-spacing: 0.2px;
         }
 
         .user-age {
             font-size: 9px;
-            opacity: 0.9;
+            opacity: 0.95;
             margin-left: 2px;
             font-weight: 500;
-            color: rgba(255,255,255,0.9);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            color: rgba(255,255,255,0.95);
+            /* Text Outline */
+            text-shadow: 
+                -0.5px -0.5px 0 rgba(0,0,0,0.8),
+                0.5px -0.5px 0 rgba(0,0,0,0.8),
+                -0.5px 0.5px 0 rgba(0,0,0,0.8),
+                0.5px 0.5px 0 rgba(0,0,0,0.8);
         }
 
         /* Distance Row */
@@ -277,29 +286,35 @@
             align-items: center;
             gap: 3px;
             margin-bottom: 2px;
-            color: rgba(255,255,255,0.85);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            color: rgba(255,255,255,0.9);
+            /* Text Outline */
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
             line-height: 1.2;
         }
 
         .user-distance i {
             font-size: 6px;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.85);
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.6));
         }
 
-        /* Last Seen / Status Row */
+        /* Last Seen / Status Row - FULL STATUS */
         .user-lastseen {
             font-size: 7px;
             display: flex;
             align-items: center;
             gap: 3px;
-            color: rgba(255,255,255,0.8);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            color: rgba(255,255,255,0.85);
+            /* Text Outline */
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
             line-height: 1.2;
+            white-space: normal;
+            word-break: keep-all;
         }
 
         .user-lastseen i {
             font-size: 5px;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.6));
         }
 
         .online-text {
@@ -598,7 +613,7 @@
                 </div>
                 {% endif %}
                 
-                <!-- Info Card - Pure Shadow Effect (No Background) -->
+                <!-- Info Card - Pure Shadow Effect -->
                 <div class="info-card">
                     <div class="user-name-row">
                         <span class="username">{{ user.username }}</span>
@@ -623,7 +638,7 @@
                         <span class="online-text">Online</span>
                         {% else %}
                         <i class="fas fa-circle offline-text"></i>
-                        <span class="offline-text">{{ user.last_seen_formatted|truncate(8, true) }}</span>
+                        <span class="offline-text">Last seen: {{ user.last_seen_formatted }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -735,8 +750,14 @@
                         indicator.classList.add('offline');
                         if (lastseenDiv && data.last_seen) {
                             const date = new Date(data.last_seen);
-                            const formatted = date.toLocaleString('en-IN', { hour12: true }).substring(0, 8);
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle offline-text"></i><span class="offline-text">${formatted}</span>`;
+                            const formatted = date.toLocaleString('en-IN', { 
+                                day: 'numeric', 
+                                month: 'short',
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                hour12: true 
+                            });
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle offline-text"></i><span class="offline-text">Last seen: ${formatted}</span>`;
                         }
                     }
                 }
