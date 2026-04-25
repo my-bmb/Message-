@@ -241,22 +241,34 @@
             transition: all 0.2s ease;
         }
 
-        /* Name Row */
-        .user-name-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-bottom: 2px;
-            line-height: 1.2;
-        }
-
+        /* ========== LUST THEME: RED/PINK SHINE ON USERNAME (NO BLINK, JUST SHINE) ========== */
         .username {
-            font-weight: 700;
+            font-weight: 800;
             font-size: 11px;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            letter-spacing: 0.2px;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            /* Lust theme: red to pink to hot red gradient */
+            background: linear-gradient(120deg, 
+                #ff0000 0%, 
+                #ff3366 25%, 
+                #ff6b6b 50%, 
+                #ff1493 75%, 
+                #ff0000 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent !important;
+            animation: shineLust 1.8s infinite;
+            font-weight: 800;
+        }
+        
+        @keyframes shineLust {
+            0% {
+                background-position: 0% center;
+            }
+            100% {
+                background-position: 200% center;
+            }
         }
 
         .user-age {
@@ -268,24 +280,42 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
 
-        /* Distance Row */
+        /* ========== DISTANCE: GREEN BLINK + SHINE EFFECT (BOTH) ========== */
         .user-distance {
             font-size: 8px;
             display: flex;
             align-items: center;
             gap: 3px;
             margin-bottom: 2px;
-            color: rgba(255,255,255,0.85);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
             line-height: 1.2;
+            font-weight: 500;
+            /* Green blink + shine combined */
+            animation: distanceGreenBlinkShine 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes distanceGreenBlinkShine {
+            0% {
+                opacity: 0.7;
+                text-shadow: 0 0 0px rgba(46,204,113,0);
+                color: rgba(255,255,255,0.85);
+            }
+            50% {
+                opacity: 1;
+                text-shadow: 0 0 6px #2ecc71, 0 0 3px #ffffff;
+                color: #d4ffd4;
+            }
+            100% {
+                opacity: 0.7;
+                text-shadow: 0 0 0px rgba(46,204,113,0);
+                color: rgba(255,255,255,0.85);
+            }
+        }
+        
+        /* Distance icon and text both get the effect */
+        .user-distance i, .user-distance span {
+            animation: none; /* inherited from parent */
         }
 
-        .user-distance i {
-            font-size: 6px;
-            color: rgba(255,255,255,0.8);
-        }
-
-        /* Last Seen / Status Row - ONE LINE with DATE+TIME */
         .user-lastseen {
             font-size: 7px;
             display: flex;
@@ -312,7 +342,6 @@
             font-weight: 400;
         }
         
-        /* Compact inline status text */
         .status-datetime {
             white-space: nowrap;
             overflow: hidden;
@@ -329,6 +358,12 @@
             }
             .user-lastseen {
                 font-size: 8px;
+            }
+            .username {
+                font-size: 13px;
+            }
+            .user-distance {
+                font-size: 9px;
             }
         }
 
@@ -494,7 +529,7 @@
             .floating-live-btn i, .floating-group-btn i { font-size: 1.3rem; }
             .floating-live-btn { left: 20px; }
             .floating-group-btn { right: 20px; }
-            .username { font-size: 12px; }
+            .username { font-size: 13px; }
             .user-age { font-size: 10px; }
             .user-distance { font-size: 9px; }
             .user-lastseen { font-size: 8px; }
@@ -567,7 +602,7 @@
 
     <!-- Search -->
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search users...">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search users...">
     </div>
 
     <!-- Distance Filters -->
@@ -621,30 +656,32 @@
                 </div>
                 {% endif %}
                 
-                <!-- Info Card - One Line Status with Date + Time -->
+                <!-- Info Card - LUST shine on name + green blink/shine on distance -->
                 <div class="info-card">
                     <div class="user-name-row">
+                        <!-- Lust shine effect (red/pink gradient, no blink) -->
                         <span class="username">{{ user.username }}</span>
                         {% if user.age %}
                         <span class="user-age">{{ user.age }}</span>
                         {% endif %}
                     </div>
                     
+                    <!-- Distance with Green Blink + Shine Effect -->
                     <div class="user-distance">
                         {% if user.distance_display and user.distance_display != 'Unknown' %}
-                            <i class="fas fa-location-dot"></i> {{ user.distance_display }}
+                            <i class="fas fa-location-dot"></i> <span>{{ user.distance_display }}</span>
                         {% elif session.get('user_lat') is none and session.get('user_lng') is none %}
-                            <i class="fas fa-exclamation-triangle"></i> Off
+                            <i class="fas fa-exclamation-triangle"></i> <span>Off</span>
                         {% else %}
-                            <i class="fas fa-question-circle"></i> ?
+                            <i class="fas fa-question-circle"></i> <span>?</span>
                         {% endif %}
                     </div>
                     
-                    <!-- STATUS: ONE LINE → DATE & TIME (SHORT) -->
+                    <!-- Status line: date+time one line -->
                     <div class="user-lastseen" id="status-line-{{ user.id }}">
                         {% if user.is_online %}
                             <i class="fas fa-circle online-text" style="font-size:5px;"></i>
-                            <span class="online-text">● Online now</span>
+                            <span class="online-text">Online now</span>
                         {% else %}
                             <i class="fas fa-clock offline-text" style="font-size:5px;"></i>
                             <span class="offline-text status-datetime" data-lastseen="{{ user.last_seen_raw or user.last_seen }}" data-user-id="{{ user.id }}">
@@ -685,7 +722,7 @@
         let currentLocation = null;
         let currentDistanceFilter = 'all';
         
-        // Helper: format date+time in short Indian style: DD MMM, hh:mm AM/PM (one line)
+        // Format last seen: one line date+time
         function formatLastSeenDateTime(timestamp) {
             if (!timestamp) return "Recently";
             let date;
@@ -703,17 +740,15 @@
             const diffDays = Math.floor(diffMs / 86400000);
             
             if (diffMins < 1) return "Just now";
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffMins < 60) return diffMins + "m ago";
+            if (diffHours < 24) return diffHours + "h ago";
             if (diffDays === 1) return "Yesterday " + date.toLocaleTimeString('en-IN', { hour: '2-digit', minute:'2-digit', hour12: true });
-            if (diffDays < 7) return `${diffDays}d ago`;
+            if (diffDays < 7) return diffDays + "d ago";
             
-            // Short date + time: "12 Mar, 2:30 PM"
             const options = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
             return date.toLocaleDateString('en-IN', options).replace(',', '');
         }
         
-        // Update all status elements with proper one-line datetime
         function updateAllStatusDisplays() {
             document.querySelectorAll('.user-lastseen .status-datetime').forEach(el => {
                 const rawLastSeen = el.getAttribute('data-lastseen');
@@ -721,7 +756,6 @@
                     const formatted = formatLastSeenDateTime(rawLastSeen);
                     el.textContent = formatted;
                 } else {
-                    // fallback to placeholder
                     if (el.textContent.trim() === "Loading..." || el.textContent.trim() === "") {
                         el.textContent = "Recently";
                     }
@@ -795,7 +829,6 @@
             socket.on('nearby_users_update', (data) => {
                 if (data.users) updateUsersDistance(data.users);
             });
-            // Enhanced status update: shows one line date+time for offline users
             socket.on('user_status', (data) => {
                 const card = document.querySelector(`.user-card[data-user-id="${data.user_id}"]`);
                 if (card) {
@@ -806,7 +839,7 @@
                         indicator.classList.remove('offline');
                         indicator.classList.add('online');
                         if (lastseenDiv) {
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text" style="font-size:5px;"></i><span class="online-text">● Online now</span>`;
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text" style="font-size:5px;"></i><span class="online-text">Online now</span>`;
                         }
                     } else {
                         indicator.classList.remove('online');
@@ -814,7 +847,6 @@
                         if (lastseenDiv && data.last_seen) {
                             const formattedDateTime = formatLastSeenDateTime(data.last_seen);
                             lastseenDiv.innerHTML = `<i class="fas fa-clock offline-text" style="font-size:5px;"></i><span class="offline-text status-datetime">${formattedDateTime}</span>`;
-                            // store raw last_seen for future updates
                             const spanEl = lastseenDiv.querySelector('.status-datetime');
                             if (spanEl) spanEl.setAttribute('data-lastseen', data.last_seen);
                         }
@@ -849,14 +881,13 @@
                     const distanceDiv = card.querySelector('.user-distance');
                     if (distanceDiv) {
                         if (user.distance_display && user.distance_display !== 'Unknown') {
-                            distanceDiv.innerHTML = `<i class="fas fa-location-dot"></i> ${user.distance_display}`;
+                            distanceDiv.innerHTML = `<i class="fas fa-location-dot"></i> <span>${user.distance_display}</span>`;
                         } else if (!currentLocation) {
-                            distanceDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Off`;
+                            distanceDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <span>Off</span>`;
                         } else {
-                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> ?`;
+                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> <span>?</span>`;
                         }
                     }
-                    // Also update status if last_seen_raw is provided via socket (optional)
                     if (user.last_seen_raw && !user.is_online) {
                         const lastseenDiv = card.querySelector('.user-lastseen');
                         if (lastseenDiv) {
@@ -866,7 +897,7 @@
                     } else if (user.is_online) {
                         const lastseenDiv = card.querySelector('.user-lastseen');
                         if (lastseenDiv) {
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text" style="font-size:5px;"></i><span class="online-text">● Online now</span>`;
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text" style="font-size:5px;"></i><span class="online-text">Online now</span>`;
                         }
                         const indicator = card.querySelector('.online-indicator');
                         if (indicator) {
@@ -908,7 +939,6 @@
             const urlParams = new URLSearchParams(window.location.search);
             const hasLocation = urlParams.has('lat') && urlParams.has('lng');
             
-            // Apply one-line date-time formatting for all offline users from server data
             updateAllStatusDisplays();
             
             window.socket = initSocket();
@@ -931,7 +961,7 @@
                         },
                         (error) => {
                             if (prompt) prompt.style.display = 'flex';
-                            updateAllStatusDisplays(); // ensure fallback formatting
+                            updateAllStatusDisplays();
                         },
                         { enableHighAccuracy: true, timeout: 5000 }
                     );
