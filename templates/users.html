@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>FlirtyBee — Nearby Users</title>
+    <title>FlirtyBee - Nearby Users</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -182,29 +182,28 @@
         .users-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            gap: 2px;
         }
 
-        /* ========== 3:4 CARD - TRANSPARENT, PHOTO FULL FILL ========== */
+        /* User Card - 3:4 Ratio */
         .user-card {
-            background: transparent;
-            border-radius: 16px;
+            background: white;
+            border-radius: 10px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.2s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
             position: relative;
-            aspect-ratio: 3 / 4;  /* ✅ 3:4 ratio */
+            aspect-ratio: 3 / 4;
         }
 
         .user-card:active {
             transform: scale(0.97);
         }
 
-        /* Photo fills ENTIRE card (absolute positioning) */
+        /* Full Photo Container */
         .photo-container {
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
             width: 100%;
             height: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -229,73 +228,79 @@
             font-size: 48px;
         }
 
-        /* ========== INFO OVERLAY - TRANSPARENT, ONLY SHADOW ========== */
-        .info-overlay {
+        /* ========== INFO CARD - PURE SHADOW EFFECT ========== */
+        .info-card {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 8px 8px 10px 8px;  /* reduced padding */
+            bottom: 8px;
+            left: 6px;
+            right: 6px;
             background: transparent;
-            border-radius: 0;
-            /* Pure shadow effect */
-            box-shadow: 0 -15px 25px -8px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            padding: 6px 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
         }
 
-        /* 1️⃣ Distance Block - reduced gap */
-        .distance-block {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-bottom: 3px;  /* reduced gap */
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.95);
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-        }
-
-        .distance-block i {
-            font-size: 0.6rem;
-            color: #ffd966;
-        }
-
-        /* 2️⃣ Name + Age Block - reduced gap */
-        .name-age-block {
+        /* Name Row */
+        .user-name-row {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
             flex-wrap: wrap;
-            margin-bottom: 3px;  /* reduced gap */
+            margin-bottom: 2px;
+            line-height: 1.2;
         }
 
         .username {
-            font-weight: 800;
-            font-size: 0.85rem;
+            font-weight: 700;
+            font-size: 11px;
             color: white;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
-            letter-spacing: 0px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 0.2px;
         }
 
         .user-age {
-            font-weight: 600;
-            font-size: 0.6rem;
-            background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(4px);
-            padding: 2px 8px;
-            border-radius: 30px;
-            color: white;
-            text-shadow: none;
+            font-size: 9px;
+            opacity: 0.9;
+            margin-left: 2px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
 
-        /* 3️⃣ Status Block - reduced gap, clear last seen */
-        .status-block {
+        /* Distance Row */
+        .user-distance {
+            font-size: 8px;
             display: flex;
             align-items: center;
-            gap: 4px;
-            font-size: 0.6rem;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.9);
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            gap: 3px;
+            margin-bottom: 2px;
+            color: rgba(255,255,255,0.85);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            line-height: 1.2;
+        }
+
+        .user-distance i {
+            font-size: 6px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Last Seen / Status Row - ONE LINE with DATE+TIME */
+        .user-lastseen {
+            font-size: 7px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            color: rgba(255,255,255,0.85);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            line-height: 1.2;
+            white-space: normal;
+            word-break: keep-all;
+        }
+
+        .user-lastseen i {
+            font-size: 5px;
+            flex-shrink: 0;
         }
 
         .online-text {
@@ -303,24 +308,41 @@
         }
 
         .offline-text {
-            color: #d0d0d0;
+            color: #f1c40f;
+            font-weight: 400;
         }
-
-        .status-block i {
-            font-size: 0.5rem;
+        
+        /* Compact inline status text */
+        .status-datetime {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            display: inline-block;
+            font-size: 6.5px;
+            letter-spacing: 0.2px;
+        }
+        
+        @media (min-width: 768px) {
+            .status-datetime {
+                font-size: 8px;
+            }
+            .user-lastseen {
+                font-size: 8px;
+            }
         }
 
         /* Online Indicator Dot - Top Right */
         .online-indicator {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 9px;
-            height: 9px;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #2ecc71;
             border: 1.5px solid white;
-            z-index: 10;
+            z-index: 5;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             animation: pulseOnline 1.5s infinite;
         }
@@ -338,18 +360,18 @@
         /* Unread Badge - Top Left */
         .unread-badge {
             position: absolute;
-            top: 5px;
-            left: 5px;
+            top: 4px;
+            left: 4px;
             background: #e74c3c;
             color: white;
-            border-radius: 30px;
-            padding: 1px 6px;
-            font-size: 0.65rem;
-            font-weight: 800;
+            border-radius: 15px;
+            padding: 1px 5px;
+            font-size: 8px;
+            font-weight: bold;
             min-width: 18px;
             text-align: center;
-            z-index: 10;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            z-index: 5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         /* Floating Buttons */
@@ -369,6 +391,7 @@
             z-index: 999;
             text-decoration: none;
             transition: all 0.3s;
+            animation: floatPulse 2s infinite;
         }
 
         .floating-group-btn {
@@ -387,6 +410,17 @@
             z-index: 999;
             text-decoration: none;
             transition: all 0.3s;
+            animation: floatPulseRed 2s infinite;
+        }
+
+        @keyframes floatPulseRed {
+            0%, 100% { transform: scale(1); box-shadow: 0 3px 10px rgba(231,76,60,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 5px 14px rgba(231,76,60,0.5); }
+        }
+
+        @keyframes floatPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 5px 14px rgba(0,0,0,0.4); }
         }
 
         .floating-live-btn:active, .floating-group-btn:active {
@@ -452,37 +486,44 @@
             white-space: nowrap;
         }
 
-        /* Desktop adjustments */
+        /* Desktop View */
         @media (min-width: 768px) {
             body { padding: 10px; padding-bottom: 80px; }
-            .users-grid { gap: 12px; }
-            .info-overlay { padding: 10px 10px 12px 10px; }
-            .username { font-size: 0.95rem; }
-            .user-age { font-size: 0.65rem; }
-            .distance-block { font-size: 0.7rem; gap: 5px; margin-bottom: 4px; }
-            .status-block { font-size: 0.65rem; gap: 5px; }
+            .users-grid { gap: 3px; }
             .floating-live-btn, .floating-group-btn { width: 50px; height: 50px; bottom: 20px; }
             .floating-live-btn i, .floating-group-btn i { font-size: 1.3rem; }
             .floating-live-btn { left: 20px; }
             .floating-group-btn { right: 20px; }
+            .username { font-size: 12px; }
+            .user-age { font-size: 10px; }
+            .user-distance { font-size: 9px; }
+            .user-lastseen { font-size: 8px; }
+            .info-card { padding: 8px 10px; bottom: 10px; left: 8px; right: 8px; }
         }
 
-        @media (max-width: 480px) {
-            body { padding-bottom: 70px; padding: 6px; }
-            .users-grid { gap: 5px; }
-            .info-overlay { padding: 6px 6px 8px 6px; }
-            .username { font-size: 0.7rem; }
-            .user-age { font-size: 0.5rem; padding: 1px 6px; }
-            .distance-block { font-size: 0.55rem; margin-bottom: 2px; gap: 3px; }
-            .status-block { font-size: 0.5rem; gap: 3px; }
-            .online-indicator { top: 5px; right: 5px; width: 7px; height: 7px; }
-            .unread-badge { top: 3px; left: 3px; font-size: 0.55rem; padding: 1px 4px; min-width: 14px; }
-            .floating-live-btn, .floating-group-btn { width: 40px; height: 40px; bottom: 12px; }
-            .floating-live-btn i, .floating-group-btn i { font-size: 1rem; }
+        @media (min-width: 1024px) {
+            .users-grid { gap: 4px; }
         }
 
         .hide-mobile { display: none; }
         @media (min-width: 500px) { .hide-mobile { display: inline; } }
+        
+        @media (max-width: 480px) {
+            body { padding-bottom: 70px; padding: 6px; }
+            .floating-live-btn, .floating-group-btn { width: 40px; height: 40px; bottom: 12px; }
+            .floating-live-btn i, .floating-group-btn i { font-size: 1rem; }
+            .floating-live-btn { left: 12px; }
+            .floating-group-btn { right: 12px; }
+            .username { font-size: 10px; }
+            .user-age { font-size: 8px; }
+            .user-distance { font-size: 7px; }
+            .user-lastseen { font-size: 6.5px; }
+            .info-card { padding: 5px 6px; bottom: 5px; left: 4px; right: 4px; border-radius: 8px; }
+            .online-indicator { top: 4px; right: 4px; width: 7px; height: 7px; }
+            .unread-badge { top: 3px; left: 3px; font-size: 7px; padding: 1px 4px; min-width: 15px; }
+            .user-card { border-radius: 8px; }
+            .photo-placeholder { font-size: 40px; }
+        }
     </style>
 </head>
 <body>
@@ -551,25 +592,26 @@
         </button>
     </div>
 
-    <!-- Users Grid - 3:4 transparent cards with full photo -->
+    <!-- Users Grid -->
     <div class="users-grid" id="usersGrid">
         {% for user in users %}
         <div class="user-card" 
              data-user-id="{{ user.id }}" 
              data-username="{{ user.username }}" 
              data-distance="{{ user.distance_km or 999 }}" 
+             data-lastseen-raw="{{ user.last_seen_raw or user.last_seen }}" 
              data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}"
              onclick="window.location.href='/user/profile/{{ user.id }}'">
             
-            <!-- Online Indicator Dot -->
+            <!-- Online Indicator -->
             <div class="online-indicator {% if user.is_online %}online{% else %}offline{% endif %}"></div>
             
-            <!-- Unread Message Badge -->
+            <!-- Unread Badge -->
             {% if unread_counts.get(user.id) %}
             <div class="unread-badge">{{ unread_counts[user.id] }}</div>
             {% endif %}
             
-            <!-- Full Photo Container (fills entire card) -->
+            <!-- Full Photo Container -->
             <div class="photo-container">
                 {% if user.profile_pic %}
                 <img src="{{ user.profile_pic }}" class="user-photo" alt="{{ user.username }}">
@@ -578,47 +620,45 @@
                     <i class="fas fa-user-circle"></i>
                 </div>
                 {% endif %}
-            </div>
-            
-            <!-- Info Overlay - transparent with shadow, 3 separate blocks with reduced gaps -->
-            <div class="info-overlay">
-                <!-- 1️⃣ DISTANCE BLOCK -->
-                <div class="distance-block">
-                    <i class="fas fa-location-dot"></i>
-                    <span>
-                        {% if user.distance_display and user.distance_display != 'Unknown' %}
-                            {{ user.distance_display }}
-                        {% elif session.get('user_lat') is none and session.get('user_lng') is none %}
-                            Location off
-                        {% else %}
-                            Distance ?
+                
+                <!-- Info Card - One Line Status with Date + Time -->
+                <div class="info-card">
+                    <div class="user-name-row">
+                        <span class="username">{{ user.username }}</span>
+                        {% if user.age %}
+                        <span class="user-age">{{ user.age }}</span>
                         {% endif %}
-                    </span>
-                </div>
-                
-                <!-- 2️⃣ NAME + AGE BLOCK -->
-                <div class="name-age-block">
-                    <span class="username">{{ user.username }}</span>
-                    {% if user.age %}
-                    <span class="user-age">{{ user.age }} yrs</span>
-                    {% endif %}
-                </div>
-                
-                <!-- 3️⃣ STATUS BLOCK - clear last seen display -->
-                <div class="status-block">
-                    {% if user.is_online %}
-                        <i class="fas fa-circle online-text"></i>
-                        <span class="online-text">Online now</span>
-                    {% else %}
-                        <i class="far fa-clock offline-text"></i>
-                        <span class="offline-text">
-                            {% if user.last_seen_formatted and user.last_seen_formatted != 'Never' %}
-                                Last seen: {{ user.last_seen_formatted }}
-                            {% else %}
-                                Recently offline
-                            {% endif %}
-                        </span>
-                    {% endif %}
+                    </div>
+                    
+                    <div class="user-distance">
+                        {% if user.distance_display and user.distance_display != 'Unknown' %}
+                            <i class="fas fa-location-dot"></i> {{ user.distance_display }}
+                        {% elif session.get('user_lat') is none and session.get('user_lng') is none %}
+                            <i class="fas fa-exclamation-triangle"></i> Off
+                        {% else %}
+                            <i class="fas fa-question-circle"></i> ?
+                        {% endif %}
+                    </div>
+                    
+                    <!-- STATUS: ONE LINE → DATE & TIME (SHORT) -->
+                    <div class="user-lastseen" id="status-line-{{ user.id }}">
+                        {% if user.is_online %}
+                            <i class="fas fa-circle online-text" style="font-size:5px;"></i>
+                            <span class="online-text">● Online now</span>
+                        {% else %}
+                            <i class="fas fa-clock offline-text" style="font-size:5px;"></i>
+                            <span class="offline-text status-datetime" data-lastseen="{{ user.last_seen_raw or user.last_seen }}" data-user-id="{{ user.id }}">
+                                {% if user.last_seen_formatted and user.last_seen_formatted != 'Just now' %}
+                                    {{ user.last_seen_formatted }}
+                                {% else %}
+                                    {% if user.last_seen_raw %}
+                                        <script>document.currentScript?.parentElement?.setAttribute('data-lastseen', '{{ user.last_seen_raw }}');</script>
+                                    {% endif %}
+                                    Loading...
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -630,7 +670,7 @@
         {% endfor %}
     </div>
 
-    <!-- Floating Action Buttons -->
+    <!-- Floating Buttons -->
     <a href="{{ url_for('live_chat') }}" class="floating-live-btn" title="Live Chat">
         <i class="fas fa-globe"></i>
     </a>
@@ -644,6 +684,50 @@
         let isLoggingOut = false;
         let currentLocation = null;
         let currentDistanceFilter = 'all';
+        
+        // Helper: format date+time in short Indian style: DD MMM, hh:mm AM/PM (one line)
+        function formatLastSeenDateTime(timestamp) {
+            if (!timestamp) return "Recently";
+            let date;
+            if (typeof timestamp === 'string') {
+                date = new Date(timestamp);
+            } else {
+                date = new Date(timestamp);
+            }
+            if (isNaN(date.getTime())) return "Unknown";
+            
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return "Just now";
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays === 1) return "Yesterday " + date.toLocaleTimeString('en-IN', { hour: '2-digit', minute:'2-digit', hour12: true });
+            if (diffDays < 7) return `${diffDays}d ago`;
+            
+            // Short date + time: "12 Mar, 2:30 PM"
+            const options = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
+            return date.toLocaleDateString('en-IN', options).replace(',', '');
+        }
+        
+        // Update all status elements with proper one-line datetime
+        function updateAllStatusDisplays() {
+            document.querySelectorAll('.user-lastseen .status-datetime').forEach(el => {
+                const rawLastSeen = el.getAttribute('data-lastseen');
+                if (rawLastSeen && rawLastSeen !== 'null' && rawLastSeen !== 'undefined') {
+                    const formatted = formatLastSeenDateTime(rawLastSeen);
+                    el.textContent = formatted;
+                } else {
+                    // fallback to placeholder
+                    if (el.textContent.trim() === "Loading..." || el.textContent.trim() === "") {
+                        el.textContent = "Recently";
+                    }
+                }
+            });
+        }
         
         function showToast(message) {
             const toast = document.createElement('div');
@@ -679,9 +763,9 @@
                 if (response.ok) {
                     if (socket && socket.connected) socket.emit('location_update', location);
                     window.location.href = `/users?lat=${location.lat}&lng=${location.lng}`;
-                } else showToast('Failed to update location');
+                } else showToast('Failed');
             } catch (error) {
-                if (error.code === 1) showToast('Allow location access');
+                if (error.code === 1) showToast('Allow location');
                 else showToast('Unable to get location');
                 window.location.href = `/users`;
             }
@@ -697,43 +781,42 @@
                 const userDistance = parseFloat(card.dataset.distance);
                 const hasLocation = card.dataset.hasLocation === 'true';
                 if (distanceKm === 'all') card.style.display = '';
-                else if (hasLocation && !isNaN(userDistance) && userDistance <= parseFloat(distanceKm)) card.style.display = '';
+                else if (hasLocation && userDistance <= parseFloat(distanceKm)) card.style.display = '';
                 else card.style.display = 'none';
             });
         }
         
         function initSocket() {
             if (socket && socket.connected) return socket;
-            socket = io({ autoConnect: false, reconnection: true });
+            socket = io({ autoConnect: false, reconnection: false });
             socket.on('connect', () => {
                 if (!isLoggingOut && currentLocation) socket.emit('location_update', currentLocation);
             });
             socket.on('nearby_users_update', (data) => {
                 if (data.users) updateUsersDistance(data.users);
             });
+            // Enhanced status update: shows one line date+time for offline users
             socket.on('user_status', (data) => {
                 const card = document.querySelector(`.user-card[data-user-id="${data.user_id}"]`);
                 if (card) {
                     const indicator = card.querySelector('.online-indicator');
-                    const statusBlock = card.querySelector('.status-block');
+                    const lastseenDiv = card.querySelector('.user-lastseen');
                     
                     if (data.is_online) {
-                        if (indicator) {
-                            indicator.classList.remove('offline');
-                            indicator.classList.add('online');
-                        }
-                        if (statusBlock) {
-                            statusBlock.innerHTML = `<i class="fas fa-circle online-text"></i><span class="online-text">Online now</span>`;
+                        indicator.classList.remove('offline');
+                        indicator.classList.add('online');
+                        if (lastseenDiv) {
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text" style="font-size:5px;"></i><span class="online-text">● Online now</span>`;
                         }
                     } else {
-                        if (indicator) {
-                            indicator.classList.remove('online');
-                            indicator.classList.add('offline');
-                        }
-                        if (statusBlock && data.last_seen) {
-                            const date = new Date(data.last_seen);
-                            const formatted = date.toLocaleString('en-IN', { hour12: true });
-                            statusBlock.innerHTML = `<i class="far fa-clock offline-text"></i><span class="offline-text">Last seen: ${formatted}</span>`;
+                        indicator.classList.remove('online');
+                        indicator.classList.add('offline');
+                        if (lastseenDiv && data.last_seen) {
+                            const formattedDateTime = formatLastSeenDateTime(data.last_seen);
+                            lastseenDiv.innerHTML = `<i class="fas fa-clock offline-text" style="font-size:5px;"></i><span class="offline-text status-datetime">${formattedDateTime}</span>`;
+                            // store raw last_seen for future updates
+                            const spanEl = lastseenDiv.querySelector('.status-datetime');
+                            if (spanEl) spanEl.setAttribute('data-lastseen', data.last_seen);
                         }
                     }
                 }
@@ -753,7 +836,7 @@
                     } else if (badge) badge.remove();
                 }
             });
-            socket.connect();
+            socket.on('call_ended', () => showToast('Call ended'));
             return socket;
         }
         
@@ -763,15 +846,32 @@
                 if (card && user.distance_display) {
                     card.dataset.distance = user.distance_km || 999;
                     card.dataset.hasLocation = user.distance_display !== 'Unknown' ? 'true' : 'false';
-                    
-                    const distanceSpan = card.querySelector('.distance-block span');
-                    if (distanceSpan) {
+                    const distanceDiv = card.querySelector('.user-distance');
+                    if (distanceDiv) {
                         if (user.distance_display && user.distance_display !== 'Unknown') {
-                            distanceSpan.innerText = user.distance_display;
+                            distanceDiv.innerHTML = `<i class="fas fa-location-dot"></i> ${user.distance_display}`;
                         } else if (!currentLocation) {
-                            distanceSpan.innerText = 'Location off';
+                            distanceDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Off`;
                         } else {
-                            distanceSpan.innerText = 'Distance ?';
+                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> ?`;
+                        }
+                    }
+                    // Also update status if last_seen_raw is provided via socket (optional)
+                    if (user.last_seen_raw && !user.is_online) {
+                        const lastseenDiv = card.querySelector('.user-lastseen');
+                        if (lastseenDiv) {
+                            const formatted = formatLastSeenDateTime(user.last_seen_raw);
+                            lastseenDiv.innerHTML = `<i class="fas fa-clock offline-text" style="font-size:5px;"></i><span class="offline-text status-datetime" data-lastseen="${user.last_seen_raw}">${formatted}</span>`;
+                        }
+                    } else if (user.is_online) {
+                        const lastseenDiv = card.querySelector('.user-lastseen');
+                        if (lastseenDiv) {
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text" style="font-size:5px;"></i><span class="online-text">● Online now</span>`;
+                        }
+                        const indicator = card.querySelector('.online-indicator');
+                        if (indicator) {
+                            indicator.classList.remove('offline');
+                            indicator.classList.add('online');
                         }
                     }
                 }
@@ -784,8 +884,8 @@
             const container = document.getElementById('usersGrid');
             const items = Array.from(container.querySelectorAll('.user-card'));
             items.sort((a, b) => {
-                const distA = parseFloat(a.dataset.distance) || 9999;
-                const distB = parseFloat(b.dataset.distance) || 9999;
+                const distA = parseFloat(a.dataset.distance) || 999;
+                const distB = parseFloat(b.dataset.distance) || 999;
                 const hasLocA = a.dataset.hasLocation === 'true';
                 const hasLocB = b.dataset.hasLocation === 'true';
                 if (hasLocA && !hasLocB) return -1;
@@ -808,7 +908,11 @@
             const urlParams = new URLSearchParams(window.location.search);
             const hasLocation = urlParams.has('lat') && urlParams.has('lng');
             
+            // Apply one-line date-time formatting for all offline users from server data
+            updateAllStatusDisplays();
+            
             window.socket = initSocket();
+            window.socket.connect();
             
             const prompt = document.getElementById('locationPrompt');
             
@@ -827,11 +931,13 @@
                         },
                         (error) => {
                             if (prompt) prompt.style.display = 'flex';
+                            updateAllStatusDisplays(); // ensure fallback formatting
                         },
                         { enableHighAccuracy: true, timeout: 5000 }
                     );
                 } else {
                     if (prompt) prompt.style.display = 'flex';
+                    updateAllStatusDisplays();
                 }
             } else if (hasLocation) {
                 currentLocation = {
@@ -839,6 +945,7 @@
                     lng: parseFloat(urlParams.get('lng'))
                 };
                 if (prompt) prompt.style.display = 'none';
+                updateAllStatusDisplays();
             }
             
             document.getElementById('searchInput')?.addEventListener('input', function() {
@@ -854,7 +961,6 @@
             });
             
             sortUsersByDistance();
-            filterByDistance('all');
         });
         
         window.addEventListener('beforeunload', () => {
