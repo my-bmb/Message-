@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ChatApp - Nearby Users</title>
+    <title>FlirtyBee - Nearby Users</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -62,10 +62,16 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            text-decoration: none;
         }
 
         .header-btn:active {
             transform: scale(0.95);
+        }
+
+        .profile-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
         }
 
         /* Search Box */
@@ -166,6 +172,14 @@
             flex-shrink: 0;
         }
 
+        .profile-pic-small {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+        }
+
         .user-avatar i {
             font-size: 42px;
             color: white;
@@ -188,6 +202,11 @@
             text-overflow: ellipsis;
             margin-bottom: 3px;
             color: #333;
+        }
+
+        .age-text {
+            font-size: 9px;
+            color: #667eea;
         }
 
         .status-badge {
@@ -235,24 +254,46 @@
             color: white;
         }
 
+        /* Call Icons - Mobile Friendly */
         .call-icons {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             padding-top: 5px;
             border-top: 1px solid #eee;
+            flex-wrap: wrap;
         }
 
         .call-icons a {
             color: #075e54;
-            font-size: 12px;
+            font-size: 10px;
             text-decoration: none;
-            padding: 4px;
-            border-radius: 50%;
+            padding: 4px 6px;
+            border-radius: 20px;
+            background: rgba(7,94,84,0.08);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
         }
 
         .call-icons a:active {
-            background: rgba(7,94,84,0.1);
+            background: rgba(7,94,84,0.2);
+            transform: scale(0.95);
+        }
+
+        .call-icons .icon-label {
+            display: none;
+        }
+
+        @media (min-width: 480px) {
+            .call-icons a {
+                padding: 4px 8px;
+            }
+            .call-icons .icon-label {
+                display: inline;
+                font-size: 9px;
+            }
         }
 
         .unread-badge {
@@ -325,11 +366,268 @@
             white-space: nowrap;
         }
 
-        /* Desktop View */
+        /* ========== ULTRA COMPACT MODAL - 3:4 RATIO WITH VISIBLE BUTTONS ========== */
+        .user-modal {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .user-modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 85%;
+            max-width: 300px;
+            aspect-ratio: 3 / 4;
+            position: relative;
+            animation: modalFadeIn 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #999;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            background: rgba(0,0,0,0.08);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:active {
+            transform: scale(0.95);
+            background: rgba(0,0,0,0.15);
+        }
+
+        /* Avatar Section - Compact */
+        .modal-avatar-section {
+            background: white;
+            padding: 12px 0 6px 0;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .modal-avatar {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 3px solid #667eea;
+            object-fit: cover;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .modal-avatar-placeholder {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 3px solid #667eea;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 35px;
+            margin: 0 auto;
+        }
+
+        /* Info Section - Very Compact */
+        .modal-info {
+            padding: 2px 14px 12px 14px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .modal-name {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 2px;
+            font-weight: 600;
+        }
+
+        .modal-age {
+            font-size: 0.8rem;
+            color: #667eea;
+            margin-left: 3px;
+        }
+
+        .modal-details {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 3px 0;
+        }
+
+        .modal-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #777;
+            font-size: 0.65rem;
+        }
+
+        .modal-detail-item i {
+            color: #667eea;
+            font-size: 0.6rem;
+        }
+
+        .modal-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 0.6rem;
+            margin: 3px 0;
+            width: fit-content;
+            align-self: center;
+        }
+
+        .modal-status.online {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .modal-status.offline {
+            background: rgba(158, 158, 158, 0.1);
+            color: #999;
+            border: 1px solid rgba(158, 158, 158, 0.2);
+        }
+
+        .modal-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Interests - Very Compact */
+        .modal-interests {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+            margin: 4px 0;
+        }
+
+        .modal-interest-tag {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 2px 7px;
+            border-radius: 20px;
+            font-size: 0.55rem;
+            color: #667eea;
+        }
+
+        .interests-heading {
+            color: #777;
+            font-size: 0.6rem;
+            margin-bottom: 3px;
+            text-align: center;
+        }
+
+        /* Action Buttons - 2x2 Grid - Properly Visible */
+        .modal-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .modal-action-btn {
+            padding: 7px 6px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.65rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .modal-action-btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-profile-modal {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .btn-chat-modal {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .btn-call-modal {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn-video-modal {
+            background: linear-gradient(135deg, #fa709a, #fee140);
+            color: white;
+        }
+
+        .text-muted {
+            color: #bbb;
+            font-size: 0.55rem;
+        }
+
+        /* Bio hidden */
+        .modal-bio {
+            display: none;
+        }
+
+        /* Desktop View - Slightly larger */
         @media (min-width: 768px) {
             body { padding: 15px; }
             .users-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
             .empty-state { grid-column: span 4; }
+            .user-modal-content { max-width: 320px; }
+            .modal-avatar { width: 85px; height: 85px; }
+            .modal-name { font-size: 1.2rem; }
+            .modal-action-btn { padding: 8px 10px; font-size: 0.7rem; }
         }
 
         @media (min-width: 1024px) {
@@ -347,15 +645,18 @@
     </style>
 </head>
 <body>
-    <!-- Main Content - No Loading Overlays -->
+    <!-- Main Content -->
     <div class="app-header">
         <div class="app-title">
             <i class="fas fa-map-marker-alt"></i>
-            <span>Nearby</span>
+            <span>FlirtyBee</span>
         </div>
         <div class="header-buttons">
+            <a href="{{ url_for('profile') }}" class="header-btn profile-btn">
+                <i class="fas fa-user-circle"></i> <span class="hide-mobile">Profile</span>
+            </a>
             <button onclick="refreshLocation()" class="header-btn">
-                <i class="fas fa-location-dot"></i> <span class="hide-mobile">Refresh</span>
+                <i class="fas fa-location-dot"></i> <span class="hide-mobile">Nearby</span>
             </button>
             <button onclick="logoutUser()" class="header-btn">
                 <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Logout</span>
@@ -393,17 +694,38 @@
     <!-- Users Grid -->
     <div class="users-grid" id="usersGrid">
         {% for user in users %}
-        <div class="user-card" data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-distance="{{ user.distance_km or 999 }}" data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}">
+        <div class="user-card" 
+             data-user-id="{{ user.id }}" 
+             data-username="{{ user.username }}" 
+             data-user-age="{{ user.age or '' }}"
+             data-user-gender="{{ user.gender or '' }}"
+             data-user-bio="{{ user.bio or '' }}"
+             data-user-interests="{{ user.interests_list|join(',') if user.interests_list else '' }}"
+             data-user-profile-pic="{{ user.profile_pic or '' }}"
+             data-user-last-seen="{{ user.last_seen_formatted or 'recently' }}"
+             data-user-is-online="{{ user.is_online|lower }}"
+             data-distance="{{ user.distance_km or 999 }}" 
+             data-distance-display="{{ user.distance_display or 'Unknown' }}"
+             data-has-location="{% if user.distance_display and user.distance_display != 'Unknown' %}true{% else %}false{% endif %}">
             <div class="online-indicator {% if user.is_online %}online{% else %}offline{% endif %}"></div>
             {% if unread_counts.get(user.id) %}
             <div class="unread-badge">{{ unread_counts[user.id] }}</div>
             {% endif %}
             <div class="user-avatar">
+                {% if user.profile_pic %}
+                <img src="{{ user.profile_pic }}" class="profile-pic-small">
+                {% else %}
                 <i class="fas fa-user-circle"></i>
+                {% endif %}
             </div>
             <div class="user-card-info">
                 <div>
-                    <div class="user-card-name">{{ user.username }}</div>
+                    <div class="user-card-name">
+                        {{ user.username }}
+                        {% if user.age %}
+                        <span class="age-text">({{ user.age }})</span>
+                        {% endif %}
+                    </div>
                     <div class="status-badge {% if user.is_online %}status-online{% else %}status-offline{% endif %}">
                         {% if user.is_online %}
                             ● Online
@@ -428,14 +750,21 @@
                 </div>
                 
                 <div class="call-icons">
+                    <a href="{{ url_for('view_user_profile', user_id=user.id) }}" title="View Profile" onclick="event.stopPropagation();">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="icon-label">Profile</span>
+                    </a>
                     <a href="{{ url_for('chat', user_id=user.id) }}" class="chat-link" title="Chat" onclick="event.stopPropagation();">
                         <i class="fas fa-comment"></i>
+                        <span class="icon-label">Chat</span>
                     </a>
                     <a href="{{ url_for('audio_call', user_id=user.id) }}" class="audio-call-link" title="Audio Call" onclick="event.stopPropagation();">
                         <i class="fas fa-phone"></i>
+                        <span class="icon-label">Call</span>
                     </a>
                     <a href="{{ url_for('video_call', user_id=user.id) }}" class="video-call-link" title="Video Call" onclick="event.stopPropagation();">
                         <i class="fas fa-video"></i>
+                        <span class="icon-label">Video</span>
                     </a>
                 </div>
             </div>
@@ -448,12 +777,73 @@
         {% endfor %}
     </div>
 
+    <!-- Ultra Compact Modal - 3:4 Ratio with All Buttons Visible -->
+    <div id="userModal" class="user-modal">
+        <div class="user-modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            
+            <!-- Avatar Section -->
+            <div class="modal-avatar-section">
+                <div id="modalAvatar"></div>
+            </div>
+            
+            <!-- Info Section -->
+            <div class="modal-info">
+                <div>
+                    <div>
+                        <span class="modal-name" id="modalName"></span>
+                        <span class="modal-age" id="modalAge"></span>
+                    </div>
+                    
+                    <div class="modal-details">
+                        <div class="modal-detail-item" id="modalGender">
+                            <i class="fas fa-venus-mars"></i>
+                            <span></span>
+                        </div>
+                        <div class="modal-detail-item" id="modalDistance">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-status" id="modalStatus">
+                        <span class="modal-status-dot"></span>
+                        <span></span>
+                    </div>
+                    
+                    <!-- Interests -->
+                    <div id="modalInterests">
+                        <div class="interests-heading"><i class="fas fa-tags"></i> Interests</div>
+                        <div class="modal-interests" id="modalInterestsList"></div>
+                    </div>
+                </div>
+                
+                <!-- 4 Action Buttons - 2x2 Grid -->
+                <div class="modal-actions">
+                    <button class="modal-action-btn btn-profile-modal" id="modalViewProfileBtn">
+                        <i class="fas fa-user-circle"></i> Profile
+                    </button>
+                    <button class="modal-action-btn btn-chat-modal" id="modalChatBtn">
+                        <i class="fas fa-comment"></i> Chat
+                    </button>
+                    <button class="modal-action-btn btn-call-modal" id="modalCallBtn">
+                        <i class="fas fa-phone"></i> Call
+                    </button>
+                    <button class="modal-action-btn btn-video-modal" id="modalVideoBtn">
+                        <i class="fas fa-video"></i> Video
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         let socket = null;
         let isLoggingOut = false;
         let currentLocation = null;
         let currentDistanceFilter = 'all';
+        let currentModalUserId = null;
         
         function showToast(message) {
             const toast = document.createElement('div');
@@ -512,6 +902,107 @@
             });
         }
         
+        function openModal(userCard) {
+            const modal = document.getElementById('userModal');
+            
+            const userId = userCard.dataset.userId;
+            const username = userCard.dataset.username;
+            const age = userCard.dataset.userAge;
+            const gender = userCard.dataset.userGender;
+            const interests = userCard.dataset.userInterests;
+            const profilePic = userCard.dataset.userProfilePic;
+            const lastSeen = userCard.dataset.userLastSeen;
+            const isOnline = userCard.dataset.userIsOnline === 'true';
+            const distanceDisplay = userCard.dataset.distanceDisplay;
+            
+            currentModalUserId = userId;
+            
+            // Set avatar
+            const modalAvatarDiv = document.getElementById('modalAvatar');
+            if (profilePic && profilePic !== '') {
+                modalAvatarDiv.innerHTML = `<img src="${profilePic}" class="modal-avatar">`;
+            } else {
+                modalAvatarDiv.innerHTML = `<div class="modal-avatar-placeholder"><i class="fas fa-user"></i></div>`;
+            }
+            
+            // Set name and age
+            document.getElementById('modalName').innerHTML = username;
+            document.getElementById('modalAge').innerHTML = age ? `(${age})` : '';
+            
+            // Set gender
+            const genderSpan = document.querySelector('#modalGender span');
+            if (gender && gender !== '') {
+                genderSpan.innerHTML = gender.charAt(0).toUpperCase() + gender.slice(1);
+                document.getElementById('modalGender').style.display = 'flex';
+            } else {
+                document.getElementById('modalGender').style.display = 'none';
+            }
+            
+            // Set distance
+            const distanceSpan = document.querySelector('#modalDistance span');
+            if (distanceDisplay && distanceDisplay !== 'Unknown') {
+                distanceSpan.innerHTML = distanceDisplay;
+                document.getElementById('modalDistance').style.display = 'flex';
+            } else {
+                document.getElementById('modalDistance').style.display = 'none';
+            }
+            
+            // Set status
+            const modalStatus = document.getElementById('modalStatus');
+            const statusDot = modalStatus.querySelector('.modal-status-dot');
+            const statusText = modalStatus.querySelector('span:last-child');
+            if (isOnline) {
+                modalStatus.classList.add('online');
+                modalStatus.classList.remove('offline');
+                statusDot.style.background = '#4CAF50';
+                statusText.innerHTML = 'Online';
+            } else {
+                modalStatus.classList.add('offline');
+                modalStatus.classList.remove('online');
+                statusDot.style.background = '#999';
+                statusText.innerHTML = `Last seen ${lastSeen}`;
+            }
+            
+            // Set interests
+            const interestsContainer = document.getElementById('modalInterestsList');
+            if (interests && interests !== '') {
+                const interestsArray = interests.split(',');
+                const displayInterests = interestsArray.slice(0, 4);
+                interestsContainer.innerHTML = displayInterests.map(interest => 
+                    `<span class="modal-interest-tag">${interest.trim()}</span>`
+                ).join('');
+                if (interestsArray.length > 4) {
+                    interestsContainer.innerHTML += `<span class="modal-interest-tag">+${interestsArray.length - 4}</span>`;
+                }
+                document.getElementById('modalInterests').style.display = 'block';
+            } else {
+                interestsContainer.innerHTML = '<span class="text-muted">No interests</span>';
+            }
+            
+            // Set button actions
+            document.getElementById('modalViewProfileBtn').onclick = () => {
+                window.location.href = `/user/profile/${userId}`;
+            };
+            document.getElementById('modalChatBtn').onclick = () => {
+                window.location.href = `/chat/${userId}`;
+            };
+            document.getElementById('modalCallBtn').onclick = () => {
+                window.location.href = `/audio-call/${userId}`;
+            };
+            document.getElementById('modalVideoBtn').onclick = () => {
+                window.location.href = `/video-call/${userId}`;
+            };
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('userModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
         function initSocket() {
             if (socket && socket.connected) return socket;
             socket = io({ autoConnect: false, reconnection: false });
@@ -530,12 +1021,26 @@
                         indicator.classList.remove('offline');
                         indicator.classList.add('online');
                         if (statusBadge) statusBadge.innerHTML = '● Online';
+                        if (currentModalUserId === data.user_id) {
+                            const modalStatus = document.getElementById('modalStatus');
+                            modalStatus.classList.add('online');
+                            modalStatus.classList.remove('offline');
+                            modalStatus.querySelector('.modal-status-dot').style.background = '#4CAF50';
+                            modalStatus.querySelector('span:last-child').innerHTML = 'Online';
+                        }
                     } else {
                         indicator.classList.remove('online');
                         indicator.classList.add('offline');
                         if (statusBadge && data.last_seen) {
                             const date = new Date(data.last_seen);
                             statusBadge.innerHTML = `⚫ ${date.toLocaleString('en-IN', { hour12: true }).substring(0, 10)}`;
+                        }
+                        if (currentModalUserId === data.user_id) {
+                            const modalStatus = document.getElementById('modalStatus');
+                            modalStatus.classList.add('offline');
+                            modalStatus.classList.remove('online');
+                            modalStatus.querySelector('.modal-status-dot').style.background = '#999';
+                            modalStatus.querySelector('span:last-child').innerHTML = `Last seen ${new Date(data.last_seen).toLocaleString()}`;
                         }
                     }
                 }
@@ -560,6 +1065,7 @@
                 if (card && user.distance_display) {
                     card.dataset.distance = user.distance_km || 999;
                     card.dataset.hasLocation = user.distance_display !== 'Unknown' ? 'true' : 'false';
+                    card.dataset.distanceDisplay = user.distance_display;
                     const db = card.querySelector('.distance-badge');
                     if (db) {
                         if (user.distance_display && user.distance_display !== 'Unknown') {
@@ -613,7 +1119,6 @@
             const prompt = document.getElementById('locationPrompt');
             
             if (!hasLocation && !isLoggingOut) {
-                // Silently get location without showing any popup
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         async (position) => {
@@ -657,11 +1162,18 @@
             sortUsersByDistance();
             
             document.querySelectorAll('.user-card').forEach(card => {
-                const userId = card.getAttribute('data-user-id');
                 card.addEventListener('click', (e) => {
                     if (e.target.closest('.call-icons')) return;
-                    window.location.href = `/chat/${userId}`;
+                    e.preventDefault();
+                    openModal(card);
                 });
+            });
+            
+            const modal = document.getElementById('userModal');
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
             });
         });
         
