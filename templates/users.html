@@ -17,7 +17,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 10px;
+            padding: 8px;
             padding-bottom: 70px;
         }
 
@@ -26,27 +26,27 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
         }
 
         .app-title {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(10px);
-            padding: 6px 14px;
-            border-radius: 30px;
+            padding: 4px 10px;
+            border-radius: 25px;
             color: white;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.85rem;
         }
 
         .header-buttons {
             display: flex;
-            gap: 6px;
+            gap: 4px;
             flex-wrap: wrap;
         }
 
@@ -55,14 +55,14 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.3);
             color: white;
-            border-radius: 30px;
-            padding: 6px 12px;
-            font-size: 0.75rem;
+            border-radius: 25px;
+            padding: 4px 8px;
+            font-size: 0.65rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             text-decoration: none;
         }
 
@@ -88,19 +88,13 @@
         /* Live Chat Banner */
         .live-chat-banner {
             background: linear-gradient(135deg, #075e54 0%, #128c7e 100%);
-            border-radius: 14px;
-            margin-bottom: 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
             overflow: hidden;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(7,94,84,0.4); }
-            50% { box-shadow: 0 0 0 5px rgba(7,94,84,0); }
         }
 
         .banner-content {
-            padding: 10px 15px;
+            padding: 6px 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -109,13 +103,13 @@
 
         .banner-text h4 {
             margin: 0;
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             font-weight: 600;
         }
 
         .banner-text p {
-            margin: 2px 0 0;
-            font-size: 0.6rem;
+            margin: 1px 0 0;
+            font-size: 0.55rem;
             opacity: 0.9;
         }
 
@@ -123,40 +117,35 @@
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 25px;
+            font-size: 0.6rem;
             cursor: pointer;
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px;
             transition: all 0.2s;
-        }
-
-        .join-live-btn:active {
-            transform: scale(0.95);
-            background: rgba(255,255,255,0.3);
         }
 
         /* Search Box */
         .search-container {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .search-input {
             width: 100%;
-            padding: 10px 14px;
-            border-radius: 30px;
+            padding: 6px 12px;
+            border-radius: 25px;
             border: none;
             background: rgba(255,255,255,0.95);
-            font-size: 13px;
+            font-size: 11px;
             outline: none;
         }
 
         /* Distance Filters */
         .filters-container {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             overflow-x: auto;
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
@@ -169,16 +158,16 @@
 
         .filter-buttons {
             display: inline-flex;
-            gap: 6px;
+            gap: 4px;
             padding: 0 2px;
         }
 
         .filter-btn {
             background: rgba(255,255,255,0.9);
             border: none;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 25px;
+            font-size: 10px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
@@ -189,21 +178,21 @@
             color: white;
         }
 
-        /* User Grid - 3 Columns (Fixed) */
+        /* User Grid - 3 Columns */
         .users-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 2px;
         }
 
         /* User Card - 3:4 Ratio */
         .user-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 10px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
             position: relative;
             aspect-ratio: 3 / 4;
         }
@@ -212,7 +201,7 @@
             transform: scale(0.97);
         }
 
-        /* Full Photo Container - 3:4 Ratio */
+        /* Full Photo Container */
         .photo-container {
             position: relative;
             width: 100%;
@@ -236,18 +225,22 @@
             justify-content: center;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            font-size: 56px;
+            font-size: 48px;
         }
 
-        /* Transparent Gradient Overlay - Bottom Only */
-        .user-info-overlay {
+        /* ========== TRANSPARENT SHADOW CARD FOR INFO ========== */
+        .info-card {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 40%, transparent 100%);
-            padding: 16px 10px 12px 10px;
-            color: white;
+            bottom: 8px;
+            left: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 6px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
         }
 
         /* Name Row */
@@ -256,46 +249,52 @@
             align-items: baseline;
             justify-content: space-between;
             flex-wrap: wrap;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+            line-height: 1.2;
         }
 
         .username {
             font-weight: 700;
-            font-size: 13px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            letter-spacing: 0.3px;
+            font-size: 11px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            letter-spacing: 0.2px;
         }
 
         .user-age {
-            font-size: 10px;
+            font-size: 9px;
             opacity: 0.9;
-            margin-left: 4px;
+            margin-left: 2px;
             font-weight: 500;
+            color: rgba(255,255,255,0.85);
         }
 
         /* Distance Row */
         .user-distance {
-            font-size: 9px;
+            font-size: 8px;
             display: flex;
             align-items: center;
-            gap: 4px;
-            margin-bottom: 4px;
-            opacity: 0.85;
+            gap: 3px;
+            margin-bottom: 2px;
+            color: rgba(255,255,255,0.8);
             text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            line-height: 1.2;
         }
 
         .user-distance i {
-            font-size: 7px;
+            font-size: 6px;
+            color: rgba(255,255,255,0.7);
         }
 
         /* Last Seen / Status Row */
         .user-lastseen {
-            font-size: 8px;
+            font-size: 7px;
             display: flex;
             align-items: center;
-            gap: 4px;
-            opacity: 0.8;
+            gap: 3px;
+            color: rgba(255,255,255,0.75);
             text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            line-height: 1.2;
         }
 
         .user-lastseen i {
@@ -313,15 +312,15 @@
         /* Online Indicator Dot - Top Right */
         .online-indicator {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 12px;
-            height: 12px;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #2ecc71;
-            border: 2px solid white;
+            border: 1.5px solid white;
             z-index: 5;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
             animation: pulseOnline 1.5s infinite;
         }
 
@@ -338,34 +337,34 @@
         /* Unread Badge - Top Left */
         .unread-badge {
             position: absolute;
-            top: 8px;
-            left: 8px;
+            top: 4px;
+            left: 4px;
             background: #e74c3c;
             color: white;
-            border-radius: 20px;
-            padding: 2px 8px;
-            font-size: 10px;
+            border-radius: 15px;
+            padding: 1px 5px;
+            font-size: 8px;
             font-weight: bold;
-            min-width: 22px;
+            min-width: 18px;
             text-align: center;
             z-index: 5;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
         /* Floating Buttons */
         .floating-live-btn {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 50px;
-            height: 50px;
+            bottom: 15px;
+            left: 15px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
             z-index: 999;
             text-decoration: none;
             transition: all 0.3s;
@@ -374,17 +373,17 @@
 
         .floating-group-btn {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
+            bottom: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
             z-index: 999;
             text-decoration: none;
             transition: all 0.3s;
@@ -392,13 +391,13 @@
         }
 
         @keyframes floatPulseRed {
-            0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
-            50% { transform: scale(1.05); box-shadow: 0 6px 16px rgba(231,76,60,0.5); }
+            0%, 100% { transform: scale(1); box-shadow: 0 3px 10px rgba(231,76,60,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 5px 14px rgba(231,76,60,0.5); }
         }
 
         @keyframes floatPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-            50% { transform: scale(1.05); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+            0%, 100% { transform: scale(1); box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 5px 14px rgba(0,0,0,0.4); }
         }
 
         .floating-live-btn:active, .floating-group-btn:active {
@@ -406,47 +405,47 @@
         }
 
         .floating-live-btn i, .floating-group-btn i {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
         }
 
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 15px;
             color: white;
             grid-column: span 3;
         }
 
         .location-prompt {
             background: rgba(255,255,255,0.95);
-            border-radius: 14px;
-            padding: 10px 14px;
-            margin-bottom: 12px;
+            border-radius: 12px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 6px;
         }
 
         .location-prompt-text {
-            font-size: 12px;
+            font-size: 10px;
             color: #333;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .location-prompt-text i {
             color: #ff9800;
-            font-size: 14px;
+            font-size: 11px;
         }
 
         .enable-location-btn {
             background: #075e54;
             color: white;
             border: none;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 25px;
+            font-size: 9px;
             cursor: pointer;
         }
 
@@ -457,45 +456,50 @@
             transform: translateX(-50%);
             background: #333;
             color: white;
-            padding: 8px 16px;
-            border-radius: 30px;
+            padding: 6px 12px;
+            border-radius: 25px;
             z-index: 10000;
-            font-size: 12px;
+            font-size: 10px;
             white-space: nowrap;
         }
 
-        /* Desktop View - Keep 3 columns on all screen sizes */
+        /* Desktop View */
         @media (min-width: 768px) {
-            body { padding: 15px; }
-            .users-grid { gap: 15px; }
-            .floating-live-btn, .floating-group-btn { width: 55px; height: 55px; bottom: 25px; }
-            .floating-live-btn i, .floating-group-btn i { font-size: 1.5rem; }
-            .floating-live-btn { left: 25px; }
-            .floating-group-btn { right: 25px; }
-            .username { font-size: 14px; }
-            .user-age { font-size: 11px; }
-            .user-distance { font-size: 10px; }
-            .user-lastseen { font-size: 9px; }
+            body { padding: 10px; padding-bottom: 80px; }
+            .users-grid { gap: 3px; }
+            .floating-live-btn, .floating-group-btn { width: 50px; height: 50px; bottom: 20px; }
+            .floating-live-btn i, .floating-group-btn i { font-size: 1.3rem; }
+            .floating-live-btn { left: 20px; }
+            .floating-group-btn { right: 20px; }
+            .username { font-size: 12px; }
+            .user-age { font-size: 10px; }
+            .user-distance { font-size: 9px; }
+            .user-lastseen { font-size: 8px; }
+            .info-card { padding: 8px 10px; bottom: 10px; left: 8px; right: 8px; }
         }
 
         @media (min-width: 1024px) {
-            .users-grid { gap: 18px; }
+            .users-grid { gap: 4px; }
         }
 
         .hide-mobile { display: none; }
         @media (min-width: 500px) { .hide-mobile { display: inline; } }
         
         @media (max-width: 480px) {
-            body { padding-bottom: 80px; }
-            .floating-live-btn, .floating-group-btn { width: 45px; height: 45px; bottom: 15px; }
-            .floating-live-btn i, .floating-group-btn i { font-size: 1.1rem; }
-            .floating-live-btn { left: 15px; }
-            .floating-group-btn { right: 15px; }
-            .username { font-size: 11px; }
-            .user-age { font-size: 9px; }
-            .user-distance { font-size: 8px; }
-            .user-lastseen { font-size: 7px; }
-            .user-info-overlay { padding: 12px 8px 8px 8px; }
+            body { padding-bottom: 70px; padding: 6px; }
+            .floating-live-btn, .floating-group-btn { width: 40px; height: 40px; bottom: 12px; }
+            .floating-live-btn i, .floating-group-btn i { font-size: 1rem; }
+            .floating-live-btn { left: 12px; }
+            .floating-group-btn { right: 12px; }
+            .username { font-size: 10px; }
+            .user-age { font-size: 8px; }
+            .user-distance { font-size: 7px; }
+            .user-lastseen { font-size: 6px; }
+            .info-card { padding: 5px 6px; bottom: 5px; left: 4px; right: 4px; border-radius: 8px; }
+            .online-indicator { top: 4px; right: 4px; width: 7px; height: 7px; }
+            .unread-badge { top: 3px; left: 3px; font-size: 7px; padding: 1px 4px; min-width: 15px; }
+            .user-card { border-radius: 8px; }
+            .photo-placeholder { font-size: 40px; }
         }
     </style>
 </head>
@@ -514,7 +518,7 @@
                 <i class="fas fa-globe"></i> <span class="hide-mobile">Live</span>
             </a>
             <a href="{{ url_for('group_video_call') }}" class="header-btn group-call-btn">
-                <i class="fas fa-video"></i> <span class="hide-mobile">Group Call</span>
+                <i class="fas fa-video"></i> <span class="hide-mobile">Group</span>
             </a>
             <button onclick="refreshLocation()" class="header-btn">
                 <i class="fas fa-location-dot"></i> <span class="hide-mobile">Nearby</span>
@@ -529,12 +533,11 @@
     <div class="live-chat-banner">
         <div class="banner-content">
             <div class="banner-text">
-                <h4><i class="fas fa-globe"></i> Live Chat Room</h4>
-                <p>Chat with everyone online in real-time!</p>
+                <h4><i class="fas fa-globe"></i> Live Chat</h4>
+                <p>Chat with everyone online!</p>
             </div>
             <a href="{{ url_for('live_chat') }}" class="join-live-btn">
                 <i class="fas fa-comment"></i> Join
-                <i class="fas fa-arrow-right"></i>
             </a>
         </div>
     </div>
@@ -548,10 +551,10 @@
     <div class="filters-container">
         <div class="filter-buttons">
             <button class="filter-btn active" data-distance="all">All</button>
-            <button class="filter-btn" data-distance="1">📍 1km</button>
-            <button class="filter-btn" data-distance="5">📍 5km</button>
-            <button class="filter-btn" data-distance="10">📍 10km</button>
-            <button class="filter-btn" data-distance="25">📍 25km</button>
+            <button class="filter-btn" data-distance="1">1km</button>
+            <button class="filter-btn" data-distance="5">5km</button>
+            <button class="filter-btn" data-distance="10">10km</button>
+            <button class="filter-btn" data-distance="25">25km</button>
         </div>
     </div>
 
@@ -559,14 +562,14 @@
     <div id="locationPrompt" class="location-prompt" style="display: none;">
         <div class="location-prompt-text">
             <i class="fas fa-location-arrow"></i>
-            <span>Turn on location to see distances</span>
+            <span>Turn on location</span>
         </div>
         <button onclick="refreshLocation()" class="enable-location-btn">
-            <i class="fas fa-location-dot"></i> Enable
+            Enable
         </button>
     </div>
 
-    <!-- Users Grid - 3 Columns Always -->
+    <!-- Users Grid -->
     <div class="users-grid" id="usersGrid">
         {% for user in users %}
         <div class="user-card" 
@@ -584,7 +587,7 @@
             <div class="unread-badge">{{ unread_counts[user.id] }}</div>
             {% endif %}
             
-            <!-- Full Photo Container - 3:4 Ratio -->
+            <!-- Full Photo Container -->
             <div class="photo-container">
                 {% if user.profile_pic %}
                 <img src="{{ user.profile_pic }}" class="user-photo" alt="{{ user.username }}">
@@ -594,12 +597,12 @@
                 </div>
                 {% endif %}
                 
-                <!-- Transparent Overlay with All Info -->
-                <div class="user-info-overlay">
+                <!-- Transparent Shadow Card for Info -->
+                <div class="info-card">
                     <div class="user-name-row">
                         <span class="username">{{ user.username }}</span>
                         {% if user.age %}
-                        <span class="user-age">{{ user.age }} yrs</span>
+                        <span class="user-age">{{ user.age }}</span>
                         {% endif %}
                     </div>
                     
@@ -607,19 +610,19 @@
                         {% if user.distance_display and user.distance_display != 'Unknown' %}
                             <i class="fas fa-location-dot"></i> {{ user.distance_display }}
                         {% elif session.get('user_lat') is none and session.get('user_lng') is none %}
-                            <i class="fas fa-exclamation-triangle"></i> Location off
+                            <i class="fas fa-exclamation-triangle"></i> Off
                         {% else %}
-                            <i class="fas fa-question-circle"></i> Unknown
+                            <i class="fas fa-question-circle"></i> ?
                         {% endif %}
                     </div>
                     
                     <div class="user-lastseen">
                         {% if user.is_online %}
                         <i class="fas fa-circle online-text"></i>
-                        <span class="online-text">Online now</span>
+                        <span class="online-text">Online</span>
                         {% else %}
                         <i class="fas fa-circle offline-text"></i>
-                        <span class="offline-text">Last seen: {{ user.last_seen_formatted|truncate(12, true) }}</span>
+                        <span class="offline-text">{{ user.last_seen_formatted|truncate(8, true) }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -628,18 +631,16 @@
         {% else %}
         <div class="empty-state">
             <i class="fas fa-users"></i>
-            <p>No other users found</p>
+            <p>No users found</p>
         </div>
         {% endfor %}
     </div>
 
-    <!-- Floating Live Chat Button -->
+    <!-- Floating Buttons -->
     <a href="{{ url_for('live_chat') }}" class="floating-live-btn" title="Live Chat">
         <i class="fas fa-globe"></i>
     </a>
-
-    <!-- Floating Group Video Call Button -->
-    <a href="{{ url_for('group_video_call') }}" class="floating-group-btn" title="Group Video Call">
+    <a href="{{ url_for('group_video_call') }}" class="floating-group-btn" title="Group Call">
         <i class="fas fa-video"></i>
     </a>
 
@@ -655,7 +656,7 @@
             toast.className = 'toast-notification';
             toast.textContent = message;
             document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
+            setTimeout(() => toast.remove(), 2000);
         }
         
         function getCurrentLocation() {
@@ -686,7 +687,7 @@
                     window.location.href = `/users?lat=${location.lat}&lng=${location.lng}`;
                 } else showToast('Failed');
             } catch (error) {
-                if (error.code === 1) showToast('Allow location access');
+                if (error.code === 1) showToast('Allow location');
                 else showToast('Unable to get location');
                 window.location.href = `/users`;
             }
@@ -726,15 +727,15 @@
                         indicator.classList.remove('offline');
                         indicator.classList.add('online');
                         if (lastseenDiv) {
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text"></i><span class="online-text">Online now</span>`;
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text"></i><span class="online-text">Online</span>`;
                         }
                     } else {
                         indicator.classList.remove('online');
                         indicator.classList.add('offline');
                         if (lastseenDiv && data.last_seen) {
                             const date = new Date(data.last_seen);
-                            const formatted = date.toLocaleString('en-IN', { hour12: true }).substring(0, 10);
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle offline-text"></i><span class="offline-text">Last seen: ${formatted}</span>`;
+                            const formatted = date.toLocaleString('en-IN', { hour12: true }).substring(0, 8);
+                            lastseenDiv.innerHTML = `<i class="fas fa-circle offline-text"></i><span class="offline-text">${formatted}</span>`;
                         }
                     }
                 }
@@ -770,9 +771,9 @@
                         if (user.distance_display && user.distance_display !== 'Unknown') {
                             distanceDiv.innerHTML = `<i class="fas fa-location-dot"></i> ${user.distance_display}`;
                         } else if (!currentLocation) {
-                            distanceDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Location off`;
+                            distanceDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Off`;
                         } else {
-                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> Unknown`;
+                            distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> ?`;
                         }
                     }
                 }
@@ -828,7 +829,6 @@
                             window.location.href = `/users?lat=${lat}&lng=${lng}`;
                         },
                         (error) => {
-                            console.log('Location error:', error);
                             if (prompt) prompt.style.display = 'flex';
                         },
                         { enableHighAccuracy: true, timeout: 5000 }
