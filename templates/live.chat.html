@@ -72,7 +72,7 @@
         }
         
         .message { 
-            margin-bottom: 10px; 
+            margin-bottom: 15px; 
             display: flex; 
             position: relative;
             cursor: pointer;
@@ -89,7 +89,7 @@
         .other-message { justify-content: flex-start; }
         
         .message-bubble {
-            max-width: 80%;
+            max-width: 75%;
             padding: 8px 12px;
             border-radius: 18px;
             word-wrap: break-word;
@@ -100,12 +100,69 @@
         
         .my-message .message-bubble { 
             background: #dcf8c5; 
-            border-bottom-right-radius: 4px; 
+            border-bottom-right-radius: 4px;
+            margin-right: 5px;
         }
+        
         .other-message .message-bubble { 
             background: white; 
             border-bottom-left-radius: 4px; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            margin-left: 5px;
+        }
+        
+        /* Message Actions - Fixed Position (above the message) */
+        .message-actions {
+            position: absolute;
+            bottom: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            display: none;
+            gap: 4px;
+            padding: 6px 10px;
+            z-index: 100;
+            white-space: nowrap;
+            margin-bottom: 6px;
+        }
+        
+        .my-message .message-actions {
+            right: 0;
+            left: auto;
+        }
+        
+        .other-message .message-actions {
+            left: 0;
+            right: auto;
+        }
+        
+        .message.selected .message-actions { 
+            display: flex; 
+        }
+        
+        .message-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            color: #075e54;
+            padding: 6px;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .message-actions button:hover {
+            background: #e8f5e9;
+            transform: scale(1.08);
+        }
+        
+        .message-actions button:active {
+            transform: scale(0.95);
         }
         
         .message-sender {
@@ -149,41 +206,11 @@
             cursor: pointer;
             font-size: 1.1rem;
             padding: 5px;
+            transition: transform 0.2s;
         }
         
-        .message-actions {
-            position: absolute;
-            right: 0;
-            top: -32px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            display: none;
-            gap: 6px;
-            padding: 4px 10px;
-            z-index: 10;
-        }
-        
-        .my-message .message-actions {
-            right: auto;
-            left: 0;
-        }
-        
-        .message.selected .message-actions { display: flex; }
-        
-        .message-actions button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 12px;
-            color: #075e54;
-            padding: 5px;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .cancel-reply:hover {
+            transform: scale(1.1);
         }
         
         .media-image, .media-video {
@@ -200,6 +227,7 @@
             height: 38px;
             margin-top: 4px;
         }
+        
         .media-file {
             display: inline-flex;
             align-items: center;
@@ -230,7 +258,7 @@
         }
         
         .reply-preview {
-            background: #f0f0f0;
+            background: rgba(0,0,0,0.04);
             padding: 3px 6px;
             border-radius: 8px;
             font-size: 11px;
@@ -238,16 +266,33 @@
             border-left: 2px solid #075e54;
         }
         
-        .reactions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+        .reactions { 
+            display: flex; 
+            gap: 5px; 
+            margin-top: 5px; 
+            flex-wrap: wrap; 
+        }
+        
         .reaction {
-            background: rgba(0,0,0,0.05);
-            border-radius: 16px;
-            padding: 2px 6px;
+            background: rgba(0,0,0,0.06);
+            border-radius: 20px;
+            padding: 2px 8px;
             font-size: 11px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 3px;
+            transition: all 0.2s ease;
+        }
+        
+        .reaction:hover {
+            background: rgba(7,94,84,0.1);
+            transform: scale(1.02);
+        }
+        
+        .reaction .count {
+            font-size: 10px;
+            color: #666;
         }
         
         .typing-indicator {
@@ -373,6 +418,12 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .cancel-preview-btn:hover, .send-preview-btn:hover {
+            transform: scale(1.05);
+            background: rgba(0,0,0,0.05);
         }
         
         .cancel-preview-btn { color: #e74c3c; }
@@ -525,10 +576,10 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 12px;
             z-index: 2000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
             max-width: 240px;
@@ -537,11 +588,11 @@
         .reaction-modal button {
             background: none;
             border: none;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            padding: 6px;
-            transition: transform 0.2s;
-            border-radius: 10px;
+            padding: 8px;
+            transition: all 0.2s;
+            border-radius: 12px;
         }
         
         .reaction-modal button:hover { transform: scale(1.1); background: #f0f0f0; }
@@ -749,6 +800,9 @@
             .reaction-modal button { font-size: 1.2rem; padding: 5px; }
             .scroll-to-bottom { bottom: 66px; right: 12px; width: 36px; height: 36px; font-size: 1rem; }
             .users-sidebar { width: 260px; }
+            .message-actions { padding: 4px 6px; }
+            .message-actions button { width: 28px; height: 28px; font-size: 11px; }
+            .reaction { padding: 2px 6px; font-size: 10px; }
         }
         
         @media (orientation: landscape) and (max-height: 500px) {
@@ -794,7 +848,7 @@
             <div class="live-name">💬 Live Chat Room</div>
             <div class="member-count" id="memberCount"><i class="fas fa-users"></i> <span id="onlineCountValue">{{ online_count }}</span> online</div>
         </div>
-        <button class="online-users-btn" id="showUsersBtn" title="View all online users">
+        <button class="online-users-btn" id="showUsersBtn" title="View online users">
             <i class="fas fa-user-friends"></i>
         </button>
     </div>
@@ -995,7 +1049,7 @@
     let totalMessagesLoaded = {{ messages|length }};
     let onlineCount = {{ online_count }};
     
-    // ================== GLOBAL FUNCTIONS ==================
+    // Global toggleReaction function
     window.toggleReaction = async function(messageId, reaction) {
         try {
             const res = await fetch('/live-chat/react', {
@@ -1083,7 +1137,6 @@
         });
     });
     
-    // ================== MESSAGE CREATION ==================
     function createMessageElement(msg, isMe, isPending = false, tempId = null) {
         const div = document.createElement('div');
         div.className = `message ${isMe ? 'my-message' : 'other-message'}`;
@@ -1191,22 +1244,6 @@
         if (!isMessageClick && !isActionClick && !isReactionClick) clearMessageSelection();
     });
     
-    // ================== UI FUNCTIONS ==================
-    function openLiveUsersPage() {
-        const btn = document.getElementById('showUsersBtn');
-        btn.style.transform = 'scale(0.95)';
-        setTimeout(() => { btn.style.transform = ''; }, 150);
-        window.location.href = "{{ url_for('live_users') }}";
-    }
-    
-    function updateOnlineCount(newCount) {
-        if (newCount !== undefined && newCount !== onlineCount) {
-            onlineCount = newCount;
-            if (onlineCountValue) onlineCountValue.textContent = onlineCount;
-            if (sidebarOnlineCount) sidebarOnlineCount.textContent = onlineCount;
-        }
-    }
-    
     function cancelReply() {
         replyToId = null;
         replyToContent = null;
@@ -1236,7 +1273,6 @@
     scrollToBottomBtn.addEventListener('click', () => scrollToBottom('smooth'));
     chatBox.addEventListener('scroll', checkScrollPosition);
     
-    // ================== MESSAGE SENDING ==================
     function sendTextMessage() {
         const content = messageInput.value.trim();
         if (!content) return;
@@ -1270,11 +1306,10 @@
                 reply_to_id: replyToId,
                 reply_to_content: replyToContent
             })
-        }).catch(err => console.error('Send error:', err))
-        .finally(() => {
+        }).finally(() => {
             sendBtn.disabled = false;
             sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-        });
+        }).catch(err => console.error('Send error:', err));
         
         messageInput.value = '';
         cancelReply();
@@ -1349,8 +1384,8 @@
         const formData = new FormData();
         formData.append('file', pendingFile);
         try {
-            const response = await fetch('/live-chat/upload', { method: 'POST', body: formData });
-            const result = await response.json();
+            const res = await fetch('/live-chat/upload', { method: 'POST', body: formData });
+            const result = await res.json();
             document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
             if (!result.success) alert('Upload failed');
         } catch (error) {
@@ -1457,7 +1492,6 @@
     };
     sendAudioBtn.onclick = sendAudio;
     
-    // ================== LOAD MORE MESSAGES ==================
     function addLoadMoreButton() {
         const existing = document.querySelector('.load-more-container');
         if (existing) existing.remove();
@@ -1529,14 +1563,21 @@
         addLoadMoreButton();
     }
     
-    // ================== TYPING INDICATOR ==================
+    function updateOnlineCount(newCount) {
+        if (newCount !== undefined && newCount !== onlineCount) {
+            onlineCount = newCount;
+            if (onlineCountValue) onlineCountValue.textContent = onlineCount;
+            if (sidebarOnlineCount) sidebarOnlineCount.textContent = onlineCount;
+        }
+    }
+    
     messageInput.addEventListener('input', () => {
         socket.emit('live_typing', { is_typing: true });
         clearTimeout(typingTimeout);
         typingTimeout = setTimeout(() => socket.emit('live_typing', { is_typing: false }), 1000);
     });
     
-    // ================== SOCKET EVENTS ==================
+    // Socket Events
     socket.on('connect', () => {
         console.log('Connected to live chat');
         socket.emit('join_live_chat');
@@ -1593,11 +1634,15 @@
         updateReactionsUI(data.message_id, data.reactions);
     });
     
-    // ================== EVENT LISTENERS ==================
     sendBtn.onclick = sendTextMessage;
     messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendTextMessage(); });
     
-    showUsersBtn.onclick = openLiveUsersPage;
+    // Show users button - opens sidebar
+    showUsersBtn.onclick = () => {
+        showUsersBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => { showUsersBtn.style.transform = ''; }, 150);
+        usersSidebar.classList.add('show');
+    };
     
     closeSidebarBtn.onclick = () => usersSidebar.classList.remove('show');
     document.addEventListener('click', (e) => {
@@ -1606,7 +1651,6 @@
         }
     });
     
-    // ================== INITIALIZATION ==================
     updateOnlineCount(onlineCount);
     loadInitialMessages();
     
