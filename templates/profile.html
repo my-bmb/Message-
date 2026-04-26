@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>{{ user.username }} - Profile | FlirtyBee</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -12,64 +12,243 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 12px;
+            padding-bottom: 70px;
         }
+        
         .profile-container { max-width: 1200px; margin: 0 auto; }
+        
         .profile-card {
             background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .profile-cover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 160px;
+        
+        /* 9:16 Photo Container */
+        .photo-container {
             position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 177.78%; /* 9:16 ratio */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
         }
-        .profile-picture-container {
+        
+        .profile-photo {
             position: absolute;
-            bottom: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .profile-picture {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            border: 4px solid #fff;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            background: #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            object-position: center;
         }
-        .profile-picture-placeholder {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            border: 4px solid #fff;
+        
+        .photo-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+        }
+        
+        .photo-placeholder i {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .photo-placeholder span {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        
+        /* Profile/Gallery Toggle Buttons */
+        .toggle-section {
+            position: absolute;
+            top: 12px;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 12px;
+        }
+        
+        .toggle-btn {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .toggle-btn i {
+            font-size: 0.8rem;
+        }
+        
+        .toggle-btn.active {
             background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+        }
+        
+        .toggle-btn:active {
+            transform: scale(0.96);
+        }
+        
+        /* Gallery Grid inside photo container */
+        .gallery-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            background: #000;
+            overflow-y: auto;
+            padding: 70px 4px 20px 4px;
+        }
+        
+        .gallery-item {
+            aspect-ratio: 9 / 16;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.15s;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
+        .gallery-item:active { transform: scale(0.97); }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Hidden states */
+        .gallery-grid.hidden {
+            display: none;
+        }
+        
+        .profile-image-container.hidden {
+            display: none;
+        }
+        
+        /* Name overlay at bottom of photo */
+        .name-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent);
+            padding: 20px 16px 16px;
+        }
+        
+        /* Distance and Name Container - SHIFTED 40px UP */
+        .distance-name-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            margin-bottom: 40px;
+        }
+        
+        /* Distance badge */
+        .distance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #4CAF50;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            animation: simpleBlink 1s ease-in-out infinite;
+        }
+        
+        @keyframes simpleBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .distance-badge i {
+            font-size: 0.65rem;
+        }
+        
+        .profile-username {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        /* Edit icon on profile photo */
+        .edit-photo-icon {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            z-index: 15;
+            border: 1px solid rgba(255,255,255,0.2);
         }
+        
+        .edit-photo-icon:active {
+            transform: scale(0.95);
+        }
+        
         .verification-badge {
             position: absolute;
-            bottom: 5px;
-            right: 5px;
+            bottom: 20px;
+            left: 20px;
             background: #4CAF50;
             border-radius: 50%;
-            width: 26px;
-            height: 26px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 14px;
-            border: 2px solid #fff;
+            border: 2px solid rgba(255,255,255,0.9);
+            z-index: 15;
         }
-        .profile-info { padding: 65px 1.2rem 1.2rem; text-align: center; }
-        .profile-username { font-size: 1.6rem; color: #fff; margin-bottom: 0.5rem; }
+        
+        /* PROFILE INFO - below the 9:16 photo */
+        .profile-info { 
+            padding: 20px;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+        }
+        
         .profile-stats {
             display: flex;
             justify-content: center;
@@ -77,27 +256,37 @@
             margin-bottom: 1rem;
             flex-wrap: wrap;
         }
+        
         .stat-item {
             display: flex;
             align-items: center;
             gap: 0.4rem;
             color: #aaa;
             font-size: 0.75rem;
+            background: rgba(255,255,255,0.08);
+            padding: 5px 12px;
+            border-radius: 30px;
         }
+        
         .stat-item i { color: #667eea; font-size: 0.8rem; }
+        
         .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.3rem 0.8rem;
+            padding: 0.3rem 1rem;
             border-radius: 50px;
             font-size: 0.75rem;
             margin-bottom: 1.2rem;
             background: rgba(255,255,255,0.1);
+            width: 100%;
+            justify-content: center;
         }
+        
         .status-badge.online { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
         .status-badge.offline { background: rgba(158, 158, 158, 0.2); color: #999; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+        
         .profile-section {
             text-align: left;
             margin-bottom: 1rem;
@@ -105,35 +294,26 @@
             background: rgba(255,255,255,0.05);
             border-radius: 12px;
         }
+        
         .profile-section h3 {
             color: #fff;
             font-size: 1rem;
             margin-bottom: 0.7rem;
         }
+        
         .profile-section h3 i { color: #667eea; margin-right: 0.4rem; font-size: 0.9rem; }
         .bio-content p { color: #ccc; line-height: 1.5; font-size: 0.85rem; }
-        .interests-container { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        
+        .interests-container { display: flex; flex-wrap: wrap; gap: 0.5rem; }
         .interest-tag {
             background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
+            padding: 0.3rem 0.9rem;
+            border-radius: 25px;
             font-size: 0.7rem;
             color: white;
+            font-weight: 500;
         }
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.6rem;
-        }
-        .gallery-item {
-            aspect-ratio: 1;
-            overflow: hidden;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .gallery-item:active { transform: scale(0.98); }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+        
         .voice-intro-placeholder {
             text-align: center;
             padding: 1rem;
@@ -143,33 +323,7 @@
         }
         .voice-intro-placeholder i { font-size: 2rem; margin-bottom: 0.3rem; }
         .voice-intro-placeholder p { font-size: 0.7rem; }
-        .profile-actions {
-            display: flex;
-            gap: 0.8rem;
-            justify-content: center;
-            margin-top: 1.2rem;
-        }
-        .btn-edit, .btn-back {
-            padding: 0.6rem 1.2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.8rem;
-        }
-        .btn-edit {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        .btn-edit:active { transform: scale(0.97); }
-        .btn-back {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .btn-back:active { transform: scale(0.97); }
+        
         .lightbox {
             display: none;
             position: fixed;
@@ -178,8 +332,9 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.9);
+            background-color: rgba(0,0,0,0.95);
         }
+        
         .lightbox-content {
             margin: auto;
             display: block;
@@ -189,122 +344,393 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            border-radius: 8px;
         }
+        
         .close-lightbox {
             position: absolute;
             top: 15px;
             right: 20px;
             color: #fff;
-            font-size: 30px;
+            font-size: 35px;
             cursor: pointer;
         }
+        
         .text-muted { color: #888; font-size: 0.8rem; }
-        .back-link {
-            display: inline-flex;
+        .text-muted a { color: #667eea; text-decoration: none; }
+        
+        /* ============ COMPACT FIXED BOTTOM NAVIGATION BAR ============ */
+        .bottom-nav-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 46, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 6px 12px;
+            display: flex;
             align-items: center;
-            gap: 0.4rem;
-            margin-bottom: 0.8rem;
+            gap: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+            padding-bottom: max(6px, env(safe-area-inset-bottom));
+        }
+        
+        /* Compact Back Button */
+        .bottom-back-btn {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
             color: white;
             text-decoration: none;
-            background: rgba(255,255,255,0.2);
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
         }
+        
+        .bottom-back-btn:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.25);
+        }
+        
+        /* Compact Edit Button */
+        .bottom-edit-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .bottom-edit-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Compact Message Card */
+        .bottom-message-card {
+            flex: 1;
+            background: white;
+            border-radius: 50px;
+            padding: 5px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        
+        .bottom-message-card:active {
+            transform: scale(0.98);
+        }
+        
+        .bottom-message-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .bottom-message-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bottom-message-icon i {
+            font-size: 0.85rem;
+            color: white;
+        }
+        
+        .bottom-message-text h4 {
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin: 0;
+            color: #1a1a2e;
+        }
+        
+        .bottom-message-text p {
+            font-size: 0.5rem;
+            margin: 1px 0 0 0;
+            opacity: 0.6;
+            color: #666;
+        }
+        
+        .bottom-message-arrow {
+            background: rgba(0,0,0,0.05);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bottom-message-arrow i {
+            color: #11998e;
+            font-size: 0.7rem;
+        }
+        
         /* Tablet and up */
         @media (min-width: 600px) {
-            body { padding: 20px; }
-            .profile-cover { height: 200px; }
-            .profile-picture, .profile-picture-placeholder { width: 140px; height: 140px; }
-            .profile-info { padding: 80px 2rem 2rem; }
-            .profile-username { font-size: 2rem; }
-            .profile-stats { gap: 2rem; }
-            .stat-item { font-size: 0.9rem; }
-            .gallery-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-            .btn-edit, .btn-back { padding: 0.8rem 2rem; font-size: 1rem; }
+            body { padding-bottom: 65px; }
+            .photo-container {
+                max-width: 450px;
+                margin: 0 auto;
+            }
+            .profile-info {
+                max-width: 450px;
+                margin: 0 auto;
+            }
+            .bottom-nav-fixed {
+                max-width: 550px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                border-radius: 30px 30px 0 0;
+                padding: 7px 14px;
+            }
+            .bottom-back-btn, .bottom-edit-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 1.1rem;
+            }
+            .bottom-message-card {
+                padding: 6px 14px;
+            }
+            .bottom-message-icon {
+                width: 34px;
+                height: 34px;
+            }
+            .bottom-message-text h4 {
+                font-size: 0.75rem;
+            }
+            .bottom-message-text p {
+                font-size: 0.55rem;
+            }
+            .profile-username {
+                font-size: 1.8rem;
+            }
+            .distance-badge {
+                font-size: 0.75rem;
+                padding: 0.35rem 0.9rem;
+            }
+            .toggle-btn {
+                padding: 9px 22px;
+                font-size: 0.85rem;
+            }
         }
+        
         @media (min-width: 900px) {
-            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+            .photo-container {
+                max-width: 500px;
+            }
+            .profile-info {
+                max-width: 500px;
+            }
+            .bottom-nav-fixed {
+                max-width: 600px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="profile-container">
-        <a href="{{ url_for('users') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
         <div class="profile-card">
-            <div class="profile-cover">
-                <div class="profile-picture-container">
+            <!-- 9:16 Photo Container with Toggle -->
+            <div class="photo-container">
+                <!-- Toggle Buttons -->
+                <div class="toggle-section">
+                    <div class="toggle-btn active" id="toggleProfileBtn" onclick="showProfilePhoto()">
+                        <i class="fas fa-user-circle"></i> Profile
+                    </div>
+                    <div class="toggle-btn" id="toggleGalleryBtn" onclick="showGallery()">
+                        <i class="fas fa-images"></i> Gallery
+                        {% if user.photos_list %}<span style="font-size: 0.65rem;">({{ user.photos_list|length }})</span>{% endif %}
+                    </div>
+                </div>
+                
+                <!-- Profile Photo Container -->
+                <div id="profileImageContainer" class="profile-image-container">
                     {% if user.profile_pic %}
-                    <img src="{{ user.profile_pic }}" class="profile-picture">
+                    <img src="{{ user.profile_pic }}" class="profile-photo" alt="{{ user.username }}">
                     {% else %}
-                    <div class="profile-picture-placeholder"><i class="fas fa-user fa-2x"></i></div>
+                    <div class="photo-placeholder">
+                        <i class="fas fa-user-circle"></i>
+                        <span>No profile photo</span>
+                    </div>
                     {% endif %}
+                    
+                    <!-- Edit icon on profile photo -->
+                    <a href="{{ url_for('edit_profile') }}" class="edit-photo-icon">
+                        <i class="fas fa-camera"></i>
+                    </a>
                     {% if user.is_verified %}
                     <span class="verification-badge"><i class="fas fa-check-circle"></i></span>
                     {% endif %}
+                    
+                    <!-- Name overlay at bottom -->
+                    <div class="name-overlay">
+                        <div class="distance-name-container">
+                            {% if user.distance_display %}
+                            <span class="distance-badge">
+                                <i class="fas fa-map-marker-alt"></i> 
+                                {{ user.distance_display }}
+                            </span>
+                            {% endif %}
+                            <h1 class="profile-username">{{ user.username }}</h1>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gallery Container (Hidden by default) -->
+                <div id="galleryContainer" class="gallery-grid hidden">
+                    {% if user.photos_list %}
+                        {% for photo in user.photos_list %}
+                        <div class="gallery-item">
+                            <img src="{{ photo }}" alt="Gallery photo" onclick="openLightbox(this.src)">
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; width: 100%;">
+                            <i class="fas fa-images" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                            <p style="margin-top: 10px; font-size: 0.8rem;">No photos in gallery</p>
+                            <a href="{{ url_for('edit_profile') }}" style="color: #667eea; text-decoration: none; font-size: 0.7rem;">Add photos</a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
+            
+            <!-- Profile Info Section -->
             <div class="profile-info">
-                <h1 class="profile-username">{{ user.username }}</h1>
                 <div class="profile-stats">
-                    <div class="stat-item"><i class="fas fa-calendar-alt"></i> <span>{% if user.age %}{{ user.age }}y{% else %}Age?{% endif %}</span></div>
+                    <div class="stat-item"><i class="fas fa-calendar-alt"></i> <span>{% if user.age %}{{ user.age }}y{% else %}?{% endif %}</span></div>
                     <div class="stat-item"><i class="fas fa-venus-mars"></i> <span>{{ user.gender|capitalize if user.gender else '?' }}</span></div>
-                    <div class="stat-item"><i class="fas fa-map-marker-alt"></i> <span>{{ user.distance_display if user.distance_display else '?' }}</span></div>
                 </div>
+                
                 <div class="status-badge {% if user.is_online %}online{% else %}offline{% endif %}">
                     <span class="status-dot"></span>
                     {% if user.is_online %}Online{% else %}Last seen {{ user.last_seen_formatted }}{% endif %}
                 </div>
+                
                 <div class="profile-section">
                     <h3><i class="fas fa-edit"></i> About</h3>
                     <div class="bio-content">
-                        {% if user.bio %}<p>{{ user.bio }}</p>{% else %}<p class="text-muted">No bio yet. <a href="{{ url_for('edit_profile') }}" style="color:#667eea;">Add</a></p>{% endif %}
+                        {% if user.bio %}<p>{{ user.bio }}</p>{% else %}<p class="text-muted">No bio yet. <a href="{{ url_for('edit_profile') }}">Add</a></p>{% endif %}
                     </div>
                 </div>
+                
                 <div class="profile-section">
                     <h3><i class="fas fa-tags"></i> Interests</h3>
                     <div class="interests-container">
                         {% if user.interests_list %}
                             {% for interest in user.interests_list %}<span class="interest-tag">{{ interest }}</span>{% endfor %}
-                        {% else %}<p class="text-muted">No interests. <a href="{{ url_for('edit_profile') }}" style="color:#667eea;">Add</a></p>{% endif %}
+                        {% else %}<p class="text-muted">No interests. <a href="{{ url_for('edit_profile') }}">Add</a></p>{% endif %}
                     </div>
                 </div>
-                {% if user.photos_list %}
-                <div class="profile-section">
-                    <h3><i class="fas fa-images"></i> Gallery</h3>
-                    <div class="gallery-grid">
-                        {% for photo in user.photos_list %}
-                        <div class="gallery-item"><img src="{{ photo }}" onclick="openLightbox(this.src)"></div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+                
                 <div class="profile-section">
                     <h3><i class="fas fa-microphone-alt"></i> Voice</h3>
                     <div class="voice-intro-placeholder"><i class="fas fa-headphones"></i><p>Coming soon</p></div>
                 </div>
-                <div class="profile-actions">
-                    <a href="{{ url_for('edit_profile') }}" class="btn-edit"><i class="fas fa-pen"></i> Edit</a>
-                    <a href="{{ url_for('users') }}" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
-                </div>
             </div>
         </div>
     </div>
+    
+    <!-- COMPACT FIXED BOTTOM NAVIGATION BAR -->
+    <div class="bottom-nav-fixed">
+        <a href="{{ url_for('users') }}" class="bottom-back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        
+        <a href="{{ url_for('edit_profile') }}" class="bottom-edit-btn">
+            <i class="fas fa-pen"></i>
+        </a>
+        
+        <div class="bottom-message-card" onclick="window.location.href='{{ url_for('users') }}'">
+            <div class="bottom-message-left">
+                <div class="bottom-message-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="bottom-message-text">
+                    <h4>View All Users</h4>
+                    <p>Discover new people</p>
+                </div>
+            </div>
+            <div class="bottom-message-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
         <span class="close-lightbox">&times;</span>
         <img class="lightbox-content" id="lightbox-img">
     </div>
+    
     <script>
+        // Toggle functions
+        function showProfilePhoto() {
+            document.getElementById('profileImageContainer').classList.remove('hidden');
+            document.getElementById('galleryContainer').classList.add('hidden');
+            document.getElementById('toggleProfileBtn').classList.add('active');
+            document.getElementById('toggleGalleryBtn').classList.remove('active');
+        }
+        
+        function showGallery() {
+            document.getElementById('profileImageContainer').classList.add('hidden');
+            document.getElementById('galleryContainer').classList.remove('hidden');
+            document.getElementById('toggleGalleryBtn').classList.add('active');
+            document.getElementById('toggleProfileBtn').classList.remove('active');
+        }
+        
+        // Lightbox
         function openLightbox(src) {
-            document.getElementById('lightbox').style.display = 'block';
-            document.getElementById('lightbox-img').src = src;
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightbox.style.display = 'block';
+            lightboxImg.src = src;
+            document.body.style.overflow = 'hidden';
         }
-        document.querySelector('.close-lightbox').onclick = function() {
-            document.getElementById('lightbox').style.display = 'none';
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.style.display = 'none';
+            document.body.style.overflow = '';
         }
+        
+        document.querySelector('.close-lightbox').onclick = closeLightbox;
+        
         document.getElementById('lightbox').onclick = function(e) {
-            if (e.target === this) this.style.display = 'none';
+            if (e.target === this) {
+                closeLightbox();
+            }
         }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
     </script>
 </body>
 </html>
