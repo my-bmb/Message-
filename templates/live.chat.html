@@ -412,9 +412,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
         }
         
-        .action-btn:active { background: rgba(7,94,84,0.1); transform: scale(0.95); }
+        .action-btn:hover {
+            background: rgba(7,94,84,0.1);
+            transform: scale(1.05);
+        }
+        
+        .action-btn:active { background: rgba(7,94,84,0.2); transform: scale(0.95); }
         
         #messageInput {
             flex: 1;
@@ -441,6 +447,12 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .send-btn:hover {
+            background: #054a42;
+            transform: scale(1.05);
         }
         
         .send-btn:active { transform: scale(0.95); background: #054a42; }
@@ -455,8 +467,11 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            transition: all 0.2s ease;
         }
-        .back-btn:active { background: rgba(255,255,255,0.2); }
+        
+        .back-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .back-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.95); }
         
         .live-info { flex: 1; min-width: 0; }
         .live-name { font-weight: bold; font-size: 15px; }
@@ -474,9 +489,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
         }
         
-        .online-users-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.95); }
+        .online-users-btn:hover { 
+            background: rgba(255,255,255,0.3); 
+            transform: scale(1.05);
+        }
+        
+        .online-users-btn:active { background: rgba(255,255,255,0.4); transform: scale(0.95); }
         
         .load-more-container { display: flex; justify-content: center; padding: 10px; }
         .load-more-btn {
@@ -487,7 +508,15 @@
             border-radius: 20px;
             font-size: 12px;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
+        
+        .load-more-btn:hover {
+            background: #054a42;
+            transform: scale(1.02);
+        }
+        
+        .load-more-btn:active { transform: scale(0.98); }
         
         .reaction-modal {
             display: none;
@@ -515,7 +544,8 @@
             border-radius: 10px;
         }
         
-        .reaction-modal button:active { transform: scale(1.1); background: #f0f0f0; }
+        .reaction-modal button:hover { transform: scale(1.1); background: #f0f0f0; }
+        .reaction-modal button:active { transform: scale(1.15); }
         
         .modal-overlay {
             display: none;
@@ -549,7 +579,9 @@
             color: white;
             font-size: 28px;
             cursor: pointer;
+            transition: transform 0.2s;
         }
+        .image-modal .close-modal:hover { transform: scale(1.1); }
         
         /* Users Sidebar */
         .users-sidebar {
@@ -589,7 +621,11 @@
             color: white;
             font-size: 1.2rem;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
+        
+        .close-sidebar:hover { transform: scale(1.1); opacity: 0.9; }
+        .close-sidebar:active { transform: scale(0.95); }
         
         .users-list-sidebar {
             flex: 1;
@@ -603,6 +639,11 @@
             gap: 12px;
             padding: 12px;
             border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        
+        .sidebar-user:hover {
+            background: #f5f5f5;
         }
         
         .sidebar-user-avatar {
@@ -629,6 +670,10 @@
         .sidebar-user-status {
             font-size: 11px;
             color: #2ecc71;
+        }
+        
+        .sidebar-user-status.offline {
+            color: #95a5a6;
         }
         
         #fileInput { display: none; }
@@ -676,6 +721,12 @@
             z-index: 98;
             border: none;
             font-size: 1.2rem;
+            transition: all 0.2s ease;
+        }
+        
+        .scroll-to-bottom:hover {
+            background: #054a42;
+            transform: scale(1.05);
         }
         
         .scroll-to-bottom:active { transform: scale(0.95); }
@@ -713,6 +764,28 @@
             .chat-footer { padding-bottom: max(5px, env(safe-area-inset-bottom)); }
             .chat-header { padding-top: max(8px, env(safe-area-inset-top)); }
         }
+        
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Button disabled state */
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -721,9 +794,9 @@
         <a href="{{ url_for('users') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <div class="live-info">
             <div class="live-name">💬 Live Chat Room</div>
-            <div class="member-count" id="memberCount"><i class="fas fa-users"></i> {{ online_count }} online</div>
+            <div class="member-count" id="memberCount"><i class="fas fa-users"></i> <span id="onlineCountValue">{{ online_count }}</span> online</div>
         </div>
-        <button class="online-users-btn" id="showUsersBtn">
+        <button class="online-users-btn" id="showUsersBtn" title="View all online users">
             <i class="fas fa-user-friends"></i>
         </button>
     </div>
@@ -773,40 +846,48 @@
     
     <div class="chat-footer">
         <div class="left-buttons">
-            <button class="action-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
-            <button class="action-btn" id="micBtn"><i class="fas fa-microphone"></i></button>
+            <button class="action-btn" id="attachBtn" title="Attach file"><i class="fas fa-paperclip"></i></button>
+            <button class="action-btn" id="micBtn" title="Record voice"><i class="fas fa-microphone"></i></button>
         </div>
         <input type="text" id="messageInput" placeholder="Type a message...">
-        <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+        <button class="send-btn" id="sendBtn" title="Send message"><i class="fas fa-paper-plane"></i></button>
         <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
     </div>
 </div>
 
-<!-- Users Sidebar -->
+<!-- Users Sidebar - now shows only online users with count -->
 <div id="usersSidebar" class="users-sidebar">
     <div class="sidebar-header">
-        <h5><i class="fas fa-users"></i> Online Users</h5>
+        <h5><i class="fas fa-users"></i> Online Users (<span id="sidebarOnlineCount">{{ online_count }}</span>)</h5>
         <button class="close-sidebar" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
     </div>
     <div class="users-list-sidebar" id="usersListSidebar">
+        <!-- Current user (always online in this chat) -->
         <div class="sidebar-user">
             <div class="sidebar-user-avatar">{{ current_user.username[0].upper() }}</div>
             <div class="sidebar-user-info">
-                <div class="sidebar-user-name">{{ current_user.username }} (You)</div>
+                <div class="sidebar-user-name">{{ current_user.username }} <span style="font-size: 10px; color: #666;">(You)</span></div>
                 <div class="sidebar-user-status">● Online</div>
             </div>
         </div>
         {% for user in users %}
-        <div class="sidebar-user">
-            <div class="sidebar-user-avatar">{{ user.username[0].upper() }}</div>
-            <div class="sidebar-user-info">
-                <div class="sidebar-user-name">{{ user.username }}</div>
-                <div class="sidebar-user-status">
-                    {% if user.is_online %}● Online{% else %}○ Offline{% endif %}
+            {% if user.is_online %}
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">{{ user.username[0].upper() }}</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">{{ user.username }}</div>
+                    <div class="sidebar-user-status">● Online</div>
                 </div>
             </div>
-        </div>
+            {% endif %}
         {% endfor %}
+        {% if users|selectattr('is_online')|list|length == 0 %}
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name" style="text-align: center; color: #999;">No other online users</div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -877,6 +958,8 @@
     const usersSidebar = document.getElementById('usersSidebar');
     const closeSidebarBtn = document.getElementById('closeSidebarBtn');
     const memberCount = document.getElementById('memberCount');
+    const onlineCountValue = document.getElementById('onlineCountValue');
+    const sidebarOnlineCount = document.getElementById('sidebarOnlineCount');
     const imageModal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
     const reactionModal = document.getElementById('reactionModal');
@@ -914,6 +997,29 @@
     let mediaStream = null;
     let totalMessagesLoaded = {{ messages|length }};
     let onlineCount = {{ online_count }};
+    
+    // Function to open live.users.html page
+    function openLiveUsersPage() {
+        // Add click animation effect
+        const btn = document.getElementById('showUsersBtn');
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            btn.style.transform = '';
+        }, 150);
+        
+        // Open the live users page
+        window.location.href = "{{ url_for('live_users') }}";
+    }
+    
+    // Function to update online count correctly
+    function updateOnlineCount(newCount) {
+        if (newCount !== undefined && newCount !== onlineCount) {
+            onlineCount = newCount;
+            if (onlineCountValue) onlineCountValue.textContent = onlineCount;
+            if (memberCount) memberCount.querySelector('.member-count span')?.textContent = onlineCount;
+            if (sidebarOnlineCount) sidebarOnlineCount.textContent = onlineCount;
+        }
+    }
     
     function cancelReply() {
         replyToId = null;
@@ -1086,6 +1192,10 @@
         const content = messageInput.value.trim();
         if (!content) return;
         
+        // Disable send button temporarily
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
         const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         const pendingMsg = {
             id: tempId,
@@ -1112,6 +1222,9 @@
                 reply_to_id: replyToId,
                 reply_to_content: replyToContent
             })
+        }).finally(() => {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         }).catch(err => console.error('Send error:', err));
         
         messageInput.value = '';
@@ -1125,6 +1238,10 @@
     
     async function sendAudio() {
         if (!pendingAudioBlob) return;
+        
+        sendAudioBtn.disabled = true;
+        sendAudioBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
         const tempId = 'temp_audio_' + Date.now();
         const audioURL = URL.createObjectURL(pendingAudioBlob);
         const pendingMsg = {
@@ -1148,6 +1265,9 @@
         } catch (error) {
             alert('Upload failed');
             document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+        } finally {
+            sendAudioBtn.disabled = false;
+            sendAudioBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         }
         URL.revokeObjectURL(audioURL);
         pendingAudioBlob = null;
@@ -1157,6 +1277,10 @@
     
     async function sendFile() {
         if (!pendingFile) return;
+        
+        sendFileBtn.disabled = true;
+        sendFileBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
         const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         const fileURL = URL.createObjectURL(pendingFile);
         const fileType = pendingFile.type.startsWith('image/') ? 'image' : (pendingFile.type.startsWith('video/') ? 'video' : 'file');
@@ -1183,6 +1307,9 @@
         } catch (error) {
             alert('Upload failed');
             document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+        } finally {
+            sendFileBtn.disabled = false;
+            sendFileBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         }
         URL.revokeObjectURL(fileURL);
         pendingFile = null;
@@ -1190,7 +1317,13 @@
         fileInput.value = '';
     }
     
-    attachBtn.onclick = () => fileInput.click();
+    // Attach button with click effect
+    attachBtn.onclick = () => {
+        attachBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => { attachBtn.style.transform = ''; }, 150);
+        fileInput.click();
+    };
+    
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -1233,6 +1366,9 @@
     }
     
     micBtn.onclick = async () => {
+        micBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => { micBtn.style.transform = ''; }, 150);
+        
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             stopRecordingAndPreview();
             return;
@@ -1290,7 +1426,10 @@
         if (isLoadingMore || !hasMoreMessages) return;
         isLoadingMore = true;
         const btn = document.getElementById('loadMoreBtn');
-        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        }
         const scrollPos = chatBox.scrollTop;
         try {
             const res = await fetch(`/live-chat/messages?offset=${totalMessagesLoaded}`);
@@ -1402,10 +1541,10 @@
         addSystemMessage(notification.message);
         if (notification.type === 'join') {
             onlineCount++;
-            memberCount.innerHTML = `<i class="fas fa-users"></i> ${onlineCount} online`;
+            updateOnlineCount(onlineCount);
         } else {
             onlineCount--;
-            memberCount.innerHTML = `<i class="fas fa-users"></i> ${onlineCount} online`;
+            updateOnlineCount(onlineCount);
         }
     });
     
@@ -1443,13 +1582,18 @@
     sendBtn.onclick = sendTextMessage;
     messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendTextMessage(); });
     
-    showUsersBtn.onclick = () => usersSidebar.classList.add('show');
+    // Show users button - opens live.users.html page
+    showUsersBtn.onclick = openLiveUsersPage;
+    
     closeSidebarBtn.onclick = () => usersSidebar.classList.remove('show');
     document.addEventListener('click', (e) => {
         if (!usersSidebar.contains(e.target) && e.target !== showUsersBtn && usersSidebar.classList.contains('show')) {
             usersSidebar.classList.remove('show');
         }
     });
+    
+    // Initialize online count correctly
+    updateOnlineCount(onlineCount);
     
     loadInitialMessages();
     if (Notification.permission === 'default') Notification.requestPermission();
