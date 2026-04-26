@@ -765,7 +765,6 @@
             .chat-header { padding-top: max(8px, env(safe-area-inset-top)); }
         }
         
-        /* Loading spinner */
         .spinner {
             display: inline-block;
             width: 16px;
@@ -781,7 +780,6 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Button disabled state */
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -855,14 +853,13 @@
     </div>
 </div>
 
-<!-- Users Sidebar - now shows only online users with count -->
+<!-- Users Sidebar -->
 <div id="usersSidebar" class="users-sidebar">
     <div class="sidebar-header">
         <h5><i class="fas fa-users"></i> Online Users (<span id="sidebarOnlineCount">{{ online_count }}</span>)</h5>
         <button class="close-sidebar" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
     </div>
     <div class="users-list-sidebar" id="usersListSidebar">
-        <!-- Current user (always online in this chat) -->
         <div class="sidebar-user">
             <div class="sidebar-user-avatar">{{ current_user.username[0].upper() }}</div>
             <div class="sidebar-user-info">
@@ -998,106 +995,95 @@
     let totalMessagesLoaded = {{ messages|length }};
     let onlineCount = {{ online_count }};
     
-    // Function to open live.users.html page
-    function openLiveUsersPage() {
-        // Add click animation effect
-        const btn = document.getElementById('showUsersBtn');
-        btn.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-            btn.style.transform = '';
-        }, 150);
-        
-        // Open the live users page
-        window.location.href = "{{ url_for('live_users') }}";
+    // ================== GLOBAL FUNCTIONS ==================
+    window.toggleReaction = async function(messageId, reaction) {
+        try {
+            const res = await fetch('/live-chat/react', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message_id: messageId, reaction: reaction})
+            });
+            const data = await res.json();
+            if (data.success) {
+                updateReactionsUI(messageId, data.reactions);
+            }
+        } catch (error) {
+            console.error('Reaction error:', error);
+        }
+    };
+    
+    function updateReactionsUI(messageId, reactions) {
+        const container = document.getElementById(`reactions-${messageId}`);
+        if (!container) return;
+        const grouped = reactions.reduce((acc, r) => { 
+            acc[r.reaction] = (acc[r.reaction] || 0) + 1; 
+            return acc; 
+        }, {});
+        container.innerHTML = Object.entries(grouped).map(([reaction, count]) =>
+            `<span class="reaction" data-reaction="${reaction}" onclick="event.stopPropagation(); window.toggleReaction('${messageId}','${reaction}')">${reaction} <span class="count">${count}</span></span>`
+        ).join('');
     }
     
-    // Function to update online count correctly
-    function updateOnlineCount(newCount) {
-        if (newCount !== undefined && newCount !== onlineCount) {
-            onlineCount = newCount;
-            if (onlineCountValue) onlineCountValue.textContent = onlineCount;
-            if (memberCount) memberCount.querySelector('.member-count span')?.textContent = onlineCount;
-            if (sidebarOnlineCount) sidebarOnlineCount.textContent = onlineCount;
+    function escapeHtml(str) { 
+        return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; 
+    }
+    
+    async function editMessage(messageId, oldContent) {
+        const newContent = prompt("Edit message:", oldContent);
+        if (newContent && newContent !== oldContent) {
+            try {
+                await fetch('/live-chat/edit', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message_id: messageId, content: newContent})
+                });
+            } catch (error) {
+                alert('Failed to edit message');
+            }
         }
     }
     
-    function cancelReply() {
-        replyToId = null;
-        replyToContent = null;
-        replyPreviewBar.style.display = 'none';
-        messageInput.placeholder = 'Type a message...';
+    async function deleteMessage(messageId, deleteFor) {
+        if (confirm('Delete this message?')) {
+            try {
+                await fetch('/live-chat/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message_id: messageId, delete_for: deleteFor})
+                });
+            } catch (error) {
+                alert('Failed to delete message');
+            }
+        }
     }
-    
-    cancelReplyBtn.onclick = cancelReply;
-    
-    function forceScrollToBottom() {
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 10);
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 100);
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 200);
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 500);
-    }
-    
-    function scrollToBottom(behavior = 'smooth') {
-        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: behavior });
-    }
-    
-    function checkScrollPosition() {
-        const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
-        scrollToBottomBtn.style.display = isNearBottom ? 'none' : 'flex';
-    }
-    
-    scrollToBottomBtn.addEventListener('click', () => scrollToBottom('smooth'));
-    chatBox.addEventListener('scroll', checkScrollPosition);
-    
-    function clearMessageSelection() {
-        document.querySelectorAll('.message.selected').forEach(msg => msg.classList.remove('selected'));
-    }
-    
-    function selectMessage(messageElement) {
-        clearMessageSelection();
-        messageElement.classList.add('selected');
-    }
-    
-    document.addEventListener('click', function(e) {
-        const isMessageClick = e.target.closest('.message');
-        const isActionClick = e.target.closest('.message-actions');
-        const isReactionClick = e.target.closest('.reaction');
-        if (!isMessageClick && !isActionClick && !isReactionClick) clearMessageSelection();
-    });
-    
-    reactionModalOverlay.addEventListener('click', () => {
-        reactionModal.style.display = 'none';
-        reactionModalOverlay.style.display = 'none';
-    });
-    
-    function showReactionModal(messageId, event) {
-        event.stopPropagation();
-        reactionModal.style.display = 'grid';
-        reactionModalOverlay.style.display = 'block';
-        reactionModal.setAttribute('data-message-id', messageId);
-    }
-    
-    document.querySelectorAll('#reactionModal button').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const messageId = reactionModal.getAttribute('data-message-id');
-            const reaction = this.getAttribute('data-reaction');
-            if (messageId && reaction) await toggleReaction(messageId, reaction);
-            reactionModal.style.display = 'none';
-            reactionModalOverlay.style.display = 'none';
-        });
-    });
     
     function openImageModal(src) {
         modalImage.src = src;
         imageModal.style.display = 'flex';
     }
     window.openImageModal = openImageModal;
+    
     document.querySelector('.close-modal').onclick = () => imageModal.style.display = 'none';
     imageModal.onclick = (e) => { if (e.target === imageModal) imageModal.style.display = 'none'; };
     
-    function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
+    reactionModalOverlay.addEventListener('click', () => {
+        reactionModal.style.display = 'none';
+        reactionModalOverlay.style.display = 'none';
+    });
     
+    document.querySelectorAll('#reactionModal button').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const messageId = reactionModal.getAttribute('data-message-id');
+            const reaction = this.getAttribute('data-reaction');
+            if (messageId && reaction) {
+                await window.toggleReaction(messageId, reaction);
+            }
+            reactionModal.style.display = 'none';
+            reactionModalOverlay.style.display = 'none';
+        });
+    });
+    
+    // ================== MESSAGE CREATION ==================
     function createMessageElement(msg, isMe, isPending = false, tempId = null) {
         const div = document.createElement('div');
         div.className = `message ${isMe ? 'my-message' : 'other-message'}`;
@@ -1119,13 +1105,12 @@
         
         let timeHtml = formatMessageTime(msg.created_at);
         
-        // Group reactions display
         let reactionsHtml = '';
         if (!isPending && msg.reactions && msg.reactions.length) {
             const grouped = msg.reactions.reduce((acc, r) => { acc[r.reaction] = (acc[r.reaction] || 0) + 1; return acc; }, {});
             reactionsHtml = `<div class="reactions" id="reactions-${msg.id}">` +
                 Object.entries(grouped).map(([reaction, count]) =>
-                    `<span class="reaction" data-reaction="${reaction}" onclick="event.stopPropagation(); toggleReaction('${msg.id}','${reaction}')">${reaction} <span class="count">${count}</span></span>`
+                    `<span class="reaction" data-reaction="${reaction}" onclick="event.stopPropagation(); window.toggleReaction('${msg.id}','${reaction}')">${reaction} <span class="count">${count}</span></span>`
                 ).join('') + `</div>`;
         }
         
@@ -1183,16 +1168,79 @@
         
         messageDiv.querySelector('.reaction-action-btn')?.addEventListener('click', (e) => {
             e.stopPropagation();
-            showReactionModal(msg.id, e);
+            reactionModal.setAttribute('data-message-id', msg.id);
+            reactionModal.style.display = 'grid';
+            reactionModalOverlay.style.display = 'block';
             clearMessageSelection();
         });
     }
     
+    function selectMessage(messageElement) {
+        clearMessageSelection();
+        messageElement.classList.add('selected');
+    }
+    
+    function clearMessageSelection() {
+        document.querySelectorAll('.message.selected').forEach(msg => msg.classList.remove('selected'));
+    }
+    
+    document.addEventListener('click', function(e) {
+        const isMessageClick = e.target.closest('.message');
+        const isActionClick = e.target.closest('.message-actions');
+        const isReactionClick = e.target.closest('.reaction');
+        if (!isMessageClick && !isActionClick && !isReactionClick) clearMessageSelection();
+    });
+    
+    // ================== UI FUNCTIONS ==================
+    function openLiveUsersPage() {
+        const btn = document.getElementById('showUsersBtn');
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => { btn.style.transform = ''; }, 150);
+        window.location.href = "{{ url_for('live_users') }}";
+    }
+    
+    function updateOnlineCount(newCount) {
+        if (newCount !== undefined && newCount !== onlineCount) {
+            onlineCount = newCount;
+            if (onlineCountValue) onlineCountValue.textContent = onlineCount;
+            if (sidebarOnlineCount) sidebarOnlineCount.textContent = onlineCount;
+        }
+    }
+    
+    function cancelReply() {
+        replyToId = null;
+        replyToContent = null;
+        replyPreviewBar.style.display = 'none';
+        messageInput.placeholder = 'Type a message...';
+    }
+    
+    cancelReplyBtn.onclick = cancelReply;
+    
+    function forceScrollToBottom() {
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 10);
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 100);
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 200);
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 500);
+    }
+    
+    function scrollToBottom(behavior = 'smooth') {
+        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: behavior });
+    }
+    
+    function checkScrollPosition() {
+        const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
+        scrollToBottomBtn.style.display = isNearBottom ? 'none' : 'flex';
+    }
+    
+    scrollToBottomBtn.addEventListener('click', () => scrollToBottom('smooth'));
+    chatBox.addEventListener('scroll', checkScrollPosition);
+    
+    // ================== MESSAGE SENDING ==================
     function sendTextMessage() {
         const content = messageInput.value.trim();
         if (!content) return;
         
-        // Disable send button temporarily
         sendBtn.disabled = true;
         sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         
@@ -1222,10 +1270,11 @@
                 reply_to_id: replyToId,
                 reply_to_content: replyToContent
             })
-        }).finally(() => {
+        }).catch(err => console.error('Send error:', err))
+        .finally(() => {
             sendBtn.disabled = false;
             sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-        }).catch(err => console.error('Send error:', err));
+        });
         
         messageInput.value = '';
         cancelReply();
@@ -1300,8 +1349,8 @@
         const formData = new FormData();
         formData.append('file', pendingFile);
         try {
-            const res = await fetch('/live-chat/upload', { method: 'POST', body: formData });
-            const result = await res.json();
+            const response = await fetch('/live-chat/upload', { method: 'POST', body: formData });
+            const result = await response.json();
             document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
             if (!result.success) alert('Upload failed');
         } catch (error) {
@@ -1317,7 +1366,6 @@
         fileInput.value = '';
     }
     
-    // Attach button with click effect
     attachBtn.onclick = () => {
         attachBtn.style.transform = 'scale(0.95)';
         setTimeout(() => { attachBtn.style.transform = ''; }, 150);
@@ -1409,6 +1457,7 @@
     };
     sendAudioBtn.onclick = sendAudio;
     
+    // ================== LOAD MORE MESSAGES ==================
     function addLoadMoreButton() {
         const existing = document.querySelector('.load-more-container');
         if (existing) existing.remove();
@@ -1436,7 +1485,7 @@
             const data = await res.json();
             if (data.success && data.messages && data.messages.length) {
                 document.querySelector('.load-more-container')?.remove();
-                data.messages.reverse().forEach(msg => {
+                [...data.messages].reverse().forEach(msg => {
                     const isMe = msg.sender_id === currentUserId;
                     const div = createMessageElement(msg, isMe, false);
                     if (chatBox.firstChild) chatBox.insertBefore(div, chatBox.firstChild);
@@ -1480,56 +1529,21 @@
         addLoadMoreButton();
     }
     
-    async function editMessage(messageId, oldContent) {
-        const newContent = prompt("Edit message:", oldContent);
-        if (newContent && newContent !== oldContent) {
-            await fetch('/live-chat/edit', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message_id: messageId, content: newContent})
-            });
-        }
-    }
-    
-    async function deleteMessage(messageId, deleteFor) {
-        if (confirm('Delete this message?')) {
-            await fetch('/live-chat/delete', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message_id: messageId, delete_for: deleteFor})
-            });
-        }
-    }
-    
-    window.toggleReaction = async function(messageId, reaction) {
-        const res = await fetch('/live-chat/react', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({message_id: messageId, reaction})
-        });
-        const data = await res.json();
-        if (data.success) updateReactionsUI(messageId, data.reactions);
-    };
-    
-    function updateReactionsUI(messageId, reactions) {
-        const container = document.getElementById(`reactions-${messageId}`);
-        if (!container) return;
-        const grouped = reactions.reduce((acc, r) => { acc[r.reaction] = (acc[r.reaction] || 0) + 1; return acc; }, {});
-        container.innerHTML = Object.entries(grouped).map(([reaction, count]) =>
-            `<span class="reaction" data-reaction="${reaction}" onclick="event.stopPropagation(); toggleReaction('${messageId}','${reaction}')">${reaction} <span class="count">${count}</span></span>`
-        ).join('');
-    }
-    
+    // ================== TYPING INDICATOR ==================
     messageInput.addEventListener('input', () => {
         socket.emit('live_typing', { is_typing: true });
         clearTimeout(typingTimeout);
         typingTimeout = setTimeout(() => socket.emit('live_typing', { is_typing: false }), 1000);
     });
     
-    // Socket Events
+    // ================== SOCKET EVENTS ==================
     socket.on('connect', () => {
         console.log('Connected to live chat');
         socket.emit('join_live_chat');
+    });
+    
+    socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
     });
     
     socket.on('live_message', (msg) => {
@@ -1542,7 +1556,7 @@
         if (notification.type === 'join') {
             onlineCount++;
             updateOnlineCount(onlineCount);
-        } else {
+        } else if (notification.type === 'leave') {
             onlineCount--;
             updateOnlineCount(onlineCount);
         }
@@ -1579,10 +1593,10 @@
         updateReactionsUI(data.message_id, data.reactions);
     });
     
+    // ================== EVENT LISTENERS ==================
     sendBtn.onclick = sendTextMessage;
     messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendTextMessage(); });
     
-    // Show users button - opens live.users.html page
     showUsersBtn.onclick = openLiveUsersPage;
     
     closeSidebarBtn.onclick = () => usersSidebar.classList.remove('show');
@@ -1592,10 +1606,10 @@
         }
     });
     
-    // Initialize online count correctly
+    // ================== INITIALIZATION ==================
     updateOnlineCount(onlineCount);
-    
     loadInitialMessages();
+    
     if (Notification.permission === 'default') Notification.requestPermission();
 </script>
 </body>
