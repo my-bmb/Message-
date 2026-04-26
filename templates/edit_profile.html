@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Edit Profile | FlirtyBee</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -12,23 +12,154 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 12px;
+            padding-bottom: 80px;
         }
+        
         .edit-profile-container { max-width: 800px; margin: 0 auto; }
+        
         .edit-card {
             background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
             border-radius: 20px;
-            padding: 1.2rem;
+            overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
+        
+        /* 3:4 Photo Container - width:height = 3:4 */
+        .photo-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 133.33%; /* 3:4 ratio = 4/3 * 100 = 133.33% */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+        
+        .profile-photo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        
+        .photo-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+        }
+        
+        .photo-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .photo-placeholder span {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        
+        /* Edit Overlay Buttons on Photo */
+        .photo-edit-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 20;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .edit-photo-btn {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+        }
+        
+        .edit-photo-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Name overlay at bottom of photo */
+        .name-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent);
+            padding: 20px 16px 16px;
+        }
+        
+        .distance-name-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        
+        .distance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #4CAF50;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .distance-badge i {
+            font-size: 0.65rem;
+        }
+        
+        .profile-username {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        /* Form Content */
+        .form-content {
+            padding: 20px;
+        }
+        
         .edit-title {
             color: #fff;
             text-align: center;
             margin-bottom: 1.2rem;
             font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .edit-title i { color: #667eea; margin-right: 0.4rem; }
+        
+        .edit-title i { color: #667eea; font-size: 1.3rem; }
+        
         .form-group { margin-bottom: 1rem; }
+        
         .form-group label {
             display: block;
             color: #fff;
@@ -36,195 +167,388 @@
             font-weight: 500;
             font-size: 0.85rem;
         }
+        
         .form-group label i { color: #667eea; margin-right: 0.4rem; }
+        
         .form-control, .form-select {
             width: 100%;
             padding: 0.6rem 0.8rem;
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
+            border-radius: 12px;
             color: #fff;
             font-size: 0.85rem;
             transition: all 0.3s;
         }
+        
         .form-control:focus, .form-select:focus {
             outline: none;
             border-color: #667eea;
             background: rgba(255,255,255,0.15);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
+        
         .form-control::placeholder { color: #888; }
         .form-select option { background: #2a2a3e; color: #fff; }
         textarea.form-control { resize: vertical; min-height: 80px; }
+        
         .file-input {
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.8rem;
             background: rgba(255,255,255,0.05);
             border: 1px dashed rgba(255,255,255,0.3);
-            border-radius: 10px;
+            border-radius: 12px;
             color: #ccc;
             cursor: pointer;
             font-size: 0.75rem;
+            transition: all 0.3s;
         }
+        
+        .file-input:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #667eea;
+        }
+        
         .form-text {
             display: block;
             color: #888;
-            font-size: 0.7rem;
-            margin-top: 0.2rem;
+            font-size: 0.65rem;
+            margin-top: 0.3rem;
         }
-        .current-photo { margin-bottom: 0.4rem; }
-        .current-profile-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #667eea;
-        }
-        .no-photo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            font-size: 0.7rem;
-        }
+        
+        /* Current Gallery - 9:16 ratio for each image */
         .current-gallery {
-            display: flex;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-            margin-bottom: 0.4rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 0.5rem;
         }
+        
         .gallery-preview {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
+            aspect-ratio: 9 / 16;
             overflow: hidden;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: transform 0.2s;
+            position: relative;
         }
-        .gallery-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .form-actions {
-            display: flex;
-            gap: 0.8rem;
-            justify-content: center;
-            margin-top: 1.5rem;
+        
+        .gallery-preview:hover {
+            transform: scale(1.02);
         }
-        .btn-save, .btn-cancel {
-            padding: 0.6rem 1.2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.85rem;
+        
+        .gallery-preview img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;
         }
-        .btn-save {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        .btn-save:active { transform: scale(0.97); }
-        .btn-cancel {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .btn-cancel:active { transform: scale(0.97); }
+        
+        /* Alerts */
         .alert {
-            padding: 0.6rem;
-            border-radius: 10px;
+            padding: 0.75rem;
+            border-radius: 12px;
             margin-bottom: 1rem;
             font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .alert-success { background: rgba(76,175,80,0.2); color: #4CAF50; border: 1px solid #4CAF50; }
-        .alert-danger { background: rgba(244,67,54,0.2); color: #f44336; border: 1px solid #f44336; }
+        
+        .alert-success { background: rgba(76,175,80,0.15); color: #4CAF50; border: 1px solid rgba(76,175,80,0.3); }
+        .alert-danger { background: rgba(244,67,54,0.15); color: #f44336; border: 1px solid rgba(244,67,54,0.3); }
+        .alert i { font-size: 1rem; }
+        
+        /* Hidden file input */
+        #hiddenProfilePicInput, #hiddenGalleryInput {
+            display: none;
+        }
+        
+        /* ============ BOTTOM NAVIGATION BAR ============ */
+        .bottom-nav-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 46, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+        }
+        
+        .bottom-save-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .bottom-save-btn:active {
+            transform: scale(0.97);
+        }
+        
+        .bottom-cancel-btn {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            color: white;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex: 1;
+        }
+        
+        .bottom-cancel-btn:active {
+            transform: scale(0.97);
+            background: rgba(255,255,255,0.25);
+        }
+        
         /* Tablet and up */
         @media (min-width: 600px) {
-            body { padding: 20px; }
-            .edit-card { padding: 2rem; }
-            .edit-title { font-size: 1.8rem; margin-bottom: 2rem; }
+            body { padding-bottom: 85px; }
+            .photo-container {
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            .form-content {
+                max-width: 450px;
+                margin: 0 auto;
+                padding: 25px;
+            }
+            .edit-title { font-size: 1.8rem; margin-bottom: 1.5rem; }
             .form-group { margin-bottom: 1.5rem; }
-            .form-group label { font-size: 1rem; }
-            .form-control, .form-select { padding: 0.8rem; font-size: 1rem; }
-            .btn-save, .btn-cancel { padding: 0.8rem 2rem; font-size: 1rem; }
-            .current-profile-img { width: 100px; height: 100px; }
-            .gallery-preview { width: 80px; height: 80px; }
+            .form-group label { font-size: 0.95rem; }
+            .form-control, .form-select { padding: 0.8rem 1rem; font-size: 0.95rem; }
+            .bottom-nav-fixed {
+                max-width: 550px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                border-radius: 30px 30px 0 0;
+            }
+            .bottom-save-btn, .bottom-cancel-btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+            .current-gallery {
+                gap: 10px;
+            }
+            .profile-username { font-size: 1.8rem; }
+            .edit-photo-btn { width: 48px; height: 48px; font-size: 1.2rem; }
+        }
+        
+        @media (min-width: 900px) {
+            .photo-container { max-width: 450px; }
+            .form-content { max-width: 500px; }
+            .bottom-nav-fixed { max-width: 600px; }
         }
     </style>
 </head>
 <body>
     <div class="edit-profile-container">
         <div class="edit-card">
-            <h1 class="edit-title"><i class="fas fa-user-edit"></i> Edit Profile</h1>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
+            <!-- 3:4 Photo Container -->
+            <div class="photo-container">
+                {% if user.profile_pic %}
+                <img src="{{ user.profile_pic }}" class="profile-photo" alt="{{ user.username }}">
+                {% else %}
+                <div class="photo-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                    <span>No profile photo</span>
+                </div>
                 {% endif %}
-            {% endwith %}
-            <form method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label><i class="fas fa-camera"></i> Profile Picture</label>
-                    <div class="current-photo">
-                        {% if user.profile_pic %}
-                        <img src="{{ user.profile_pic }}" class="current-profile-img">
-                        {% else %}
-                        <div class="no-photo">No photo</div>
+                
+                <!-- Edit Overlay Buttons -->
+                <div class="photo-edit-overlay">
+                    <div class="edit-photo-btn" onclick="document.getElementById('hiddenProfilePicInput').click()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+                
+                <!-- Name overlay at bottom -->
+                <div class="name-overlay">
+                    <div class="distance-name-container">
+                        {% if user.distance_display %}
+                        <span class="distance-badge">
+                            <i class="fas fa-map-marker-alt"></i> 
+                            {{ user.distance_display }}
+                        </span>
                         {% endif %}
+                        <h1 class="profile-username">{{ user.username }}</h1>
                     </div>
-                    <input type="file" name="profile_pic" accept="image/*" class="file-input">
-                    <small class="form-text">Max 5MB | Square image</small>
                 </div>
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> Username *</label>
-                    <input type="text" name="username" value="{{ user.username }}" required class="form-control">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-edit"></i> Bio</label>
-                    <textarea name="bio" rows="3" class="form-control" placeholder="Tell about yourself...">{{ user.bio or '' }}</textarea>
-                    <small class="form-text">Max 500 chars</small>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-calendar-alt"></i> Age</label>
-                    <input type="number" name="age" value="{{ user.age or '' }}" min="18" max="120" class="form-control">
-                    <small class="form-text">18-120 years</small>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-venus-mars"></i> Gender</label>
-                    <select name="gender" class="form-select">
-                        <option value="">Select</option>
-                        <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
-                        <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
-                        <option value="non-binary" {% if user.gender == 'non-binary' %}selected{% endif %}>Non-binary</option>
-                        <option value="prefer-not-to-say" {% if user.gender == 'prefer-not-to-say' %}selected{% endif %}>Prefer not to say</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-tags"></i> Interests</label>
-                    <input type="text" name="interests" value="{{ user.interests_str }}" class="form-control" placeholder="Music, Travel, Coding">
-                    <small class="form-text">Separate with commas</small>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-images"></i> Gallery</label>
-                    {% if user.photos_list %}
-                    <div class="current-gallery">
-                        {% for photo in user.photos_list %}
-                        <div class="gallery-preview"><img src="{{ photo }}"></div>
+            </div>
+            
+            <!-- Hidden file input for profile picture -->
+            <input type="file" id="hiddenProfilePicInput" accept="image/*" style="display: none;" onchange="document.getElementById('profilePicInput').files = this.files; document.getElementById('profilePicInput').dispatchEvent(new Event('change'))">
+            
+            <!-- Form Content -->
+            <div class="form-content">
+                <h2 class="edit-title">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                </h2>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
                         {% endfor %}
-                    </div>
                     {% endif %}
-                    <input type="file" name="photos" accept="image/*" multiple class="file-input">
-                    <small class="form-text">Multiple images (max 10)</small>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button>
-                    <a href="{{ url_for('profile') }}" class="btn-cancel"><i class="fas fa-times"></i> Cancel</a>
-                </div>
-            </form>
+                {% endwith %}
+                
+                <form method="POST" enctype="multipart/form-data" id="editProfileForm">
+                    <!-- Hidden profile pic input for form -->
+                    <input type="file" name="profile_pic" accept="image/*" id="profilePicInput" style="display: none;">
+                    
+                    <!-- Username -->
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Username *</label>
+                        <input type="text" name="username" value="{{ user.username }}" required class="form-control" placeholder="Enter username">
+                    </div>
+                    
+                    <!-- Bio -->
+                    <div class="form-group">
+                        <label><i class="fas fa-edit"></i> Bio</label>
+                        <textarea name="bio" rows="3" class="form-control" placeholder="Tell about yourself...">{{ user.bio or '' }}</textarea>
+                        <small class="form-text"><i class="fas fa-info-circle"></i> Max 500 characters</small>
+                    </div>
+                    
+                    <!-- Age -->
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Age</label>
+                        <input type="number" name="age" value="{{ user.age or '' }}" min="18" max="120" class="form-control" placeholder="Your age">
+                        <small class="form-text"><i class="fas fa-info-circle"></i> 18-120 years</small>
+                    </div>
+                    
+                    <!-- Gender -->
+                    <div class="form-group">
+                        <label><i class="fas fa-venus-mars"></i> Gender</label>
+                        <select name="gender" class="form-select">
+                            <option value="">Select gender</option>
+                            <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
+                            <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                            <option value="non-binary" {% if user.gender == 'non-binary' %}selected{% endif %}>Non-binary</option>
+                            <option value="prefer-not-to-say" {% if user.gender == 'prefer-not-to-say' %}selected{% endif %}>Prefer not to say</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Interests -->
+                    <div class="form-group">
+                        <label><i class="fas fa-tags"></i> Interests</label>
+                        <input type="text" name="interests" value="{{ user.interests_str }}" class="form-control" placeholder="Music, Travel, Photography, Coding">
+                        <small class="form-text"><i class="fas fa-info-circle"></i> Separate with commas</small>
+                    </div>
+                    
+                    <!-- Gallery Photos - 9:16 ratio -->
+                    <div class="form-group">
+                        <label><i class="fas fa-images"></i> Gallery Photos (9:16 ratio)</label>
+                        {% if user.photos_list %}
+                        <div class="current-gallery">
+                            {% for photo in user.photos_list %}
+                            <div class="gallery-preview">
+                                <img src="{{ photo }}" alt="Gallery">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <input type="file" name="photos" accept="image/*" multiple class="file-input" id="galleryPhotosInput">
+                        <small class="form-text"><i class="fas fa-info-circle"></i> Multiple images allowed (max 10) | Recommended 9:16 ratio</small>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+    
+    <!-- FIXED BOTTOM NAVIGATION BAR -->
+    <div class="bottom-nav-fixed">
+        <button type="submit" form="editProfileForm" class="bottom-save-btn">
+            <i class="fas fa-save"></i> Save Changes
+        </button>
+        
+        <a href="{{ url_for('profile') }}" class="bottom-cancel-btn">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+    </div>
+    
+    <script>
+        // File input styling feedback
+        const profilePicInput = document.getElementById('profilePicInput');
+        const hiddenProfilePicInput = document.getElementById('hiddenProfilePicInput');
+        const galleryPhotosInput = document.getElementById('galleryPhotosInput');
+        
+        if (profilePicInput) {
+            profilePicInput.addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    this.style.borderColor = '#4CAF50';
+                    setTimeout(() => {
+                        this.style.borderColor = '';
+                    }, 1000);
+                }
+            });
+        }
+        
+        if (galleryPhotosInput) {
+            galleryPhotosInput.addEventListener('change', function(e) {
+                const count = this.files.length;
+                if (count > 0) {
+                    this.style.borderColor = '#4CAF50';
+                    setTimeout(() => {
+                        this.style.borderColor = '';
+                    }, 1000);
+                }
+            });
+        }
+        
+        // Preview profile photo when selected
+        if (hiddenProfilePicInput) {
+            hiddenProfilePicInput.addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const profilePhoto = document.querySelector('.profile-photo');
+                        if (profilePhoto) {
+                            profilePhoto.src = evt.target.result;
+                        } else {
+                            const placeholder = document.querySelector('.photo-placeholder');
+                            if (placeholder) {
+                                const img = document.createElement('img');
+                                img.src = evt.target.result;
+                                img.className = 'profile-photo';
+                                img.alt = 'Profile preview';
+                                placeholder.parentNode.replaceChild(img, placeholder);
+                            }
+                        }
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
