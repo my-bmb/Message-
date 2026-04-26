@@ -46,33 +46,99 @@
 
         .header-buttons {
             display: flex;
-            gap: 4px;
+            gap: 6px;
             flex-wrap: wrap;
         }
 
+        /* Improved header buttons: larger touch targets, better readability for mobile */
         .header-btn {
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.3);
             color: white;
-            border-radius: 25px;
-            padding: 4px 8px;
-            font-size: 0.65rem;
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 6px;
             text-decoration: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .header-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.96);
+            background: rgba(255,255,255,0.35);
         }
 
+        /* Distinct gradient backgrounds for better readability and clickability */
+        /* PROFILE BUTTON - SPECIAL ATTENTION EFFECT: Glowing + Pulsing + Gradient Enhancement */
         .profile-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             border: none;
+            position: relative;
+            overflow: hidden;
+            /* Glowing animation + soft pulse to grab attention */
+            animation: profileGlowPulse 1.8s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(245, 87, 108, 0.6), 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        /* Subtle shine overlay effect on profile button */
+        .profile-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 80%);
+            opacity: 0;
+            transition: opacity 0.6s;
+            pointer-events: none;
+            border-radius: 30px;
+        }
+        
+        .profile-btn:hover::before {
+            opacity: 1;
+        }
+        
+        /* Keyframes for glowing + pulse effect */
+        @keyframes profileGlowPulse {
+            0% {
+                box-shadow: 0 0 0px 0px rgba(245, 87, 108, 0.4), 0 0 0px 0px rgba(240, 147, 251, 0.3);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 0px 4px rgba(245, 87, 108, 0.7), 0 0 8px 4px rgba(240, 147, 251, 0.5);
+                transform: scale(1.02);
+            }
+            100% {
+                box-shadow: 0 0 0px 0px rgba(245, 87, 108, 0.2), 0 0 0px 0px rgba(240, 147, 251, 0.1);
+                transform: scale(1);
+            }
+        }
+        
+        /* On mobile, keep the pulse but slightly smaller scale to avoid clipping */
+        @media (max-width: 480px) {
+            @keyframes profileGlowPulse {
+                0% {
+                    box-shadow: 0 0 0px 0px rgba(245, 87, 108, 0.4);
+                    transform: scale(1);
+                }
+                50% {
+                    box-shadow: 0 0 0px 3px rgba(245, 87, 108, 0.8);
+                    transform: scale(1.01);
+                }
+                100% {
+                    box-shadow: 0 0 0px 0px rgba(245, 87, 108, 0.2);
+                    transform: scale(1);
+                }
+            }
         }
 
         .live-chat-btn {
@@ -83,6 +149,41 @@
         .group-call-btn {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             border: none;
+        }
+
+        .nearby-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+        }
+
+        /* Hide mobile text on very small screens but keep icons visible, still clickable */
+        @media (max-width: 480px) {
+            .header-btn span {
+                display: none;
+            }
+            .header-btn {
+                padding: 7px 10px;
+                gap: 0;
+            }
+            .header-btn i {
+                font-size: 1rem;
+                margin: 0;
+            }
+            /* Keep profile button distinct even with only icon */
+            .profile-btn {
+                animation: profileGlowPulse 1.8s ease-in-out infinite;
+            }
+        }
+
+        /* On larger phones and tablets, show text for clarity */
+        @media (min-width: 481px) {
+            .header-btn span {
+                display: inline;
+            }
+            .header-btn {
+                padding: 6px 14px;
+                font-size: 0.75rem;
+            }
         }
 
         /* Live Chat Banner */
@@ -534,21 +635,23 @@
             <span>FlirtyBee</span>
         </div>
         <div class="header-buttons">
+            <!-- Profile Button with Eye-Catching Effect (glow + pulse) to grab attention -->
             <a href="{{ url_for('profile') }}" class="header-btn profile-btn">
-                <i class="fas fa-user-circle"></i> <span class="hide-mobile">Profile</span>
+                <i class="fas fa-user-circle"></i> <span>Profile</span>
             </a>
+            <!-- Live Chat Button (Global Live) -->
             <a href="{{ url_for('live_chat') }}" class="header-btn live-chat-btn">
-                <i class="fas fa-globe"></i> <span class="hide-mobile">Live</span>
+                <i class="fas fa-globe"></i> <span>Live</span>
             </a>
+            <!-- Group Video Call Button -->
             <a href="{{ url_for('group_video_call') }}" class="header-btn group-call-btn">
-                <i class="fas fa-video"></i> <span class="hide-mobile">Group</span>
+                <i class="fas fa-video"></i> <span>Group</span>
             </a>
-            <button onclick="refreshLocation()" class="header-btn">
-                <i class="fas fa-location-dot"></i> <span class="hide-mobile">Nearby</span>
+            <!-- Nearby / Location Refresh Button (renamed for clarity) -->
+            <button onclick="refreshLocation()" class="header-btn nearby-btn">
+                <i class="fas fa-location-dot"></i> <span>Nearby</span>
             </button>
-            <button onclick="logoutUser()" class="header-btn">
-                <i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Logout</span>
-            </button>
+            <!-- EXIT/LOGOUT BUTTON REMOVED as requested -->
         </div>
     </div>
 
@@ -685,7 +788,7 @@
         let currentLocation = null;
         let currentDistanceFilter = 'all';
         
-        // Helper: format date+time in short Indian style: DD MMM, hh:mm AM/PM (one line)
+        // Helper: format date+time in short style (one line)
         function formatLastSeenDateTime(timestamp) {
             if (!timestamp) return "Recently";
             let date;
@@ -708,12 +811,11 @@
             if (diffDays === 1) return "Yesterday " + date.toLocaleTimeString('en-IN', { hour: '2-digit', minute:'2-digit', hour12: true });
             if (diffDays < 7) return `${diffDays}d ago`;
             
-            // Short date + time: "12 Mar, 2:30 PM"
             const options = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
             return date.toLocaleDateString('en-IN', options).replace(',', '');
         }
         
-        // Update all status elements with proper one-line datetime
+        // Update all status elements
         function updateAllStatusDisplays() {
             document.querySelectorAll('.user-lastseen .status-datetime').forEach(el => {
                 const rawLastSeen = el.getAttribute('data-lastseen');
@@ -721,7 +823,6 @@
                     const formatted = formatLastSeenDateTime(rawLastSeen);
                     el.textContent = formatted;
                 } else {
-                    // fallback to placeholder
                     if (el.textContent.trim() === "Loading..." || el.textContent.trim() === "") {
                         el.textContent = "Recently";
                     }
@@ -795,13 +896,11 @@
             socket.on('nearby_users_update', (data) => {
                 if (data.users) updateUsersDistance(data.users);
             });
-            // Enhanced status update: shows one line date+time for offline users
             socket.on('user_status', (data) => {
                 const card = document.querySelector(`.user-card[data-user-id="${data.user_id}"]`);
                 if (card) {
                     const indicator = card.querySelector('.online-indicator');
                     const lastseenDiv = card.querySelector('.user-lastseen');
-                    
                     if (data.is_online) {
                         indicator.classList.remove('offline');
                         indicator.classList.add('online');
@@ -814,7 +913,6 @@
                         if (lastseenDiv && data.last_seen) {
                             const formattedDateTime = formatLastSeenDateTime(data.last_seen);
                             lastseenDiv.innerHTML = `<i class="fas fa-clock offline-text" style="font-size:5px;"></i><span class="offline-text status-datetime">${formattedDateTime}</span>`;
-                            // store raw last_seen for future updates
                             const spanEl = lastseenDiv.querySelector('.status-datetime');
                             if (spanEl) spanEl.setAttribute('data-lastseen', data.last_seen);
                         }
@@ -856,7 +954,6 @@
                             distanceDiv.innerHTML = `<i class="fas fa-question-circle"></i> ?`;
                         }
                     }
-                    // Also update status if last_seen_raw is provided via socket (optional)
                     if (user.last_seen_raw && !user.is_online) {
                         const lastseenDiv = card.querySelector('.user-lastseen');
                         if (lastseenDiv) {
@@ -895,27 +992,18 @@
             items.forEach(item => container.appendChild(item));
         }
         
-        async function logoutUser() {
-            if (isLoggingOut) return;
-            isLoggingOut = true;
-            if (socket) { socket.off(); socket.disconnect(); socket = null; }
-            try { sessionStorage.clear(); localStorage.clear(); } catch(e) {}
-            await fetch('/logout', { method: 'POST' });
-            window.location.replace('/login');
-        }
+        // Logout function removed as exit button is gone
         
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const hasLocation = urlParams.has('lat') && urlParams.has('lng');
             
-            // Apply one-line date-time formatting for all offline users from server data
             updateAllStatusDisplays();
             
             window.socket = initSocket();
             window.socket.connect();
             
             const prompt = document.getElementById('locationPrompt');
-            
             if (!hasLocation && !isLoggingOut) {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
@@ -931,7 +1019,7 @@
                         },
                         (error) => {
                             if (prompt) prompt.style.display = 'flex';
-                            updateAllStatusDisplays(); // ensure fallback formatting
+                            updateAllStatusDisplays();
                         },
                         { enableHighAccuracy: true, timeout: 5000 }
                     );
